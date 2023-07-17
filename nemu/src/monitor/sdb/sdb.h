@@ -19,5 +19,27 @@
 #include <common.h>
 
 word_t expr(char *e, bool *success);
+void check_par_match(int p, int q, bool *success);
+bool check_parentheses(int p, int q, bool *success);
 
+// for watchpoint
+#define WEXPR_SIZE 128 
+#define NR_WP 32
+
+typedef struct watchpoint {
+  int NO;
+  struct watchpoint *next;
+  char e[WEXPR_SIZE];
+
+  uint32_t val;
+
+  /* TODO: Add more members if necessary */
+
+} WP;
+
+WP* new_wp();
+void free_wp(WP *wp);
+WP* find_wp(int no);
+bool scan_wp_pool(char *inst);
+void wp_display();
 #endif

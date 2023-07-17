@@ -31,8 +31,50 @@ static char *code_format =
 "  return 0; "
 "}";
 
+int wr_ptr = 0;
+
+uint32_t choose(uint32_t n) {
+  return rand() % n;
+}
+
+void gen_num() {
+  uint32_t num = choose(1000);
+  int n = sprintf(buf + wr_ptr, "(unsigned)%u", num);
+  wr_ptr += n;
+}
+
+void gen(char ch) {
+  int n = sprintf(buf + wr_ptr, "%c", ch);
+  wr_ptr += n;
+}
+
+void gen_rand_op() {
+  char op;
+  switch (choose(4)) {
+    case 0: op = '/'; break;
+    case 1: op = '*'; break;
+    case 2: op = '+'; break;
+    default: op = '-'; break;
+  }
+  int n = sprintf(buf + wr_ptr, "%c", op);
+  wr_ptr += n;
+}
+
 static void gen_rand_expr() {
-  buf[0] = '\0';
+  int n = choose(3);
+  if (wr_ptr > 100) n = 0;
+  switch (n) {
+    case 0: gen_num(); break;
+    case 1: gen('('); gen_rand_expr(); gen(')'); break;
+    default: gen_rand_expr(); gen_rand_op(); gen_rand_expr(); break;
+  } 
+}
+
+void reset_buf() {
+  for (int i = 0; i < 65536; i++) {
+    buf[i] = '\0';
+  }
+  wr_ptr = 0; 
 }
 
 int main(int argc, char *argv[]) {
@@ -44,6 +86,7 @@ int main(int argc, char *argv[]) {
   }
   int i;
   for (i = 0; i < loop; i ++) {
+    reset_buf();
     gen_rand_expr();
 
     sprintf(code_buf, code_format, buf);
@@ -52,9 +95,16 @@ int main(int argc, char *argv[]) {
     assert(fp != NULL);
     fputs(code_buf, fp);
     fclose(fp);
-
-    int ret = system("gcc /tmp/.code.c -o /tmp/.expr");
-    if (ret != 0) continue;
+    
+    /* -Wall enable all warning to error, which makes ret
+     *  not to zero when overflow and divbyzero happen.
+     */
+    int ret = system("gcc /tmp/.code.c -Werror -o /tmp/.expr");
+    if (ret != 0) {
+      fprintf(stderr,"Error happens, TRY AGAIN \n");
+      i --; // try again
+      continue;
+    }
 
     fp = popen("/tmp/.expr", "r");
     assert(fp != NULL);

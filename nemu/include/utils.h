@@ -73,5 +73,51 @@ uint64_t get_time();
     log_write(__VA_ARGS__); \
   } while (0)
 
+// ----------- Color OUTPUT -----------
+#define RED_PRINT(format, ...) \
+printf("\033[0;31m"); \
+printf(format, ##__VA_ARGS__); \
+printf("\033[0m");
+
+#define GREEN_PRINT(format, ...) \
+printf("\033[0;32m"); \
+printf(format, ##__VA_ARGS__); \
+printf("\033[0m");
+
+#define YELLOW_PRINT(format, ...) \
+printf("\033[0;33m"); \
+printf(format, ##__VA_ARGS__); \
+printf("\033[0m");
+
+#define BLUE_PRINT(format, ...) \
+printf("\033[0;34m"); \
+printf(format, ##__VA_ARGS__); \
+printf("\033[0m");
+
+#define PURPLE_PRINT(format, ...) \
+printf("\033[0;35m"); \
+printf(format, ##__VA_ARGS__); \
+printf("\033[0m");
+
+#define CYAN_PRINT(format, ...) \
+printf("\033[0;36m"); \
+printf(format, ##__VA_ARGS__); \
+printf("\033[0m");
+
+#define WHITE_PRINT(format, ...) \
+printf("\033[0;37m"); \
+printf(format, ##__VA_ARGS__); \
+printf("\033[0m");
+
+#define CMD_FORMAT_TABLE(cmd) \
+switch (cmd) { \
+  case ('i'): { GREEN_PRINT("Standard format: info r/w\nPlease try again\n"); break;} \
+  case ('x'): { GREEN_PRINT("Standard format: x N EXPR\nPlease try again\n"); break;} \
+  case ('p'): { GREEN_PRINT("Standard format: p EXPR\nPlease try again\n"); break;} \
+  case ('w'): { GREEN_PRINT("Standard format: w EXPR\nPlease try again\n"); break;} \
+  case ('d'): { GREEN_PRINT("Standard format: d EXPR\nPlease try again\n"); break;} \
+  case ('t'): { GREEN_PRINT("Standard format: texpr path/to/file\nPlease try again\n"); break;} \
+  default: break; \
+};
 
 #endif

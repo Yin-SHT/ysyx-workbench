@@ -18,6 +18,8 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "sdb.h"
+#include "utils.h"  // for nemu_state
+#include "memory/paddr.h" // for paddr_read()
 
 static int is_batch_mode = false;
 
@@ -47,8 +49,148 @@ static int cmd_c(char *args) {
   return 0;
 }
 
+static int cmd_si(char *args) {
+  int step_num = 1;
+  if (args) step_num = atoi(args);
+  cpu_exec(step_num);
+  return 0;
+}
+
+static int cmd_info(char *args) {
+  if (!args) {
+    CMD_FORMAT_TABLE('i');
+    return 0;
+  }
+
+  if (!strcmp(args, "r")) {
+    isa_reg_display();
+  } else if (!strcmp(args, "w")) {
+    wp_display();
+  } else {
+    RED_PRINT("UNSUPPORTED OPTION, TRY AGAIN!\n");
+  }
+
+  return 0;
+}
+
+static int cmd_x(char *args) {
+  if (!args) {
+    CMD_FORMAT_TABLE('x');
+    return 0;
+  }
+
+  int value;
+  paddr_t addr;
+
+  sscanf(args, "%x %x", &value, &addr);
+  for (int i = 0; i < value; i++) {
+    word_t word = paddr_read(addr + i * 4, 4);
+    GREEN_PRINT("0x%08x:\t", addr + i * 4); BLUE_PRINT("%08x\n", word);
+  }
+  return 0;
+}
+
+static int cmd_p(char *args) {
+  if (!args) {
+    CMD_FORMAT_TABLE('p');
+    return 0;
+  }
+
+  // Assume expr is correct
+  bool success = true;
+  word_t result = expr(args, &success);
+  if (!success) {
+    RED_PRINT("Expression incorrect, PLEASE RETRY!\n");
+    return 0;
+  }
+  GREEN_PRINT("DEC: "); BLUE_PRINT("%u\n", result);
+  GREEN_PRINT("HEX: "); BLUE_PRINT("0x%08x\n", result);
+  return 0;
+}
+
+static int cmd_w(char *args) {
+  if (!args) {
+    CMD_FORMAT_TABLE('w');
+    return 0;
+  }
+
+  // Assume expr is correct
+  bool success = true;
+  word_t result = expr(args, &success);
+  if (!success) {
+    RED_PRINT("Expression incorrect, PLEASE RETRY!\n");
+    return 0;
+  }
+
+  WP* wp = new_wp();
+  if (!wp) {
+    return 0;
+  }
+  strcpy(wp->e, args);
+  wp->val = result;
+
+  return 0;
+}
+
+static int cmd_d(char *args) {
+  if (!args) {
+    CMD_FORMAT_TABLE('d');
+    return 0;
+  }
+
+  int no = atoi(args);
+  WP* wp = find_wp(no);
+  if (!wp) {
+    RED_PRINT("NO WATCHPOINT NO:%d IN HEAD LIST\n", no);
+    return 0;
+  }
+  free_wp(wp);
+  return 0;
+}
+
+static int cmd_texpr(char *args) {
+  if (!args) {
+    CMD_FORMAT_TABLE('t');
+    return 0;
+  }
+
+  FILE *fp = fopen(args, "r");
+  if (fp == NULL) {
+    RED_PRINT("Can't open %s", args);
+    return 0;
+  }
+
+  char line[1024] = { 0 };
+  while (fgets(line, sizeof(line), fp) != NULL) {
+    word_t expected_res = 0;
+    char expression[1024] = { 0 };
+   
+    if(sscanf(line, "%u %s", &expected_res, expression) != 2) {
+      continue;
+    };
+
+    bool success;
+    word_t res = expr(expression, &success);
+    if (res == expected_res) {
+      GREEN_PRINT("%u %u\n", expected_res, res);
+    } else {
+      RED_PRINT("%u %u\n", expected_res, res);
+    }
+    for (int i = 0; i < 1024; i++) line[i] = 0;
+  }
+  return 0;
+}
+
+static int cmd_shell(char *args) {
+  int ret = system(args);
+  if (ret) {
+    RED_PRINT("shell command exe failed, TRY AGAIN!\n");
+  }
+  return 0;
+}
 
 static int cmd_q(char *args) {
+  nemu_state.state = NEMU_QUIT;
   return -1;
 }
 
@@ -62,6 +204,14 @@ static struct {
   { "help", "Display information about all supported commands", cmd_help },
   { "c", "Continue the execution of the program", cmd_c },
   { "q", "Exit NEMU", cmd_q },
+  { "si", "Singlt execute", cmd_si },
+  { "info", "Information about reg or mem", cmd_info },
+  { "x", "Scan memory", cmd_x },
+  { "p", "Eval expression", cmd_p },
+  { "w", "Watch expression", cmd_w },
+  { "d", "Delete watchpoint", cmd_d },
+  { "texpr", "Test expr", cmd_texpr },
+  { "shell", "Exe shell command", cmd_shell },
 
   /* TODO: Add more commands */
 
