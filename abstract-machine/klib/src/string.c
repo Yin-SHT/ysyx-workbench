@@ -52,14 +52,16 @@ int strcmp(const char *s1, const char *s2) {
   const char *p2 = s2;
 
   while (*p1 && *p2) {
-    if (*p1 != *p2) return *p1 - *p2;
+    if (*p1 != *p2) return *p1 > *p2 ? 1 : -1;
     p1++;
     p2++;
   }
 
   if (*p1 == 0 && *p2 == 0) return 0;
   else if (*p1 != 0 && *p2 == 0) return 1;
-  else return -1;
+  else if (*p1 == 0 && *p2 != 0) return -1;
+
+  return 0;
 }
 
 int strncmp(const char *s1, const char *s2, size_t n) {
