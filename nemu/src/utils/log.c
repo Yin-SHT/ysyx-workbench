@@ -18,6 +18,7 @@
 extern uint64_t g_nr_guest_inst;
 FILE *log_fp = NULL;
 FILE *rlog_fp = NULL;
+FILE *mlog_fp = NULL;
 
 void init_log(const char *log_file) {
   log_fp = stdout;
@@ -37,6 +38,16 @@ void init_rlog(const char *rlog_file) {
     rlog_fp = fp;
   }
   Log("RLog is written to %s", rlog_file ? rlog_file : "stdout");
+}
+
+void init_mlog(const char *mlog_file) {
+  mlog_fp = stdout;
+  if (mlog_file != NULL) {
+    FILE *fp = fopen(mlog_file, "w");
+    Assert(fp, "Can not open '%s'", mlog_file);
+    mlog_fp = fp;
+  }
+  Log("RLog is written to %s", mlog_file ? mlog_file : "stdout");
 }
 
 bool log_enable() {

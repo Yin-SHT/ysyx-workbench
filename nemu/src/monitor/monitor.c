@@ -19,6 +19,7 @@
 void init_rand();
 void init_log(const char *log_file);
 void init_rlog(const char *rlog_file);
+void init_mlog(const char *mlog_file);
 void init_mem();
 void init_difftest(char *ref_so_file, long img_size, int port);
 void init_device();
@@ -43,6 +44,7 @@ void sdb_set_batch_mode();
 
 static char *log_file = NULL;
 static char *rlog_file = NULL;
+static char *mlog_file = NULL;
 static char *diff_so_file = NULL;
 static char *img_file = NULL;
 static int difftest_port = 1234;
@@ -74,18 +76,20 @@ static int parse_args(int argc, char *argv[]) {
     {"batch"    , no_argument      , NULL, 'b'},
     {"log"      , required_argument, NULL, 'l'},
     {"rlog"     , required_argument, NULL, 'r'},
+    {"mlog"     , required_argument, NULL, 'm'},
     {"diff"     , required_argument, NULL, 'd'},
     {"port"     , required_argument, NULL, 'p'},
     {"help"     , no_argument      , NULL, 'h'},
     {0          , 0                , NULL,  0 },
   };
   int o;
-  while ( (o = getopt_long(argc, argv, "-bhl:r:d:p:", table, NULL)) != -1) {
+  while ( (o = getopt_long(argc, argv, "-bhl:r:m:d:p:", table, NULL)) != -1) {
     switch (o) {
       case 'b': sdb_set_batch_mode(); break;
       case 'p': sscanf(optarg, "%d", &difftest_port); break;
       case 'l': log_file = optarg; break;
       case 'r': rlog_file = optarg; break;
+      case 'm': mlog_file = optarg; break;
       case 'd': diff_so_file = optarg; break;
       case 1: img_file = optarg; return 0;
       default:
@@ -93,6 +97,7 @@ static int parse_args(int argc, char *argv[]) {
         printf("\t-b,--batch              run with batch mode\n");
         printf("\t-l,--log=FILE           output log to FILE\n");
         printf("\t-r,--rlog=FILE          output iringbuf log to FILE\n");
+        printf("\t-m,--mlog=FILE          output mtrace log to FILE\n");
         printf("\t-d,--diff=REF_SO        run DiffTest with reference REF_SO\n");
         printf("\t-p,--port=PORT          run DiffTest with port PORT\n");
         printf("\n");
@@ -116,6 +121,9 @@ void init_monitor(int argc, char *argv[]) {
 
   /* Open the log file. */
   init_rlog(rlog_file);
+  
+  /* Open the log file. */
+  init_mlog(rlog_file);
 
   /* Initialize memory. */
   init_mem();

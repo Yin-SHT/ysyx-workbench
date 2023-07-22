@@ -75,6 +75,14 @@ uint64_t get_time();
   } while (0) \
 )
 
+#define mlog_write(...) IFDEF(CONFIG_TARGET_NATIVE_ELF, \
+  do { \
+    extern FILE* mlog_fp; \
+    fprintf(mlog_fp, __VA_ARGS__); \
+    fflush(mlog_fp); \
+  } while (0) \
+)
+
 #define _Log(...) \
   do { \
     printf(__VA_ARGS__); \
