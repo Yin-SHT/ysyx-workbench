@@ -119,11 +119,13 @@ void init_monitor(int argc, char *argv[]) {
   /* Open the log file. */
   init_log(log_file);
 
-  /* Open the log file. */
+  /* Open the iringbuf log file. */
   init_rlog(rlog_file);
   
-  /* Open the log file. */
-  init_mlog(rlog_file);
+  /* Open the mtrace log file. */
+#ifdef CONFIG_MTRACE
+  init_mlog(mlog_file);
+#endif
 
   /* Initialize memory. */
   init_mem();
