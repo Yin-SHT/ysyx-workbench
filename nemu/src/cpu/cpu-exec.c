@@ -67,7 +67,7 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 static void iringbuf_trace_and_difftest() {
   for (int i = 0; i < 16; i++) {
     char *p = irbuf.log[i];
-    if (i + 1 == irbuf.top) {
+    if (( i + 1 ) % 16 == irbuf.top) {
       rlog_write(" -----> %s\n", p);
     } else {
       rlog_write("        %s\n", p);
