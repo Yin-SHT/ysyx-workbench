@@ -33,7 +33,9 @@ void init_log(const char *log_file) {
   Log("Log is written to %s", log_file ? log_file : "stdout");
 }
 
+#ifdef CONFIG_RTRACE
 void init_rlog(const char *rlog_file) {
+  if (rlog_file == NULL) return;
   rlog_fp = stdout;
   if (rlog_file != NULL) {
     FILE *fp = fopen(rlog_file, "w");
@@ -42,25 +44,31 @@ void init_rlog(const char *rlog_file) {
   }
   Log("RLog is written to %s", rlog_file ? rlog_file : "stdout");
 }
+#endif
 
+#ifdef CONFIG_MTRACE
 void init_mlog(const char *mlog_file) {
+  if (mlog_file == NULL) return;
   mlog_fp = stdout;
   if (mlog_file != NULL) {
     FILE *fp = fopen(mlog_file, "w");
     Assert(fp, "Can not open '%s'", mlog_file);
     mlog_fp = fp;
   }
-  Log("RLog is written to %s", mlog_file ? mlog_file : "stdout");
+  Log("MLog is written to %s", mlog_file ? mlog_file : "stdout");
 }
+#endif
 
+#ifdef CONFIG_FTRACE
 void init_flog(const char *flog_file) {
+  if (flog_file == NULL) return;
   flog_fp = stdout;
   if (flog_file != NULL) {
     FILE *fp = fopen(flog_file, "w");
     Assert(fp, "Can not open '%s'", flog_file);
     flog_fp = fp;
   }
-  Log("RLog is written to %s", flog_file ? flog_file : "stdout");
+  Log("FLog is written to %s", flog_file ? flog_file : "stdout");
 }
 
 typedef struct syminfo {
@@ -78,6 +86,7 @@ typedef struct funinfo {
 FunInfo fun_record;
 
 void init_elf_sym(const char *elf_file) {
+  if (elf_file == NULL) return;
   FILE *fp = fopen(elf_file, "r");
   if (!fp) {
     RED_PRINT("Can not read %s\n", elf_file);
@@ -137,9 +146,21 @@ void init_elf_sym(const char *elf_file) {
   }
 }
 
-int call_count = -1;
+void func_sym_display() {
+  printf("Num\tValue\t\tSize\tName\n");
+  for (int i = 0; i < fun_record.top; i++) {
+    int idx = fun_record.syminfos[i].idx;
+    Elf32_Addr st_value = fun_record.syminfos[i].st_value;
+    Elf32_Word st_size = fun_record.syminfos[i].st_size;
+    printf("%d\t%08x\t%u\t%s\n", idx, st_value, st_size, fun_record.syminfos[i].name);
+  }
+}
+#endif
+
+int call_count __attribute__((unused)) = -1;
 
 void ftrace_call(vaddr_t pc, vaddr_t dnpc) {
+#ifdef CONFIG_FTRACE
   for (int i = 0; i < fun_record.top; i++) {
     Elf32_Addr st_value = fun_record.syminfos[i].st_value;
     Elf32_Word st_size = fun_record.syminfos[i].st_size;
@@ -155,9 +176,13 @@ void ftrace_call(vaddr_t pc, vaddr_t dnpc) {
   }
   printf("No call!!!\n");
   assert(0);
+#else
+  return;
+#endif
 }
 
 void ftrace_ret(vaddr_t pc, vaddr_t dnpc) {
+#ifdef CONFIG_FTRACE
   for (int i = 0; i < fun_record.top; i++) {
     Elf32_Addr st_value = fun_record.syminfos[i].st_value;
     Elf32_Word st_size = fun_record.syminfos[i].st_size;
@@ -173,16 +198,9 @@ void ftrace_ret(vaddr_t pc, vaddr_t dnpc) {
   }
   printf("No ret!!!\n");
   assert(0);
-}
-
-void func_sym_display() {
-  printf("Num\tValue\t\tSize\tName\n");
-  for (int i = 0; i < fun_record.top; i++) {
-    int idx = fun_record.syminfos[i].idx;
-    Elf32_Addr st_value = fun_record.syminfos[i].st_value;
-    Elf32_Word st_size = fun_record.syminfos[i].st_size;
-    printf("%d\t%08x\t%u\t%s\n", idx, st_value, st_size, fun_record.syminfos[i].name);
-  }
+#else
+  return;
+#endif
 }
 
 bool log_enable() {

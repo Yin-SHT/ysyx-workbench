@@ -146,9 +146,19 @@ config ITRACE
   bool "Enable instruction tracer"
   default y
 
+config RTRACE
+  depends on TRACE
+  bool "Enable iringbuf tracer"
+  default n
+
 config MTRACE
   depends on TRACE
   bool "Enable memory tracer"
+  default n
+
+config FTRACE
+  depends on TRACE
+  bool "Enable function tracer"
   default n
 
 config ITRACE_COND

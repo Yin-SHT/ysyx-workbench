@@ -34,6 +34,7 @@ static bool g_print_step = false;
  * iringbuf for itrace
  * 
 */
+#ifdef CONFIG_RTRACE
 typedef struct iringbuf {
   int top;
   char *log[16];
@@ -46,22 +47,6 @@ void init_iringbuf() {
   for (int i = 0; i < 16; i++) {
     irbuf.log[i] = (char*)calloc(128, sizeof(char));
   }
-}
-
-void device_update();
-
-extern bool scan_wp_pool(char *inst);
-
-static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
-#ifdef CONFIG_ITRACE_COND
-  if (ITRACE_COND) { log_write("%s\n", _this->logbuf); }
-#endif
-  if (g_print_step) { IFDEF(CONFIG_ITRACE, puts(_this->logbuf)); }
-  IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
-#ifdef CONFIG_WATCHPOINT  
-  bool stop = scan_wp_pool(_this->logbuf);
-  if (stop) nemu_state.state = NEMU_STOP;
-#endif
 }
 
 static void iringbuf_trace_and_difftest() {
@@ -103,6 +88,24 @@ static void iringbuf_itrace_add(Decode *s) {
 #endif
 }
 
+#endif
+
+void device_update();
+
+extern bool scan_wp_pool(char *inst);
+
+static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
+#ifdef CONFIG_ITRACE_COND
+  if (ITRACE_COND) { log_write("%s\n", _this->logbuf); }
+#endif
+  if (g_print_step) { IFDEF(CONFIG_ITRACE, puts(_this->logbuf)); }
+  IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
+#ifdef CONFIG_WATCHPOINT  
+  bool stop = scan_wp_pool(_this->logbuf);
+  if (stop) nemu_state.state = NEMU_STOP;
+#endif
+}
+
 static void exec_once(Decode *s, vaddr_t pc) {
   s->pc = pc;
   s->snpc = pc;
@@ -132,7 +135,10 @@ static void exec_once(Decode *s, vaddr_t pc) {
   p[0] = '\0'; // the upstream llvm does not support loongarch32r
 #endif
 #endif
+
+#ifdef CONFIG_RTRACE
   iringbuf_itrace_add(s);
+#endif
 }
 
 static void execute(uint64_t n) {
@@ -188,6 +194,8 @@ void cpu_exec(uint64_t n) {
           nemu_state.halt_pc);
       // fall through
     case NEMU_QUIT: statistic();
+#ifdef CONFIG_RTRACE
     iringbuf_trace_and_difftest();
+#endif
   }
 }

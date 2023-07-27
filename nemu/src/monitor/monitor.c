@@ -130,7 +130,12 @@ void init_monitor(int argc, char *argv[]) {
   init_log(log_file);
 
   /* Open the iringbuf log file. */
+#ifdef CONFIG_RTRACE
   init_rlog(rlog_file);
+
+  /* Initialize iringbuf. */
+  init_iringbuf();
+#endif
   
   /* Open the mtrace log file. */
 #ifdef CONFIG_MTRACE
@@ -138,10 +143,12 @@ void init_monitor(int argc, char *argv[]) {
 #endif
 
   /* Open the ftrace log file. */
+#ifdef CONFIG_FTRACE
   init_flog(flog_file);
 
   /* Read elf file. */
   init_elf_sym(elf_file);
+#endif
 
   /* Initialize memory. */
   init_mem();
@@ -171,9 +178,6 @@ void init_monitor(int argc, char *argv[]) {
                                "bad"))) "-pc-linux-gnu"
   ));
 #endif
-
-  /* Initialize iringbuf. */
-  init_iringbuf();
 
   /* Display welcome message. */
   welcome();

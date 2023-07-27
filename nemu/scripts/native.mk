@@ -26,8 +26,8 @@ $(BINARY): compile_git
 
 override ARGS ?= --log=$(BUILD_DIR)/nemu-log.txt \
 	--rlog=$(BUILD_DIR)/nemu-rlog.txt --mlog=$(BUILD_DIR)/nemu-mlog.txt --flog=$(BUILD_DIR)/nemu-flog.txt \
-	--elf=$(CT_HOME)/build/recursion-riscv32-nemu.elf \
-	$(CT_HOME)/build/recursion-riscv32-nemu.bin
+	--elf=$(CT_HOME)/build/quick-sort-riscv32-nemu.elf \
+	$(CT_HOME)/build/quick-sort-riscv32-nemu.bin
 
 override ARGS += $(ARGS_DIFF)
 
