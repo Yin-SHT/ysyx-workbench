@@ -6,34 +6,45 @@
 
 size_t strlen(const char *s) {
   const char *p = s;
-  size_t count = 0;
 
-  while(*p) {
-    count++;
-    p++;
-  }
+  while(*p) p++;
 
-  return count;
+  return p - s;
 }
 
 char *strcpy(char *dst, const char *src) {
-  char *d = dst;
-  const char *s = src;
+  if (dst == src) return dst;
 
-  while (*s) *d++ = *s++;
-  *d = '\0';
+  size_t len = strlen(src);
+  if (dst < src) {
+    char *dst_forward = dst;
+    const char *src_forward = src;
+    while (*src_forward) {
+      *dst_forward = *src_forward;
+      dst_forward++;
+      src_forward++;
+    }
+    *dst_forward = 0;
+  } else if (dst > src) {
+    char *dst_backward = dst + len;
+    const char* src_backward = src + len;
+    while (src_backward >= src) {
+      *dst_backward = *src_backward;
+      dst_backward--;
+      src_backward--;
+    }
+  }
 
   return dst;
 }
 
 char *strncpy(char *dst, const char *src, size_t n) {
-  char *d;
   size_t i;
 
   for (i = 0; i < n && src[i] != '\0'; i++)
-    d[i] = src[i];
+      dst[i] = src[i];
   for ( ; i < n; i++)
-    d[i] = '\0';
+      dst[i] = '\0';
 
   return dst;
 }
@@ -65,15 +76,26 @@ int strcmp(const char *s1, const char *s2) {
 }
 
 int strncmp(const char *s1, const char *s2, size_t n) {
-  panic("Not implemented");
+  const char *p1 = s1;
+  const char *p2 = s2;
+  size_t count = 0;
+
+  while (count < n && *p1 && *p2) {
+    if (*p1 != *p2) return *p1 > *p2 ? 1 : -1;
+    p1++;
+    p2++;
+    count++;
+  }
+
+  if (count == n) return 0;
+
+  if (*p1 == 0 && *p2 == 0) return 0;
+  else if (*p1 != 0 && *p2 == 0) return 1;
+  else if (*p1 == 0 && *p2 != 0) return -1;
+
+  return 0;
 }
  
-/*
- * DESCRIPTION:
- *       The memset() function fills the first n bytes of the memory area pointed to by s with the constant byte c.
- * RETURN VALUE:
- *       The memset() function returns a pointer to the memory area s.
-*/
 void *memset(void *s, int c, size_t n) {
   assert(s != NULL);
 
@@ -89,85 +111,62 @@ void *memset(void *s, int c, size_t n) {
   return s;
 }
 
-/*
- * DESCRIPTION:
- *      The  memmove()  function  copies  n  bytes from memory area src to memory area dest.  The memory areas may overlap: copying
- *      takes place as though the bytes in src are first copied into a temporary array that does not overlap src or dest,  and  the
- *      bytes are then copied from the temporary array to dest.
- * RETURN VALUE:
- *      The memmove() function returns a pointer to dest.
-*/
 void *memmove(void *dst, const void *src, size_t n) {
-  assert(dst != NULL);
-  assert(src != NULL);
-
   if (src == dst) return dst;
 
-  // Backword move
-  const uint8_t *src_sentry = (uint8_t*)src;
-  uint8_t *dst_sentry = (uint8_t*)dst;
-  const uint8_t *src_back = src + n - 1;
-  uint8_t *dst_back = dst + n - 1;
+  if ((uint8_t*)dst < (uint8_t*)src) {
+    uint8_t *dst_forward = (uint8_t*)dst;
+    const uint8_t *src_forward = (uint8_t*)src;
+    const uint8_t *src_sentry = src + n;
+    
+    while (src_forward < src_sentry) {
+      *dst_forward = *src_forward;
+      dst_forward++;
+      src_forward++;
+    }
+  } else if ((uint8_t*)dst > (uint8_t*)src) {
+    uint8_t *dst_backward = dst + n - 1;
+    const uint8_t *src_backward = src + n - 1;
+    const uint8_t *src_sentry = (uint8_t*)src;
 
-  while (src_back >= src_sentry) {
-    *dst_back = *src_back;
-    dst_back--;
-    src_back--;
+    while (src_backward >= src_sentry) {
+      *dst_backward = *src_backward;
+      dst_backward--;
+      src_backward--;
+    }
   }
-  assert(src_back + 1 == src_sentry);
-  assert(dst_back + 1 == dst_sentry);
 
   return dst;
 }
 
-/*
- * DESCRIPTION
- *        The  memcpy()  function  copies  n bytes from memory area src to memory area dest.  The memory areas must not overlap.  Use
- *        memmove(3) if the memory areas do overlap.
- * RETURN VALUE
- *        The memcpy() function returns a pointer to dest.
-*/
-
-static size_t pointer_abs(const void *p1, const void *p2) {
-  const uint8_t *_p1 = (uint8_t*)p1;
-  const uint8_t *_p2 = (uint8_t*)p2;
-  size_t diff = (_p1 > _p2) ? _p1 - _p2 : _p2 - _p1;
-  return diff;
-}
-
 void *memcpy(void *out, const void *in, size_t n) {
-  assert(in != NULL);
-  assert(out != NULL);
+  if (out == in) return out;
 
-  size_t diff = pointer_abs(out, in);
-  assert( n >= diff );  // Ensure that not overlap
+  if ((uint8_t*)out < (uint8_t*)in) {
+    uint8_t *out_forward = (uint8_t*)out;
+    const uint8_t *in_sentry = (uint8_t*)in + n;
+    const uint8_t *in_forward = (uint8_t*)in;
 
-  const uint8_t *in_sentry = (uint8_t*)in + n;
-  const uint8_t *in_forward = (uint8_t*)in;
-  uint8_t *out_sentry = (uint8_t*)out + n;
-  uint8_t *out_forward = (uint8_t*)out;
+    while (in_forward < in_sentry) {
+      *out_forward = *in_forward;
+      out_forward++;
+      in_forward++;
+    }
+  } else if ((uint8_t*)out > (uint8_t*)in) {
+    uint8_t *out_backward = out + n - 1;
+    const uint8_t *in_backward = in + n - 1;
+    const uint8_t *in_sentry = (uint8_t*)in;
 
-  while (in_forward < in_sentry) {
-    *out_forward = *in_forward;
-    out_forward++;
-    in_forward++;
+    while (in_backward >= in_sentry) {
+      *out_backward = *in_backward;
+      out_backward--;
+      in_backward--;
+    }
   }
-  assert(in_forward == in_sentry);
-  assert(out_forward == out_sentry);
 
   return out;
 }
 
-/*
- * DESCRIPTION:
- *        The memcmp() function compares the first n bytes (each interpreted as unsigned char) of the memory areas s1 and s2.
- * RETURN VALUE:
- *        The memcmp() function returns an integer less than, equal to, or greater than zero if the first n bytes of s1 is found, re‐
- *        spectively, to be less than, to match, or be greater than the first n bytes of s2.
- *        For a nonzero return value, the sign is determined by the sign of the difference between the first pair  of  bytes  (inter‐
- *        preted as unsigned char) that differ in s1 and s2.
- *        If n is zero, the return value is zero.
-*/
 int memcmp(const void *s1, const void *s2, size_t n) {
   assert(s1 != NULL);
   assert(s2 != NULL);
