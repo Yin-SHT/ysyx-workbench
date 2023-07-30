@@ -1,32 +1,33 @@
 `include "defines.v"
 
 module execute (
-    input                                  rst,
+    input                      rst,
 
-    input   [ `INST_ADDR_WIDTH - 1 : 0 ]    pc_i,
-    output  [ `INST_ADDR_WIDTH - 1 : 0 ]    pc_o,
+    input   [`INST_ADDR_BUS]   snpc_i,
+    input   [`ALU_OP_BUS]      alu_op_i,
+    input   [`REG_DATA_BUS]    operand1_i,
+    input   [`REG_DATA_BUS]    operand2_i,
+    input                      wena_i,
+    input   [`REG_ADDR_BUS]    waddr_i,
 
-    input  [ `ALU_OP_WIDTH - 1 : 0 ]       alu_op_i,
-    input  [ `REG_WIDTH - 1 : 0 ]          operand1_i,
-    input  [ `REG_WIDTH - 1 : 0 ]          operand2_i,
-    input  [ `REG_ADDR_WIDTH - 1 : 0 ]     waddr_i,
-    input                                  wena_i,
+    input   [`REG_DATA_BUS]    j_target_i,
 
-    output [ `REG_WIDTH - 1 : 0 ]          result_o,
-    output [ `REG_ADDR_WIDTH - 1 : 0 ]     waddr_o,
-    output                                 wena_o
+    output  [`REG_DATA_BUS]    result_o,
+    output                     wena_o,
+    output  [`REG_ADDR_BUS]    waddr_o,
+    output  [`INST_ADDR_BUS]   dnpc_o
 );
 
-    assign pc_o = pc_i + 4;
+    assign  dnpc_o      =   ( rst == 1'b1 )                                             ? `PC_START  :
+                            ( alu_op_i == `ALU_OP_JAL  ) | ( alu_op_i == `ALU_OP_JALR ) ? j_target_i : snpc_i;         
 
-    wire [ `REG_WIDTH - 1 : 0 ] alu_result;
+    assign  result_o    =   ( rst == 1'b1              ) ?   `ZERO_WORD              :
+                            ( alu_op_i == `ALU_OP_ADD  ) ?   operand1_i + operand2_i :   
+                            ( alu_op_i == `ALU_OP_JAL  ) ?                operand2_i : 
+                            ( alu_op_i == `ALU_OP_JALR ) ?                operand2_i :  
+                            ( alu_op_i == `ALU_OP_NOP  ) ?   `ZERO_WORD              : `ZERO_WORD;
 
-    assign alu_result = ( rst == 1'b1             ) ?   `ZERO_WORD              :
-                        ( alu_op_i == `ALU_OP_ADD ) ?   operand1_i + operand2_i :
-                                                        `ZERO_WORD              ;
-
-    assign result_o = alu_result;
-    assign waddr_o  = waddr_i;
-    assign wena_o   = wena_i;
+    assign  waddr_o = waddr_i;
+    assign  wena_o  = wena_i;
 
 endmodule

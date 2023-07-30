@@ -3,22 +3,22 @@
 module write_back (
     input  rst,
 
-    input   [ `INST_ADDR_WIDTH - 1 : 0 ]    pc_i,
-    output  [ `INST_ADDR_WIDTH - 1 : 0 ]    pc_o,
+    input   [`INST_ADDR_BUS]    dnpc_i,
+    output  [`INST_ADDR_BUS]    dnpc_o,
 
-    input  [ `REG_WIDTH      - 1 : 0 ]     result_i,
-    input  [ `REG_ADDR_WIDTH - 1 : 0 ]     waddr_i,
-    input                                  wena_i,
+    input   [`REG_DATA_BUS]     result_i,
+    input                       wena_i,
+    input   [`REG_ADDR_BUS]     waddr_i,
 
-    output [ `REG_WIDTH      - 1 : 0 ]     wdata_o,
-    output [ `REG_ADDR_WIDTH - 1 : 0 ]     waddr_o,
-    output                                 wena_o
+    output  [`REG_DATA_BUS]     wdata_o,
+    output                      wena_o,
+    output  [`REG_ADDR_BUS]     waddr_o
 );
 
-    assign pc_o = pc_i;
+    assign dnpc_o = dnpc_i;
 
-    assign wdata_o =  ( rst == 1'b1 ) ? `ZERO_WORD : result_i;
-    assign waddr_o  = ( rst == 1'b1 ) ? 5'b0       : waddr_i;
-    assign wena_o   = ( rst == 1'b1 ) ? 1'b0       : wena_i;
+    assign wdata_o  =   ( rst == 1'b1 ) ?   `ZERO_WORD      : result_i;
+    assign wena_o   =   ( rst == 1'b1 ) ?   `WRITE_DISABLE  : wena_i;
+    assign waddr_o  =   ( rst == 1'b1 ) ?   `ZERO_REG       : waddr_i;
     
 endmodule

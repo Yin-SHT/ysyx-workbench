@@ -3,115 +3,119 @@
 module inst_decode (
     input   rst,
 
-    input   [ `INST_ADDR_WIDTH - 1 : 0 ]    pc_i,
-    output  [ `INST_ADDR_WIDTH - 1 : 0 ]    pc_o,
+    // Signal From inst_fetch
+    input   [`INST_ADDR_BUS]    pc_i,
 
-    // Mem   
-    input   [ `INST_WIDTH - 1 : 0 ]         inst_i,
+    // Signal From Mem   
+    input   [`INST_DATA_BUS]    inst_i,
 
-    // RF
-    input   [ `REG_WIDTH - 1 : 0 ]          rf_data1_i,
-    input   [ `REG_WIDTH - 1 : 0 ]          rf_data2_i,
+    // Signal From Regfile
+    input   [`REG_DATA_BUS]     data1_i,
+    input   [`REG_DATA_BUS]     data2_i,
 
-    // RF
-    output  [ `REG_ADDR_WIDTH - 1 : 0 ]     raddr1_o,
-    output  [ `REG_ADDR_WIDTH - 1 : 0 ]     raddr2_o,
-    output                                  rena1_o,
-    output                                  rena2_o,
+    // Signal To Regfile
+    output  [`REG_ADDR_BUS]     raddr1_o,
+    output  [`REG_ADDR_BUS]     raddr2_o,
+    output                      rena1_o,
+    output                      rena2_o,
     
-    // ALU
-    output  [ `ALU_OP_WIDTH - 1 : 0 ]       alu_op_o,
-    output  [ `REG_WIDTH - 1 : 0 ]          operand1_o,
-    output  [ `REG_WIDTH - 1 : 0 ]          operand2_o,
-    output  [ `REG_ADDR_WIDTH - 1 : 0 ]     waddr_o,
-    output                                  wena_o
+    // Signal To Alu
+    output  [`INST_ADDR_BUS]    snpc_o,
+    output  [`ALU_OP_BUS]       alu_op_o,
+    output  [`REG_DATA_BUS]     operand1_o,
+    output  [`REG_DATA_BUS]     operand2_o,
+    output                      wena_o,
+    output  [`REG_ADDR_BUS]     waddr_o,
+
+    output  [`REG_DATA_BUS]     jump_target_o
 );
+    /*
+     * This interface to communicate with C++ code
+     */
     export "DPI-C" function program_done;
-    // Communicate with c++
     function program_done;
         output int done;
-        done = { {31{ 1'b0 }}, inst_ebreak };
+        done = { {31{1'b0}}, inst_ebreak };
     endfunction
 
-    assign pc_o = pc_i;
-
-    /*
-     * * Parser insts
-     */
     /* verilator lint_off UNUSEDSIGNAL */
 
-    // For system instruction
-    wire [ 11 : 0 ]  funct12 =   inst_i[ 31 : 20 ];
+    //  *** 0. Parser instruction
+    wire [11 : 0]   funct12 =   inst_i[31 : 20];
+    wire [ 6 : 0]   funct7  =   inst_i[31 : 25];
+    wire [ 4 : 0]   rs2     =   inst_i[24 : 20];
+    wire [ 4 : 0]   rs1     =   inst_i[19 : 15];
+    wire [ 2 : 0]   funct3  =   inst_i[14 : 12];
+    wire [ 4 : 0]   rd      =   inst_i[11 : 7 ];
+    wire [ 6 : 0]   opcode  =   inst_i[6  : 0 ];
 
-    wire [ 6 : 0 ]   funct7  =   inst_i[ 31 : 25 ];
-    wire [ 4 : 0 ]   rs2     =   inst_i[ 24 : 20 ];
-    wire [ 4 : 0 ]   rs1     =   inst_i[ 19 : 15 ];
-    wire [ 2 : 0 ]   funct3  =   inst_i[ 14 : 12 ];
-    wire [ 4 : 0 ]   rd      =   inst_i[ 11 : 7  ];
-    wire [ 6 : 0 ]   opcode  =   inst_i[ 6  : 0  ];
+    wire [`REG_DATA_BUS] immI = {{21{inst_i[31]}}, inst_i[30:25], inst_i[24:21], inst_i[20]                         };
+    wire [`REG_DATA_BUS] immS = {{21{inst_i[31]}}, inst_i[30:25], inst_i[11:8],  inst_i[7]                          };
+    wire [`REG_DATA_BUS] immB = {{20{inst_i[31]}}, inst_i[7],     inst_i[30:25], inst_i[11:8],  1'b0                };
+    wire [`REG_DATA_BUS] immU = {inst_i[31],       inst_i[30:20], inst_i[19:12], 12'b0                              };
+    wire [`REG_DATA_BUS] immJ = {{12{inst_i[31]}}, inst_i[19:12], inst_i[20],    inst_i[30:25], inst_i[24:21], 1'b0 };
 
-    wire [ `IMM_WIDTH - 1 : 0 ] immI = { {21{inst_i[31]}}, inst_i[30:25], inst_i[24:21], inst_i[20]                       };
-    wire [ `IMM_WIDTH - 1 : 0 ] immS = { {21{inst_i[31]}}, inst_i[30:25], inst_i[11:8],  inst_i[7]                        };
-    wire [ `IMM_WIDTH - 1 : 0 ] immB = { {20{inst_i[31]}}, inst_i[7],     inst_i[30:25], inst_i[11:8],  1'b0              };
-    wire [ `IMM_WIDTH - 1 : 0 ] immU = { inst_i[31],       inst_i[30:20], inst_i[19:12], 12'b0                          };
-    wire [ `IMM_WIDTH - 1 : 0 ] immJ = { {12{inst_i[31]}}, inst_i[19:12], inst_i[20],    inst_i[30:25], inst_i[24:21], 1'b0 };
-
-    // Insts
-    // TODO: more insts
+    // *** 1. Get Insts Type 
     
-
-    // I Type
+    // >> ADD MORE INSTRUCTIONS
+    // *** I Type
     wire inst_addi   = ( opcode == `OPCODE_ADDI   ) & ( funct3 == `FUNCT3_ADDI   );
+    wire inst_jalr   = ( opcode == `OPCODE_JALR   ) & ( funct3 == `FUNCT3_JALR   );
+    
+    // *** U Type
+    wire inst_aupic  = ( opcode == `OPCODE_AUIPC );
+    wire inst_lui    = ( opcode == `OPCODE_LUI   );
+
+    // *** J Type
+    wire inst_jal    = ( opcode == `OPCODE_JAL   );
+
+    // *** S Type
+    wire inst_sw     = ( opcode == `OPCODE_SW    ) & ( funct3 == `FUNCT3_SW      );
+
+    // *** System instructions
     wire inst_ebreak = ( opcode == `OPCODE_EBREAK ) & ( funct3 == `FUNCT3_EBREAK ) & ( funct12 == `FUNCT12_EBREAK );
 
-    wire imm_require = ( inst_addi );
-    wire [ `IMM_WIDTH - 1 : 0 ] imm = ( inst_addi ) ? immI  :
-                                                    `ZERO_WORD;
+    // *** 2. Get Imm
 
-    /*
-     * * Generate signal
-     */
-                                            
-    assign  rena1_o  =   ( rst == 1'b0 ) & ( 
-                        ( inst_addi   ) 
-                        );
-    assign  raddr1_o   =   rena1_o  ?   rs1 :   `REG_ADDR_WIDTH'b0;
+    // >> Confirm Imm
+    wire imm_req = ( inst_addi ) | ( inst_aupic ) | ( inst_lui ) | ( inst_sw );
+    wire [`REG_DATA_BUS] imm =  ( ( inst_addi  ) | ( inst_jalr ) ) ? immI : 
+                                ( ( inst_aupic ) | ( inst_lui  ) ) ? immU :
+                                ( ( inst_jal   ) )                 ? immJ : 
+                                ( ( inst_sw    ) )                 ? immS : `ZERO_WORD;
 
-    assign  rena2_o  =   1'b0;
-    assign  raddr2_o   =   rena2_o  ?   rs2 :   `REG_ADDR_WIDTH'b0;
+    // *** 3. Generate signal
+    assign  snpc_o = pc_i + 4;
 
-    assign  alu_op_o =  ( rst == 1'b1 )  ?  `ALU_OP_NOP     :
-                        ( inst_addi   )  ?  `ALU_OP_ADD    :
-                                            `ALU_OP_NOP     ; 
+    // >> Confirm src1, src2
+    assign  rena1_o     =   ( rst == 1'b0 ) & ( ( inst_addi   ) | ( inst_jalr ) ) ;
+    assign  raddr1_o    =   rena1_o    ?    rs1    :    `ZERO_REG;
 
-    assign  operand1_o = ( rena1_o      )    ?   rf_data1_i  :   `ZERO_WORD;
-    assign  operand2_o = ( imm_require )    ?   imm         :   
-                         ( rena2_o      )    ?   rf_data2_i  :   `ZERO_WORD;
+    assign  rena2_o     =   1'b0;
+    assign  raddr2_o    =   rena2_o    ?    rs2    :    `ZERO_REG;
 
-    assign  wena_o   = ( inst_addi );
-    assign  waddr_o  = ( wena_o    )   ?   rd  :   `REG_ADDR_WIDTH'b0;
+    // >> Confirm alu_op_xxx
+    assign  alu_op_o    =   ( ( rst == 1'b1 ) )   ?    `ALU_OP_NOP    : 
+                            ( ( inst_addi ) | ( inst_aupic ) | ( inst_lui ) )    ?    `ALU_OP_ADD    :    
+                            ( ( inst_jal  ) )                                    ?    `ALU_OP_JAL    :
+                            ( ( inst_jalr ) )                                    ?    `ALU_OP_JALR   :  `ALU_OP_NOP; 
 
+    // >> Confirm operand1, operand2
+    assign  operand1_o  =   ( rena1_o      )    ?    data1_i    :
+                            ( inst_aupic   )    ?    pc_i       :    `ZERO_WORD;
+
+    assign  operand2_o  =   ( rena2_o      )    ?    data2_i    :   
+                            ( imm_req      )    ?    imm        :    
+                            ( inst_jal     )    ?    pc_i + 4   :    
+                            ( inst_jalr    )    ?    pc_i + 4   :    `ZERO_WORD;
+
+    // >> Confirm wena, waddr
+    assign  wena_o      =   ( inst_addi ) | ( inst_aupic ) | ( inst_lui ) | ( inst_jal ) | ( inst_jalr );
+    assign  waddr_o     =   ( wena_o    )   ?   rd  :   `ZERO_REG;
+
+    // *** 3. Process Jump Instructions
+    assign  jump_target_o   =   ( rst == 1'b1  )    ?   `ZERO_WORD      :   
+                                ( inst_jal     )    ?   pc_i    + imm   :   
+                                ( inst_jalr    )    ?   data1_i + imm   :   `ZERO_WORD;
 
 endmodule
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

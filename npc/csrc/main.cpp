@@ -6,33 +6,76 @@
 #include "Vtop__Dpi.h"
 #include "Vtop.h"
 #include "verilated_vcd_c.h"
+#include "Vtop___024root.h"
 
-extern svLogic ebreak();
+#define CONFIG_MSIZE 0x8000000
+#define RED_PRINT(format, ...) \
+printf("\033[0;31m"); \
+printf(format, ##__VA_ARGS__); \
+printf("\033[0m");
+
+#define GREEN_PRINT(format, ...) \
+printf("\033[0;32m"); \
+printf(format, ##__VA_ARGS__); \
+printf("\033[0m");
 
 static VerilatedContext* contextp = NULL;
 static VerilatedVcdC* tfp = NULL;
 static Vtop *top = NULL;
+class Vtop___024root;
 
-static uint32_t mem[128] = {
-  0x00108093,   // addi x1, x1, 1
-  0x00210113,   // addi x2, x2, 2
-  0x00320213,   // addi x3, x3, 3
-  0x00430313,   // addi x4, x4, 4
-  0x00100073,   // ebreak
-  0x00650513,   // addi x6, x6, 6
-  0x00760613,   // addi x7, x7, 7
-  0x00870713,   // addi x8, x8, 8
-  0x00980813,   // addi x9, x9, 9
-  0x00a90913,   // addi xa, x9, 9
-  0x00ba0a13,   // addi xb, x9, 9
-  0x00cb0b13,   // addi xc, x9, 9
-  0x00dc0c13,   // addi xd, x9, 9
-  0x00ed0d13,   // addi xe, x9, 9
-  0x00fe0f13,   // addi xd, x9, 9
+char *img_file = NULL;
+
+static uint32_t *pmem;
+
+static const uint32_t img [] = {
+  0x00000297,  // auipc t0,0
+  0x00028823,  // sb  zero,16(t0)
+  0x0102c503,  // lbu a0,16(t0)
+  0x00100073,  // ebreak (used as nemu_trap)
+  0xdeadbeef,  // some data
 };
 
+void init_mem() {
+  srand(time(0));
+  pmem = (uint32_t*)calloc(CONFIG_MSIZE / sizeof(pmem[0]), sizeof(uint32_t));
+  for (int i = 0; i < (int) (CONFIG_MSIZE / sizeof(pmem[0])); i ++) {
+    pmem[i] = rand();
+  }
+}
+
+void init_isa() {
+  /* Load built-in image. */
+  memcpy(pmem, img, sizeof(img));
+}
+
+static long load_img() {
+  if (img_file == NULL) {
+    printf("No image is given. Use the default build-in image.");
+    return 4096; // built-in image size
+  }
+
+  FILE *fp = fopen(img_file, "rb");
+  if (!fp) {
+    printf("Can not open '%s'", img_file);
+    assert(0);
+  } 
+
+  fseek(fp, 0, SEEK_END);
+  long size = ftell(fp);
+
+  printf("The image is %s, size = %ld\n", img_file, size);
+
+  fseek(fp, 0, SEEK_SET);
+  int ret = fread(pmem, size, 1, fp);
+  assert(ret == 1);
+
+  fclose(fp);
+  return size;
+} 
+
 void single_cycle() {
-    top->clk = 0; top->eval(); tfp->dump(contextp->time()); contextp->timeInc(1); 
+    top->clk = 0; top->eval(); tfp->dump(contextp->time()); contextp->timeInc(1);
     top->clk = 1; top->eval(); tfp->dump(contextp->time()); contextp->timeInc(1); 
 }
 
@@ -45,32 +88,52 @@ void reset(int n) {
 extern svLogic program_done(int* done);
 
 int main( int argc, char **argv ) {
-    contextp = new VerilatedContext;
-    contextp->commandArgs( argc, argv );
-    top = new Vtop{ contextp };
+  init_mem();
+  init_isa();
+  if (argc == 2) img_file = argv[1];
+  load_img();
 
-    Verilated::traceEverOn( true );
-    tfp = new VerilatedVcdC;
-    top->trace( tfp, 0 ); // Trace 99 levels of hierarchy (or see below)
-    tfp->open( "./sim.vcd" );
+  contextp = new VerilatedContext;
+  contextp->commandArgs( argc, argv );
+  top = new Vtop{ contextp };
 
-    const svScope scope = svGetScopeFromName("TOP.top.u_inst_decode");
-    assert(scope); // Check for nullptr if scope not found
-    svSetScope(scope);
+  Verilated::traceEverOn( true );
+  tfp = new VerilatedVcdC;
+  top->trace( tfp, 0 ); // Trace 99 levels of hierarchy (or see below)
+  tfp->open( "./sim.vcd" );
 
-    reset( 10 );
-    int done = 0;
-    while ( true ) {
-        top->inst_i = mem[(top->pc - 0x80000000) / 4];
-        single_cycle();
-        printf( "%#08x\n", top->inst_i );
-        program_done( &done );
-        if ( done ) break;
-    }
+  const svScope scope = svGetScopeFromName("TOP.top.u_inst_decode");
+  assert(scope); // Check for nullptr if scope not found
+  svSetScope(scope);
 
-    tfp->close();
+  reset( 10 );
+  int done = 0;
+  while ( true ) {
+      printf("PC: 0x%08x\tIdx: %d\t", top->pc, (top->pc - 0x80000000) / 4);
+      top->inst_i = pmem[(top->pc - 0x80000000) / 4];
+      printf( "Inst:0x%08x\n", top->inst_i );
+      single_cycle();
+      program_done( &done );
+      if ( done ) break;
+  }
+  uint32_t a0 = top->rootp->top__DOT__u_regfile__DOT__regs[10];
+  if (!a0) {
+    printf("\033[0;32m");
+    printf("\x1B[1mHIT GOOD TRAP!\x1B[0m\n");
+    printf("\033[0;32m");
+    printf("\x1B[1mPASS\x1B[0m\n");
+    printf("\033[0m");
+  } else {
+    printf("\033[0;31m");
+    printf("\x1B[1mHIT BAD TRAP!\x1B[0m\n");
+    printf("\033[0;31m");
+    printf("\x1B[1mFAIL\x1B[0m\n");
+    printf("\033[0m");
+  }
 
-    delete top;
-    delete contextp;
-    return 0;
+  tfp->close();
+
+  delete top;
+  delete contextp;
+  return 0;
 }

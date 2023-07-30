@@ -1,18 +1,18 @@
 `include "defines.v"
 
-module pc (
+module inst_fetch (
     input   clk,
     input   rst,
 
-    input   [ `INST_ADDR_WIDTH - 1 : 0 ]    pc_next,
-    output  reg [ `INST_ADDR_WIDTH - 1 : 0 ]    pc
+    input   [`INST_ADDR_BUS]        next_pc,
+    output  reg [`INST_ADDR_BUS]    pc
 );
 
     always @( posedge clk ) begin
         if ( rst == 1'b1 ) begin
             pc <= `PC_START;
         end else begin
-            pc <= pc_next;
+            pc <= next_pc;
         end
     end
     
