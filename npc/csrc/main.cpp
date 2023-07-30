@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <time.h>
+#include <assert.h>
 #include "init.h"
 #include "Vtop.h"
 #include "verilated_vcd_c.h"
@@ -10,9 +10,9 @@
 #include "Vtop___024root.h"
 
 static int is_ebreak = 0;
-static VerilatedContext* contextp = NULL;
-static VerilatedVcdC* tfp = NULL;
-static Vtop *top = NULL;
+VerilatedContext* contextp = NULL;
+VerilatedVcdC* tfp = NULL;
+Vtop *top = NULL;
 char *img_file = NULL;
 uint32_t *pmem;
 uint32_t img [] = {
@@ -23,10 +23,6 @@ uint32_t img [] = {
   0xdeadbeef,  // some data
 };
 
-void single_cycle();
-void reset(int n);
-void sim_env_setup(int argc, char **argv);
-void trace_env_setup();
 svLogic program_done(int* done);
 
 int main( int argc, char **argv ) {
@@ -43,6 +39,7 @@ int main( int argc, char **argv ) {
   assert(scope_pd); // Check for nullptr if scope not found
   svSetScope(scope_pd);
 
+  // *** Begin sim
   reset( 10 );
   while ( true ) {
       top->inst_i = pmem[(top->pc - 0x80000000) / 4];
@@ -68,35 +65,4 @@ int main( int argc, char **argv ) {
   delete top;
   delete contextp;
   return 0;
-}
-
-// Utilities
-void single_cycle() {
-    top->clk = 0; top->eval(); tfp->dump(contextp->time()); contextp->timeInc(1);
-    top->clk = 1; top->eval(); tfp->dump(contextp->time()); contextp->timeInc(1);
-}
-
-void reset(int n) {
-  top->rst = 1;
-  while (n -- > 0) single_cycle();
-  top->rst = 0;
-}
-
-void contextp_top_setup(int argc, char **argv) {
-  contextp = new VerilatedContext;
-  contextp->commandArgs( argc, argv );
-  top = new Vtop{ contextp };
-}
-
-void sim_env_setup(int argc, char **argv) {
-  contextp = new VerilatedContext;
-  contextp->commandArgs(argc, argv);
-  top = new Vtop{contextp};
-}
-
-void trace_env_setup() {
-  Verilated::traceEverOn( true );
-  tfp = new VerilatedVcdC;
-  top->trace( tfp, 0 ); // Trace 99 levels of hierarchy (or see below)
-  tfp->open( "./sim.vcd" );
 }
