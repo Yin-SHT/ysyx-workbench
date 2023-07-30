@@ -1,24 +1,20 @@
 TOP_NAME = Vtop
 BIN_PATH =
-DEST_DIR = .
-TARGET_DIR =
 
-CSRCDIR = csrc
-VSRCDIR = vsrc
-OBJDIR = build
+CSRC_DIR = csrc
+VSRC_DIR = vsrc
+INC_DIR = $(NPC_HOME)/csrc/include
+OBJ_DIR = build
 
-CSRCS = $(shell find $(CSRCDIR) -name "*.cpp" )
-VSRCS = $(shell find $(VSRCDIR) -name "*.v" )
+INCFLAGS = $(addprefix -I, $(INC_DIR))
+CFLAGS += $(INCFLAGS)
+
+CSRCS = $(shell find $(CSRC_DIR) -name "*.cpp" )
+VSRCS = $(shell find $(VSRC_DIR) -name "*.v" )
 
 VERILATOR = verilator
-COMPILE_FLAG = --cc --trace --top-module top --Wall --timing -Ivsrc -Mdir $(OBJDIR)
-SIM_FLAG = --cc --trace --top-module top --Wall --timing -Ivsrc -Mdir $(OBJDIR) --exe --build -j 80
-
-TRACE =
-_CFALGS =
-ifeq ($(TRACE),true)
-SIM_FLAG += -CFLAGS -DTRACE
-endif
+COMPILE_FLAG = --cc --trace --top-module top --Wall --timing -Ivsrc -Mdir $(OBJ_DIR)
+SIM_FLAG = --cc --trace --top-module top --Wall --timing -Ivsrc -Mdir $(OBJ_DIR) --exe --build -j 80
 
 all:
 	@echo "Write this Makefile by your self."
@@ -28,14 +24,13 @@ compile:
 
 sim:
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
-	$(VERILATOR) $(SIM_FLAG) $(CSRCS) $(VSRCS)
-	$(OBJDIR)/$(TOP_NAME) $(BIN_PATH)
+	$(VERILATOR) $(SIM_FLAG) $(addprefix -CFLAGS , $(CFLAGS)) $(CSRCS) $(VSRCS)
+	$(OBJ_DIR)/$(TOP_NAME) $(BIN_PATH)
 
 run: sim
-	echo "DONE"
 
 cleanobj:
-	$(RM) $(OBJDIR)/*
+	$(RM) $(OBJ_DIR)/*
 	$(RM) *.vcd
 
 include ../Makefile

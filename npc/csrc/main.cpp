@@ -3,10 +3,10 @@
 #include <assert.h>
 #include <time.h>
 #include "init.h"
-#include "svdpi.h"
-#include "Vtop__Dpi.h"
 #include "Vtop.h"
 #include "verilated_vcd_c.h"
+#include "svdpi.h"
+#include "Vtop__Dpi.h"
 #include "Vtop___024root.h"
 
 static int is_ebreak = 0;
@@ -27,7 +27,7 @@ void single_cycle();
 void reset(int n);
 void sim_env_setup(int argc, char **argv);
 void trace_env_setup();
-extern svLogic program_done(int* done);
+svLogic program_done(int* done);
 
 int main( int argc, char **argv ) {
 
@@ -56,7 +56,7 @@ int main( int argc, char **argv ) {
   // *** Check return value ( a0 stroe the return value in riscv arch )
   uint32_t a0 = top->rootp->top__DOT__u_regfile__DOT__regs[10];
   if (!a0) {
-    GREEN_BOLD_PRINT("HIT GOOD TRAP!\n");
+    GREEN_BOLD_PRINT("HIT GOOD TRAP!\nPASS\n");
   } else {
     RED_BOLD_PRINT("HIT BAD TRAP\nFAIL")
   }
@@ -86,6 +86,12 @@ void contextp_top_setup(int argc, char **argv) {
   contextp = new VerilatedContext;
   contextp->commandArgs( argc, argv );
   top = new Vtop{ contextp };
+}
+
+void sim_env_setup(int argc, char **argv) {
+  contextp = new VerilatedContext;
+  contextp->commandArgs(argc, argv);
+  top = new Vtop{contextp};
 }
 
 void trace_env_setup() {
