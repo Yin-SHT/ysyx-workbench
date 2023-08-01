@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <assert.h>
 
-enum { NPC_EBREAK, NPC_QUIT, NPC_ABORT, NPC_STOP };
+enum { NPC_EBREAK, NPC_QUIT, NPC_ABORT, NPC_STOP, NPC_UNKNOWN };
 
 typedef struct npcstate {
   int state;

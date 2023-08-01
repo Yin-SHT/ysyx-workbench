@@ -13,6 +13,9 @@ void check_return_state() {
     RED_PRINT("\nSomething is implemented incorrectly\n");
     return;
   }
+  if (npc_state.state == NPC_UNKNOWN) {
+    RED_PRINT("Unknown inst\n");
+  }
 
   uint32_t a0 = get_reg(10);
   if (!a0 && is_ebreak) {

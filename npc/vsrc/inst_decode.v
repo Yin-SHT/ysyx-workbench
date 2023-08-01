@@ -44,6 +44,12 @@ module inst_decode (
         inst = inst_i;
     endfunction
 
+    export "DPI-C" function get_unknown;
+    function get_unknown;
+        output int unknown;
+        unknown = { {31{1'b0}}, inst_unknown };
+    endfunction
+
     /* verilator lint_off UNUSEDSIGNAL */
 
     //  *** 0. Parser instruction
@@ -80,6 +86,9 @@ module inst_decode (
 
     // *** System instructions
     wire inst_ebreak = ( opcode == `OPCODE_EBREAK ) & ( funct3 == `FUNCT3_EBREAK ) & ( funct12 == `FUNCT12_EBREAK );
+
+    // *** Examine unknown instruction
+    wire inst_unknown = !(inst_addi | inst_jalr | inst_aupic | inst_lui | inst_jal | inst_sw | inst_ebreak);
 
     // *** 2. Get Imm
 

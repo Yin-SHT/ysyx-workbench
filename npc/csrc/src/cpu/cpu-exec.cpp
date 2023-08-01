@@ -19,6 +19,7 @@ static char logbuf[512] = { 0 };
 // *** Exec fucntions
 svLogic program_done(int* done);
 svLogic get_inst(svBitVecVal* inst);
+svLogic get_unknown(int* unknown);
 
 int decode_stage(uint32_t inst, vaddr_t pc);
 void difftest_step(vaddr_t npc);
@@ -39,14 +40,9 @@ void exec_once() {
   uint32_t inst = top_inst();
   decode_stage(inst, pc);
   if (g_print_step) {
-    BLUE_PRINT("0x%08x: ", top_pc());
+    BLUE_PRINT("0x%08x: %08x\n", pc, inst);
   }
   single_cycle();
-  if (g_print_step) {
-    uint32_t inst = 0;
-    get_inst(&inst);
-    YELLOW_PRINT("%08x\n", inst);
-  }
 
   // *** Inst Trace
   char *p = logbuf;
@@ -80,6 +76,18 @@ void cpu_exec(uint64_t n) {
 
     // *** Trace
     inst_trace();
+
+    // *** Examine unknown inst
+    do {
+      int inst_unknown = 0;
+      get_unknown(&inst_unknown);
+      if (inst_unknown) {
+        npc_state.state = NPC_UNKNOWN;
+        RED_PRINT("UKNOWN INST: %s\n", logbuf);
+        return;
+      }
+    } while(0);
+
 
     // Update cpu state
     update_cpu();
