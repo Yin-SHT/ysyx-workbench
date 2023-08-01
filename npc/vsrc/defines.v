@@ -9,6 +9,12 @@
 
 `define PC_START        32'h8000_0000
 
+`define MEM_ADDR_WIDTH          32
+`define MEM_ADDR_BUS            31:0
+
+`define MEM_DATA_WIDTH          32
+`define MEM_DATA_BUS            31:0
+
 `define INST_ADDR_WIDTH         32
 `define INST_ADDR_BUS           31:0
 

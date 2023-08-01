@@ -2,10 +2,18 @@
 #include <stdlib.h>
 #include <readline/readline.h>
 #include <readline/history.h>
-#include "init.h"
+#include <common.h>
+#include <utils.h>
+#include <paddr.h>
+
+void isa_reg_display();
+void cpu_exec(uint64_t n);
+
+static bool is_batch_mode = false;
 
 int cmd_q(char *args) {
-  return 0;
+  npc_state.state = NPC_QUIT;
+  return -1;
 }
 
 int cmd_shell(char *args) {
@@ -13,18 +21,37 @@ int cmd_shell(char *args) {
 }
 
 int cmd_c(char *args) {
+  cpu_exec(-1);
+  if (npc_state.state == NPC_EBREAK) return -1;
   return 0;
 }
 
 int cmd_si(char *args) {
+  int step_num = 1;
+  if (args) step_num = atoi(args);
+  cpu_exec(step_num);
+  if (npc_state.state == NPC_EBREAK) return -1;
   return 0;
 }
 
 int cmd_info(char *args) {
+  if (!strcmp(args, "r")) {
+    isa_reg_display();
+  } else {
+    printf("Unsupported %s\n", args);
+  }
   return 0;
 }
 
 int cmd_x(char *args) {
+  int value;
+  uint32_t addr;
+
+  sscanf(args, "%x %x", &value, &addr);
+  for (int i = 0; i < value; i++) {
+    word_t word = paddr_read(addr + i * 4, 4);
+    GREEN_PRINT("0x%08x:\t", addr + i * 4); BLUE_PRINT("%08x\n", word);
+  }
   return 0;
 }
 
@@ -51,6 +78,10 @@ struct {
 
 #define NR_CMD ARRLEN(cmd_table)
 
+void sdb_set_batch_mode() {
+  is_batch_mode = true;
+}
+
 /* We use the `readline' library to provide more flexibility to read from stdin. */
 char* rl_gets() {
   static char *line_read = NULL;
@@ -70,6 +101,11 @@ char* rl_gets() {
 }
 
 void sdb_mainloop() {
+  if (is_batch_mode) {
+    cpu_exec(-1);
+    return;
+  }
+
   for (char *str; (str = rl_gets()) != NULL; ) {
     char *str_end = str + strlen(str);
 

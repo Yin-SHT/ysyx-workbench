@@ -38,6 +38,12 @@ module inst_decode (
         done = { {31{1'b0}}, inst_ebreak };
     endfunction
 
+    export "DPI-C" function get_inst;
+    function get_inst;
+        output bit[31:0] inst;
+        inst = inst_i;
+    endfunction
+
     /* verilator lint_off UNUSEDSIGNAL */
 
     //  *** 0. Parser instruction
