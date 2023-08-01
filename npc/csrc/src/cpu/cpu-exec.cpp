@@ -21,6 +21,7 @@ svLogic program_done(int* done);
 svLogic get_inst(svBitVecVal* inst);
 
 int decode_stage(uint32_t inst, vaddr_t pc);
+void difftest_step(vaddr_t npc);
 
 void reset_logbuf() {
   for (int i = 0; i < 512; i++) {
@@ -30,7 +31,6 @@ void reset_logbuf() {
 
 void inst_trace() {
   log_write("%s\n", logbuf);
-  reset_logbuf();
 }
 
 void exec_once() {
@@ -80,6 +80,20 @@ void cpu_exec(uint64_t n) {
 
     // *** Trace
     inst_trace();
+
+    // Update cpu state
+    update_cpu();
+    
+    // diff test
+    difftest_step(top_pc());
+    if (npc_state.state == NPC_ABORT) {
+      RED_PRINT("ABORT INST:   ");
+      puts(logbuf);
+      break;
+    }
+
+    // Clean up work
+    reset_logbuf();
 
     program_done(&is_ebreak);
     if (is_ebreak) {

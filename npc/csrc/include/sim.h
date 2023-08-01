@@ -9,6 +9,7 @@ void init_verilator(int argc, char **argv);
 void inst_fetch();
 vaddr_t top_pc();
 word_t top_inst();
+void update_cpu();
 
 #endif
 

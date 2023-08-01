@@ -22,7 +22,7 @@ int cmd_shell(char *args) {
 
 int cmd_c(char *args) {
   cpu_exec(-1);
-  if (npc_state.state == NPC_EBREAK) return -1;
+  if (npc_state.state == NPC_EBREAK || npc_state.state == NPC_ABORT) return -1;
   return 0;
 }
 

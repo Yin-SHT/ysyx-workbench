@@ -9,6 +9,10 @@ word_t get_reg(int i);
 
 void check_return_state() {
   if (npc_state.state == NPC_QUIT) return;
+  if (npc_state.state == NPC_ABORT) {
+    RED_PRINT("\nSomething is implemented incorrectly\n");
+    return;
+  }
 
   uint32_t a0 = get_reg(10);
   if (!a0 && is_ebreak) {

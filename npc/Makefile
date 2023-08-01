@@ -1,5 +1,6 @@
 TOP_NAME = Vtop
-NPC_ARGS = --log=$(NPC_HOME)/log.txt --flog=$(NPC_HOME)/flog.txt --elf=$(NPC_HOME)/dummy.elf
+NPC_ARGS = --log=$(NPC_HOME)/output/log.txt --flog=$(NPC_HOME)/output/flog.txt --elf=$(NPC_HOME)/dummy.elf \
+          --diff=$(NEMU_HOME)/build/riscv32-nemu-interpreter-so
 IMG_PATH = $(NPC_HOME)/dummy.bin
 
 CSRC_DIR = csrc
@@ -19,9 +20,6 @@ VERILATOR = verilator
 COMPILE_FLAG = --cc --trace --top-module top --Wall --timing -Ivsrc -Mdir $(OBJ_DIR)
 SIM_FLAG = --cc --trace --top-module top --Wall --timing -Ivsrc -Mdir $(OBJ_DIR) --exe --build -j 80
 
-test:
-	echo $(CSRCS)
-
 all:
 	@echo "Write this Makefile by your self."
 
@@ -38,6 +36,6 @@ run: sim
 
 clean:
 	$(RM) $(OBJ_DIR)/*
-	$(RM) *.vcd
+	$(RM) output/*
 
 include ../Makefile

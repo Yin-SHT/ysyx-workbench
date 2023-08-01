@@ -1,5 +1,6 @@
 #include <common.h>
 #include <utils.h>
+#include <isa.h>
 #include <paddr.h>
 #include "Vtop.h"
 #include "verilated_vcd_c.h"
@@ -40,6 +41,31 @@ void isa_reg_display() {
   printf("\n");
 }
 
+void isa_diff_reg_display(CPU_state *ref_r) {
+  // 1. PC
+  paddr_t dut_pc = top->pc;
+  paddr_t ref_pc = ref_r->pc;
+  YELLOW_PRINT("DUT\t\t\tREF\n");
+  if (dut_pc != ref_pc) {
+    RED_PRINT("PC : 0x%08x\t\tPC : 0x%08x\n", dut_pc, ref_pc);
+  } else {
+    GREEN_PRINT("PC : 0x%08x\t\tPC : 0x%08x\n", dut_pc, ref_pc);
+  }
+  
+  // 2. Regs
+  for (int i = 0; i < MUXDEF(CONFIG_RVE, 16, 32); i++) {
+    word_t dut_val = top->rootp->top__DOT__u_regfile__DOT__regs[i];
+    word_t ref_val = ref_r->gpr[i];
+    if (i != 0 && i % 4 == 0) printf("\n");
+    if (dut_val != ref_val) {
+      RED_PRINT("%-3s: 0x%08x\t\t%-3s: 0x%08x\n", regs[i], dut_val, regs[i], ref_val);
+    } else {
+      GREEN_PRINT("%-3s: 0x%08x\t\t%-3s: 0x%08x\n", regs[i], dut_val, regs[i], ref_val);
+    }
+  }
+  printf("\n");
+}
+
 word_t get_reg(int i) {
   int idx =  check_reg_idx(i);
   return  top->rootp->top__DOT__u_regfile__DOT__regs[idx];
@@ -57,6 +83,25 @@ void inst_fetch() {
   top->inst_i = paddr_read(top->pc, 4);
 }
 
+void update_cpu() {
+  for (int i = 0; i < MUXDEF(CONFIG_RVE, 16, 32); i++) {
+    cpu.gpr[i] = top->rootp->top__DOT__u_regfile__DOT__regs[i];
+  }
+  cpu.pc = top->pc;
+}
+
+bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t npc) {
+  for (int i = 0; i < MUXDEF(CONFIG_RVE, 16, 32); i++) {
+    if (ref_r->gpr[i] != cpu.gpr[i]) {
+      return false;
+    }
+  }
+  if (ref_r->pc != npc) return false;
+
+  return true;
+}
+
+// *** Simulation func
 void single_cycle() {
   top->clk = 0; top->eval(); tfp->dump(contextp->time()); contextp->timeInc(1);
   top->clk = 1; top->eval(); tfp->dump(contextp->time()); contextp->timeInc(1);
@@ -77,7 +122,7 @@ void init_verilator(int argc, char **argv) {
   Verilated::traceEverOn( true );
   tfp = new VerilatedVcdC;
   top->trace( tfp, 0 ); // Trace 99 levels of hierarchy (or see below)
-  tfp->open( "./sim.vcd" );
+  tfp->open( "./output/sim.vcd" );
 
   reset( 10 );
 }
