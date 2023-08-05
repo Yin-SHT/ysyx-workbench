@@ -14,12 +14,16 @@ module addr_transfer (
   output [`INST_ADDR_BUS] dnpc_o
 );
 
-  wire [32:0] Result = {operand1_i[31], operand1_i} + (~{operand2_i[31], operand2_i}) + 1;
+  wire cout;
+  wire [`REG_DATA_BUS] result;
 
-  wire Zf =  ~(| Result);
-  wire Of = Result[32] ^ Result[31];
-  wire Sf = Result[31];
-  wire Cf = Result[32] ^ 1;
+  assign { cout, result } = {operand1_i[31], operand1_i} + (~{operand2_i[31], operand2_i}) + 1;
+
+  wire Of = ((operand1_i[31]) & (!operand2_i[31]) & (!result[31])) | ((!operand1_i[31]) & (operand2_i[31]) & (result[31]));
+  wire Cf = cout ^ 1'b1;
+
+  wire Sf = result[31];
+  wire Zf =  ~(| result);
 
   wire unsigned_less_than = ( Cf == 1 );
   wire unsigned_greater_equal = ( Cf == 0 );
