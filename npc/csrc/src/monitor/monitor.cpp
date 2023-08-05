@@ -15,9 +15,9 @@ void init_disasm(const char *triple);
 void init_verilator(int argc, char **argv);
 
 static void welcome() {
-  BLUE_PRINT("Build time: %s, %s\n", __TIME__, __DATE__);
-  GREEN_PRINT("Welcome to RISCV32-NPC!\n");
-  GREEN_PRINT("For help, type \"help\"\n");
+  BLUE_BOLD_PRINT("Build time: %s, %s\n", __TIME__, __DATE__);
+  GREEN_BOLD_PRINT("Welcome to RISCV32-NPC!\n");
+  GREEN_BOLD_PRINT("For help, type \"help\"\n");
 }
 
 void sdb_set_batch_mode();
@@ -33,7 +33,7 @@ static int difftest_port = 1234;
 
 static long load_img() {
   if (img_file == NULL) {
-    BLUE_PRINT("No image is given. Use the default build-in image.\n");
+    BLUE_BOLD_PRINT("No image is given. Use the default build-in image.\n");
     return 4096; // built-in image size
   }
 
@@ -45,7 +45,7 @@ static long load_img() {
   fseek(fp, 0, SEEK_END);
   long size = ftell(fp);
 
-  BLUE_PRINT("The image is %s, size = %ld\n", img_file, size);
+  BLUE_BOLD_PRINT("The image is %s, size = %ld\n", img_file, size);
 
   fseek(fp, 0, SEEK_SET);
   int ret = fread(guest_to_host(RESET_VECTOR), size, 1, fp);
@@ -125,7 +125,7 @@ void init_monitor(int argc, char *argv[]) {
   long img_size = load_img();
 
   /* Initialize differential testing. */
-//  init_difftest(diff_so_file, img_size, difftest_port);
+  init_difftest(diff_so_file, img_size, difftest_port);
 
   /* Init llvm disasm */
   init_disasm("riscv32" "-pc-linux-gnu");

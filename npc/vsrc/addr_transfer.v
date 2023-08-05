@@ -14,15 +14,28 @@ module addr_transfer (
   output [`INST_ADDR_BUS] dnpc_o
 );
 
+  wire [32:0] Result = {operand1_i[31], operand1_i} + (~{operand2_i[31], operand2_i}) + 1;
+
+  wire Zf =  ~(| Result);
+  wire Of = Result[32] ^ Result[31];
+  wire Sf = Result[31];
+  wire Cf = Result[32] ^ 1;
+
+  wire unsigned_less_than = ( Cf == 1 );
+  wire unsigned_greater_equal = ( Cf == 0 );
+
+  wire signed_less_than = ( ( Sf ^ Of ) == 1 );
+  wire signed_greater_equal = ( ( Sf ^ Of ) == 0 );
+
   wire transfer;
 
   assign transfer = ( rst       == `RST_ENABLE  ) ? ( `TRAN_DISABLE            ) :
-                    ( tran_op_i == `TRAN_OP_BEQ ) ? ( operand1_i == operand2_i ) :
-                    ( tran_op_i == `TRAN_OP_BNE ) ? ( operand1_i != operand2_i ) :
-                    ( tran_op_i == `TRAN_OP_BLT ) ? ( operand1_i <  operand2_i ) :
-                    ( tran_op_i == `TRAN_OP_BGE ) ? ( operand1_i >= operand2_i ) :
-                    ( tran_op_i == `TRAN_OP_BLTU) ? ( operand1_i <= operand2_i ) :
-                    ( tran_op_i == `TRAN_OP_BGEU) ? ( operand1_i >= operand2_i ) :
+                    ( tran_op_i == `TRAN_OP_BEQ ) ? ( Zf                       ) :
+                    ( tran_op_i == `TRAN_OP_BNE ) ? ( !Zf                      ) :
+                    ( tran_op_i == `TRAN_OP_BLT ) ? ( signed_less_than         ) :
+                    ( tran_op_i == `TRAN_OP_BGE ) ? ( signed_greater_equal     ) :
+                    ( tran_op_i == `TRAN_OP_BLTU) ? ( unsigned_less_than       ) :
+                    ( tran_op_i == `TRAN_OP_BGEU) ? ( unsigned_greater_equal   ) :
                     ( tran_op_i == `TRAN_OP_JAL ) ? ( `TRAN_ENABLE             ) :
                     ( tran_op_i == `TRAN_OP_JALR) ? ( `TRAN_ENABLE             ) : `TRAN_DISABLE;
 

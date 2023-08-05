@@ -85,17 +85,13 @@ void cpu_exec(uint64_t n) {
       return;
     }
 
-
-//    // Update cpu state
-//    update_cpu();
-    
-//    // diff test
-//    difftest_step(0);
-//    if (npc_state.state == NPC_ABORT) {
-//      RED_PRINT("ABORT INST:   ");
-//      puts(logbuf);
-//      break;
-//    }
+    // diff test
+    difftest_step(next_pc);
+    if (npc_state.state == NPC_ABORT) {
+      RED_PRINT("ABORT INST:   ");
+      puts(cur_logbuf);
+      break;
+    }
 
     // *** Examine ebreak instruction
     inst_ebreak(&ebreak);

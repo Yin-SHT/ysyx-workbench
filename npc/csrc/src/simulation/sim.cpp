@@ -41,8 +41,9 @@ void isa_reg_display() {
 }
 
 void isa_diff_reg_display(CPU_state *ref_r) {
+  printf("PC: 0x%08x\n", cpu.pc);
   for (int i = 0; i < MUXDEF(CONFIG_RVE, 16, 32); i++) {
-    word_t dut_val = top->rootp->top__DOT__u_regfile__DOT__regs[i];
+    word_t dut_val = cpu.gpr[i];
     word_t ref_val = ref_r->gpr[i];
     if (i != 0 && i % 4 == 0) printf("\n");
     if (dut_val != ref_val) {
@@ -59,10 +60,11 @@ word_t npc_regs(int i) {
   return  top->rootp->top__DOT__u_regfile__DOT__regs[idx];
 }
 
-void update_cpu() {
+void update_cpu(uint32_t cur_pc) {
   for (int i = 0; i < MUXDEF(CONFIG_RVE, 16, 32); i++) {
     cpu.gpr[i] = top->rootp->top__DOT__u_regfile__DOT__regs[i];
   }
+  cpu.pc = cur_pc;
 }
 
 bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t npc) {
@@ -71,22 +73,33 @@ bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t npc) {
       return false;
     }
   }
-  if (ref_r->pc != npc) return false;
+  if (ref_r->pc != npc) {
+    RED_PRINT("REF_R->pc: 0x%08x\tNPC: 0x%08x\n", ref_r->pc, npc);
+    return false;
+  }
 
   return true;
 }
 
 // *** Simulation func
 void single_cycle(uint32_t *cur_pc, uint32_t *cur_inst, uint32_t *next_pc, uint32_t *next_inst) {
-  top->clk = 0; top->eval(); tfp->dump(contextp->time()); contextp->timeInc(1);
+  top->eval();
+
+  top->clk = 0; 
+  top->eval(); tfp->dump(contextp->time()); contextp->timeInc(1);
 
   *cur_pc = top->rootp->top__DOT__pc___05Finst_fetch;
   *cur_inst = top->rootp->top__DOT__u_inst_mem__DOT__rdata;
 
-  top->clk = 1; top->eval(); tfp->dump(contextp->time()); contextp->timeInc(1);
+  top->clk = 1; 
+  top->eval(); tfp->dump(contextp->time()); contextp->timeInc(1);
 
   *next_pc = top->rootp->top__DOT__pc___05Finst_fetch;
   *next_inst = top->rootp->top__DOT__u_inst_mem__DOT__rdata;
+
+  // Regfile 是同步写，异步读。因此把 update_cpu() 放在这里来获取 执行完一条指令后的 regfile 的状态。
+  // cur_pc 是所执行指令的 pc
+  update_cpu(*cur_pc);
 }
 
 static void reset(int n) {

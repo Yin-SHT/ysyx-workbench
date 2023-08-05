@@ -61,7 +61,7 @@ module execute (
     if ( rst == `RST_ENABLE ) begin
       read_offset = `ZERO_ADDR;
     end if ( rmem_ena_i == `READ_ENABLE ) begin
-      read_offset = ( rmem_addr - ( rmem_addr & 32'h03) );
+      read_offset = ( rmem_addr - ( rmem_addr & 32'hFFFF_FFFC) );
     end else begin
       read_offset = `ZERO_ADDR;
     end

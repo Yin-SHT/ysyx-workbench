@@ -14,7 +14,7 @@ module data_expan (
   output [`MEM_DATA_BUS] mem_data_o
 );
 
-  reg [`MEM_DATA_BUS] shift_data = ( rst == `RST_ENABLE       ) ? ( {                    `ZERO_WORD} ) :
+  wire [`MEM_DATA_BUS] shift_data = ( rst == `RST_ENABLE       ) ? ( {                    `ZERO_WORD} ) :
                                    ( read_offset_i == 32'h00  ) ? ( {            rmem_data_i[31:0 ]} ) :
                                    ( read_offset_i == 32'h01  ) ? ( {{ 8{1'b0}}, rmem_data_i[31:8 ]} ) : 
                                    ( read_offset_i == 32'h02  ) ? ( {{16{1'b0}}, rmem_data_i[31:16]} ) :

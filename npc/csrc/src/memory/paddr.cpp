@@ -51,6 +51,15 @@ extern "C" int npc_pmem_read(int addr) {
   return ret;
 }
 
+extern "C" int data_npc_pmem_read(int addr) {
+  if (!in_pmem(addr)) {
+    Assert("%x is out of bound ( READ )\n", addr);
+  }
+  addr = addr & (~(0x3u));
+  word_t ret = host_read(guest_to_host(addr), 4);
+  return ret;
+}
+
 extern "C" void npc_pmem_write(int addr, int wdata, char wmask) {
   if (!in_pmem(addr)) {
     Assert("%x is out of bound ( WRITE )\n", addr);
