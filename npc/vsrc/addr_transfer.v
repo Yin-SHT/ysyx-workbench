@@ -17,7 +17,7 @@ module addr_transfer (
   wire cout;
   wire [`REG_DATA_BUS] result;
 
-  assign { cout, result } = {operand1_i[31], operand1_i} + (~{operand2_i[31], operand2_i}) + 1;
+  assign { cout, result } = {1'b0, operand1_i} + ({1'b0, ~operand2_i}) + 1;
 
   wire Of = ((operand1_i[31]) & (!operand2_i[31]) & (!result[31])) | ((!operand1_i[31]) & (operand2_i[31]) & (result[31]));
   wire Cf = cout ^ 1'b1;

@@ -76,6 +76,9 @@ module inst_decode (
   // Integer Compute Instruction
   wire inst_add   = ( opcode == `OPCODE_ADD   ) & ( funct3 == `FUNCT3_ADD  ) & ( funct7 == `FUNCT7_ADD );
   wire inst_sub   = ( opcode == `OPCODE_SUB   ) & ( funct3 == `FUNCT3_SUB  ) & ( funct7 == `FUNCT7_SUB );
+  wire inst_xor   = ( opcode == `OPCODE_XOR   ) & ( funct3 == `FUNCT3_XOR  ) & ( funct7 == `FUNCT7_XOR );
+  wire inst_or    = ( opcode == `OPCODE_OR    ) & ( funct3 == `FUNCT3_OR   ) & ( funct7 == `FUNCT7_OR  );
+  wire inst_sltu =  ( opcode == `OPCODE_SLTU  ) & ( funct3 == `FUNCT3_SLTU );
   wire inst_sltiu = ( opcode == `OPCODE_SLTIU ) & ( funct3 == `FUNCT3_SLTIU);
   wire inst_addi  = ( opcode == `OPCODE_ADDI  ) & ( funct3 == `FUNCT3_ADDI ); 
   wire inst_lui   = ( opcode == `OPCODE_LUI   );
@@ -106,7 +109,8 @@ module inst_decode (
 
   // Check Unknown Instruction
   wire unknown    = !(
-                      inst_add  | inst_sub   | inst_sltiu | inst_addi  | inst_lui | inst_auipc |
+                      inst_add  | inst_sub   | inst_xor   | inst_or    | inst_sltu |
+                      inst_sltiu | inst_addi | inst_lui   | inst_auipc |
                       inst_beq  | inst_bne   | inst_blt   | inst_bge | inst_bltu  | inst_bgeu |
                       inst_jal  | inst_jalr  |
                       inst_lb   | inst_lh    | inst_lw    | inst_lbu | inst_lhu   | 
@@ -125,7 +129,7 @@ module inst_decode (
   // *** Signal To Regfile
   assign rena1_o  = ( rst == `RST_DISABLE ) & 
                     ( 
-                      inst_addi | inst_add | inst_sub | inst_sltiu |
+                      inst_addi | inst_add | inst_sub | inst_sltiu | inst_xor | inst_or | inst_sltu |
                       inst_beq  | inst_bne | inst_blt | inst_bge | inst_bltu | inst_bgeu |
                       inst_jalr |
                       inst_lb   | inst_lh  | inst_lw  | inst_lbu | inst_lhu  |
@@ -134,14 +138,14 @@ module inst_decode (
 
   assign rena2_o  = ( rst == `RST_DISABLE ) & 
                     ( 
-                      inst_add  | inst_sub | inst_sltiu |
+                      inst_add  | inst_sub | inst_sltiu | inst_xor | inst_or | inst_sltu |
                       inst_beq  | inst_bne | inst_blt | inst_bge | inst_bltu | inst_bgeu |
                       inst_sb   | inst_sh  | inst_sw 
                     );
 
   assign wena_o   = ( rst == `RST_DISABLE ) & 
                     ( 
-                      inst_add  | inst_sub | inst_sltiu |
+                      inst_add  | inst_sub | inst_sltiu | inst_xor | inst_or | inst_sltu | 
                       inst_addi | inst_lui  | inst_auipc | 
                       inst_jal  | inst_jalr |
                       inst_lb   | inst_lh   | inst_lw    | inst_lbu | inst_lhu 
@@ -155,6 +159,9 @@ module inst_decode (
   assign alu_op_o =   ( rst == `RST_ENABLE ) ? `ALU_OP_NOP :
                       ( inst_add           ) ? `ALU_OP_ADD :
                       ( inst_sub           ) ? `ALU_OP_SUB :
+                      ( inst_xor           ) ? `ALU_OP_XOR :
+                      ( inst_or            ) ? `ALU_OP_OR  :
+                      ( inst_sltu          ) ? `ALU_OP_SLTU:
                       ( inst_sltiu         ) ? `ALU_OP_SLTIU:
                       ( inst_addi          ) ? `ALU_OP_ADD :
                       ( inst_lui           ) ? `ALU_OP_ADD :
@@ -177,6 +184,9 @@ module inst_decode (
   assign operand1_o = ( rst == `RST_ENABLE ) ? `ZERO_WORD  :
                       ( inst_add           ) ? data1_i     :
                       ( inst_sub           ) ? data1_i     :
+                      ( inst_xor           ) ? data1_i     :
+                      ( inst_or            ) ? data1_i     :
+                      ( inst_sltu          ) ? data1_i     :
                       ( inst_sltiu         ) ? data1_i     :
                       ( inst_addi          ) ? data1_i     :
                       ( inst_lui           ) ? `ZERO_WORD  :
@@ -204,6 +214,9 @@ module inst_decode (
   assign operand2_o = ( rst == `RST_ENABLE ) ? `ZERO_WORD  :
                       ( inst_add           ) ? data2_i     :
                       ( inst_sub           ) ? data2_i     :
+                      ( inst_xor           ) ? data2_i     :
+                      ( inst_or            ) ? data2_i     :
+                      ( inst_sltu          ) ? data2_i     :
                       ( inst_sltiu         ) ? data2_i     :
                       ( inst_addi          ) ? imm         :
                       ( inst_lui           ) ? imm         :

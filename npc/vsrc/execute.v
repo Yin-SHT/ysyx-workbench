@@ -23,7 +23,17 @@ module execute (
   output [`MEM_ADDR_BUS]    read_offset_o
 );
 
+  /* verilator lint_off UNUSEDSIGNAL */
   reg [`REG_DATA_BUS] alu_result;
+
+  wire cout;
+  wire [`REG_DATA_BUS] result;
+
+  assign { cout, result } = {1'b0, operand1_i} + ({1'b0, ~operand2_i}) + 1;
+
+  wire Cf = cout ^ 1'b1;
+
+  wire unsigned_less_than = ( Cf == 1 );
 
   always @( * ) begin
     if ( rst == `RST_ENABLE ) begin
@@ -32,7 +42,10 @@ module execute (
       case ( alu_op_i )
         `ALU_OP_ADD   : alu_result = operand1_i   + operand2_i; 
         `ALU_OP_SUB   : alu_result = operand1_i   - operand2_i; 
-        `ALU_OP_SLTIU : alu_result = {{31{1'b0}}, (operand1_i < operand2_i)}; 
+        `ALU_OP_XOR   : alu_result = operand1_i   ^ operand2_i; 
+        `ALU_OP_OR    : alu_result = operand1_i   | operand2_i; 
+        `ALU_OP_SLTU  : alu_result = {{31{1'b0}}, unsigned_less_than}; 
+        `ALU_OP_SLTIU : alu_result = {{31{1'b0}}, unsigned_less_than}; 
         `ALU_OP_JUMP  : alu_result = `INST_LENGTH + operand2_i;
         default       : alu_result =                `ZERO_WORD; 
       endcase

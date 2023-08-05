@@ -49,19 +49,21 @@
 `define ALU_OP_BUS        7:0
 
 `define ALU_OP_NOP      8'b0000_0000
-`define ALU_OP_ADD      8'b0000_0010
-`define ALU_OP_SUB      8'b0000_0011
-`define ALU_OP_SLTIU    8'b0000_0100
-
-`define ALU_OP_LB       8'b0000_0011
-`define ALU_OP_LH       8'b0000_0100
-`define ALU_OP_LW       8'b0000_0101
-`define ALU_OP_LBU      8'b0000_0110
-`define ALU_OP_LHU      8'b0000_0111
-`define ALU_OP_SB       8'b0000_1000
-`define ALU_OP_SH       8'b0000_1001
-`define ALU_OP_SW       8'b0000_1010
-`define ALU_OP_JUMP     8'b0000_1011
+`define ALU_OP_ADD      8'b0000_0001
+`define ALU_OP_SUB      8'b0000_0010
+`define ALU_OP_SLTIU    8'b0000_0011
+`define ALU_OP_LB       8'b0000_0100
+`define ALU_OP_LH       8'b0000_0101
+`define ALU_OP_LW       8'b0000_0110
+`define ALU_OP_LBU      8'b0000_0111
+`define ALU_OP_LHU      8'b0000_1000
+`define ALU_OP_SB       8'b0000_1001
+`define ALU_OP_SH       8'b0000_1010
+`define ALU_OP_SW       8'b0000_1011
+`define ALU_OP_JUMP     8'b0000_1100
+`define ALU_OP_XOR      8'b0000_1101
+`define ALU_OP_OR       8'b0000_1110
+`define ALU_OP_SLTU     8'b0000_1111
 
 // -------------------------------------------------
 // TRAN_OP
@@ -70,18 +72,51 @@
 `define TRAN_OP_BUS        7:0
 
 `define TRAN_OP_NOP     8'b0000_0000
-`define TRAN_OP_BEQ     8'b1000_0000
-`define TRAN_OP_BNE     8'b1000_0001
-`define TRAN_OP_BLT     8'b1000_0010
-`define TRAN_OP_BGE     8'b1000_0011
-`define TRAN_OP_BLTU    8'b1000_0100
-`define TRAN_OP_BGEU    8'b1000_0101
-`define TRAN_OP_JAL     8'b1000_0110
-`define TRAN_OP_JALR    8'b1000_0111
+`define TRAN_OP_BEQ     8'b1000_0001
+`define TRAN_OP_BNE     8'b1000_0010
+`define TRAN_OP_BLT     8'b1000_0011
+`define TRAN_OP_BGE     8'b1000_0100
+`define TRAN_OP_BLTU    8'b1000_0101
+`define TRAN_OP_BGEU    8'b1000_0110
+`define TRAN_OP_JAL     8'b1000_0111
+`define TRAN_OP_JALR    8'b1000_1000
 
 // -------------------------------------------------
 // Instruction OPCODE
 // -------------------------------------------------
+
+// ***  Integer Compute Instructions
+
+// ***  Register-Register Instructions
+`define OPCODE_ADD         7'b011_0011
+`define FUNCT3_ADD         3'b000
+`define FUNCT7_ADD         7'b000_0000
+
+`define OPCODE_SUB         7'b011_0011
+`define FUNCT3_SUB         3'b000
+`define FUNCT7_SUB         7'b010_0000
+
+`define OPCODE_XOR         7'b011_0011
+`define FUNCT3_XOR         3'b100
+`define FUNCT7_XOR         7'b000_0000
+
+`define OPCODE_OR          7'b011_0011
+`define FUNCT3_OR          3'b110
+`define FUNCT7_OR          7'b000_0000
+
+`define OPCODE_SLTU        7'b011_0011
+`define FUNCT3_SLTU        3'b011
+
+// ***  Register-Immediate Instructions
+`define OPCODE_ADDI        7'b001_0011
+`define FUNCT3_ADDI        3'b000
+
+`define OPCODE_SLTIU       7'b001_0011
+`define FUNCT3_SLTIU       3'b011
+
+// **  Shift Instructions
+
+// **  Logic Instructions
 
 // *** Load And Store Instructions
 
@@ -107,16 +142,6 @@
 
 // ***  Control Transfer Instructions
 
-// **   Integer Compute 
-`define OPCODE_ADD         7'b011_0011
-`define FUNCT3_ADD         3'b000
-`define FUNCT7_ADD         7'b000_0000
-`define OPCODE_SUB         7'b011_0011
-`define FUNCT3_SUB         3'b000
-`define FUNCT7_SUB         7'b010_0000
-`define OPCODE_SLTIU       7'b001_0011
-`define FUNCT3_SLTIU       3'b011
-
 // **   Conditional Branchs
 `define OPCODE_BEQ          7'b110_0011
 `define FUNCT3_BEQ          3'b000
@@ -136,16 +161,10 @@
 `define OPCODE_JALR         7'b110_0111
 `define FUNCT3_JALR         3'b000
 
-// *** I Type
-`define OPCODE_ADDI         7'b001_0011
-`define FUNCT3_ADDI         3'b000
-
-// *** U Type
+// ***  Miscellaneous
 `define OPCODE_AUIPC        7'b001_0111
 `define OPCODE_LUI          7'b011_0111
 
-
-// *** System Type
 `define OPCODE_EBREAK       7'b111_0011
 `define FUNCT3_EBREAK       3'b000
 `define FUNCT12_EBREAK      12'b0000_0000_0001
