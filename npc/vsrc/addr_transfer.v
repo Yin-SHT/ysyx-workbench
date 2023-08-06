@@ -25,6 +25,7 @@ module addr_transfer (
   wire Sf = result[31];
   wire Zf =  ~(| result);
 
+  /* verilator lint_off UNUSEDSIGNAL */
   wire unsigned_less_than = ( Cf == 1 );
   wire unsigned_greater_equal = ( Cf == 0 );
 
@@ -39,7 +40,8 @@ module addr_transfer (
                     ( tran_op_i == `TRAN_OP_BLT ) ? ( signed_less_than         ) :
                     ( tran_op_i == `TRAN_OP_BGE ) ? ( signed_greater_equal     ) :
                     ( tran_op_i == `TRAN_OP_BLTU) ? ( unsigned_less_than       ) :
-                    ( tran_op_i == `TRAN_OP_BGEU) ? ( unsigned_greater_equal   ) :
+                    ( tran_op_i == `TRAN_OP_BGEU) ? ( $unsigned(operand1_i) >= $unsigned(operand2_i)) :
+//                    ( tran_op_i == `TRAN_OP_BGEU) ? ( unsigned_greater_equal   ) :
                     ( tran_op_i == `TRAN_OP_JAL ) ? ( `TRAN_ENABLE             ) :
                     ( tran_op_i == `TRAN_OP_JALR) ? ( `TRAN_ENABLE             ) : `TRAN_DISABLE;
 

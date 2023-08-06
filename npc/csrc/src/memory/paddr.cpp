@@ -86,15 +86,15 @@ extern "C" void npc_pmem_write(int addr, int wdata, char wmask) {
     // 8'b0000_0110
     addr = addr + 1;
     len = 2;
-  } else if ( wmask = 0b00000100 ) {
+  } else if ( wmask == 0b00000100 ) {
     // 8'b0000_0100
     addr = addr + 2;
     len = 1;
-  } else if ( wmask = 0b00001100 ) {
+  } else if ( wmask == 0b00001100 ) {
     // 8'b0000_1100
     addr = addr + 2;
     len = 2;
-  } else if ( wmask = 0b00001000 ) {
+  } else if ( wmask == 0b00001000 ) {
     // 8'b0000_1000
     addr = addr + 3;
     len = 1;

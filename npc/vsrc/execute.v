@@ -44,6 +44,11 @@ module execute (
         `ALU_OP_SUB   : alu_result = operand1_i   - operand2_i; 
         `ALU_OP_XOR   : alu_result = operand1_i   ^ operand2_i; 
         `ALU_OP_OR    : alu_result = operand1_i   | operand2_i; 
+        `ALU_OP_AND   : alu_result = operand1_i   & operand2_i; 
+        `ALU_OP_SLL   : alu_result = operand1_i   << operand2_i[4:0]; 
+        `ALU_OP_SLT   : alu_result = {{31{1'b0}}, $signed(operand1_i) < $signed(operand2_i)}; 
+        `ALU_OP_SRL   : alu_result = operand1_i  >> operand2_i[4:0]; 
+        `ALU_OP_SRA   : alu_result = $signed(operand1_i) >>> operand2_i[4:0]; 
         `ALU_OP_SLTU  : alu_result = {{31{1'b0}}, unsigned_less_than}; 
         `ALU_OP_SLTIU : alu_result = {{31{1'b0}}, unsigned_less_than}; 
         `ALU_OP_JUMP  : alu_result = `INST_LENGTH + operand2_i;
@@ -100,7 +105,7 @@ module execute (
     if ( rst == `RST_ENABLE ) begin
       write_offset = `ZERO_ADDR;
     end if ( wmem_ena_i == `WRITE_ENABLE ) begin
-      write_offset = ( rmem_addr - ( rmem_addr & 32'h03) );
+      write_offset = ( wmem_addr - ( wmem_addr & 32'hFFFF_FFFC) );
     end else begin
       write_offset = `ZERO_ADDR;
     end

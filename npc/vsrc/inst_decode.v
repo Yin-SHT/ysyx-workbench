@@ -78,9 +78,20 @@ module inst_decode (
   wire inst_sub   = ( opcode == `OPCODE_SUB   ) & ( funct3 == `FUNCT3_SUB  ) & ( funct7 == `FUNCT7_SUB );
   wire inst_xor   = ( opcode == `OPCODE_XOR   ) & ( funct3 == `FUNCT3_XOR  ) & ( funct7 == `FUNCT7_XOR );
   wire inst_or    = ( opcode == `OPCODE_OR    ) & ( funct3 == `FUNCT3_OR   ) & ( funct7 == `FUNCT7_OR  );
+  wire inst_and   = ( opcode == `OPCODE_AND   ) & ( funct3 == `FUNCT3_AND  ) & ( funct7 == `FUNCT7_AND );
+  wire inst_sll   = ( opcode == `OPCODE_SLL   ) & ( funct3 == `FUNCT3_SLL  ) & ( funct7 == `FUNCT7_SLL );
+  wire inst_srl   = ( opcode == `OPCODE_SRL   ) & ( funct3 == `FUNCT3_SRL  ) & ( funct7 == `FUNCT7_SRL );
+  wire inst_sra   = ( opcode == `OPCODE_SRA   ) & ( funct3 == `FUNCT3_SRA  ) & ( funct7 == `FUNCT7_SRA );
+  wire inst_slt   = ( opcode == `OPCODE_SLT   ) & ( funct3 == `FUNCT3_SLT  ) & ( funct7 == `FUNCT7_SLT );
   wire inst_sltu =  ( opcode == `OPCODE_SLTU  ) & ( funct3 == `FUNCT3_SLTU );
   wire inst_sltiu = ( opcode == `OPCODE_SLTIU ) & ( funct3 == `FUNCT3_SLTIU);
   wire inst_addi  = ( opcode == `OPCODE_ADDI  ) & ( funct3 == `FUNCT3_ADDI ); 
+  wire inst_xori  = ( opcode == `OPCODE_XORI  ) & ( funct3 == `FUNCT3_XORI ); 
+  wire inst_ori   = ( opcode == `OPCODE_ORI   ) & ( funct3 == `FUNCT3_ORI  ); 
+  wire inst_andi  = ( opcode == `OPCODE_ANDI  ) & ( funct3 == `FUNCT3_ANDI );
+  wire inst_slli  = ( opcode == `OPCODE_SLLI  ) & ( funct3 == `FUNCT3_SLLI ) & ( immI[11:5] == 7'h00 );
+  wire inst_srli  = ( opcode == `OPCODE_SRLI  ) & ( funct3 == `FUNCT3_SRLI ) & ( immI[11:5] == 7'h00 );
+  wire inst_srai  = ( opcode == `OPCODE_SRAI  ) & ( funct3 == `FUNCT3_SRAI ) & ( immI[11:5] == 7'h20 );
   wire inst_lui   = ( opcode == `OPCODE_LUI   );
   wire inst_auipc = ( opcode == `OPCODE_AUIPC );
 
@@ -109,7 +120,12 @@ module inst_decode (
 
   // Check Unknown Instruction
   wire unknown    = !(
-                      inst_add  | inst_sub   | inst_xor   | inst_or    | inst_sltu |
+                      inst_add  | inst_sub   | 
+                      inst_xor  | inst_or    | inst_and |
+                      inst_sll  | inst_slt   | inst_srl | inst_sra |
+                      inst_sltu |
+                      inst_xori | inst_ori   | inst_andi |
+                      inst_slli | inst_srli  | inst_srai |
                       inst_sltiu | inst_addi | inst_lui   | inst_auipc |
                       inst_beq  | inst_bne   | inst_blt   | inst_bge | inst_bltu  | inst_bgeu |
                       inst_jal  | inst_jalr  |
@@ -118,7 +134,7 @@ module inst_decode (
                       ebreak   
                      );
   // Parser Imm
-  wire [`REG_DATA_BUS] imm =  ( inst_addi                                                         ) ? immI :
+  wire [`REG_DATA_BUS] imm =  ( inst_addi| inst_xori | inst_ori | inst_andi | inst_srai | inst_slli | inst_srli | inst_sltiu ) ? immI :
                               ( inst_lui | inst_auipc                                             ) ? immU :
                               ( inst_beq | inst_bne | inst_blt | inst_bge | inst_bltu | inst_bgeu ) ? immB :
                               ( inst_jal                                                          ) ? immJ :
@@ -129,7 +145,11 @@ module inst_decode (
   // *** Signal To Regfile
   assign rena1_o  = ( rst == `RST_DISABLE ) & 
                     ( 
-                      inst_addi | inst_add | inst_sub | inst_sltiu | inst_xor | inst_or | inst_sltu |
+                      inst_add | inst_sub | inst_sltiu | 
+                      inst_xor | inst_or |  inst_and  |
+                      inst_sll | inst_slt | inst_srl | inst_sra |
+                      inst_sltu |
+                      inst_addi |  inst_xori | inst_ori | inst_andi | inst_srai | inst_slli | inst_srli |
                       inst_beq  | inst_bne | inst_blt | inst_bge | inst_bltu | inst_bgeu |
                       inst_jalr |
                       inst_lb   | inst_lh  | inst_lw  | inst_lbu | inst_lhu  |
@@ -138,15 +158,23 @@ module inst_decode (
 
   assign rena2_o  = ( rst == `RST_DISABLE ) & 
                     ( 
-                      inst_add  | inst_sub | inst_sltiu | inst_xor | inst_or | inst_sltu |
+                      inst_add  | inst_sub | 
+                      inst_xor | inst_or | inst_and |
+                      inst_sll | inst_slt | inst_srl | inst_sra |
+                      inst_sltu |
                       inst_beq  | inst_bne | inst_blt | inst_bge | inst_bltu | inst_bgeu |
                       inst_sb   | inst_sh  | inst_sw 
                     );
 
   assign wena_o   = ( rst == `RST_DISABLE ) & 
                     ( 
-                      inst_add  | inst_sub | inst_sltiu | inst_xor | inst_or | inst_sltu | 
-                      inst_addi | inst_lui  | inst_auipc | 
+                      inst_add  | inst_sub | inst_sltiu | 
+                      inst_xor | inst_or | inst_and |
+                      inst_sll | inst_slt | inst_srl | inst_sra |
+                      inst_sltu | 
+                      inst_addi | inst_xori | inst_ori | inst_andi |
+                      inst_srai | inst_slli | inst_srli |
+                      inst_lui  | inst_auipc | 
                       inst_jal  | inst_jalr |
                       inst_lb   | inst_lh   | inst_lw    | inst_lbu | inst_lhu 
                     );
@@ -161,9 +189,20 @@ module inst_decode (
                       ( inst_sub           ) ? `ALU_OP_SUB :
                       ( inst_xor           ) ? `ALU_OP_XOR :
                       ( inst_or            ) ? `ALU_OP_OR  :
+                      ( inst_and           ) ? `ALU_OP_AND  :
+                      ( inst_sll           ) ? `ALU_OP_SLL  :
+                      ( inst_slt           ) ? `ALU_OP_SLT  :
+                      ( inst_srl           ) ? `ALU_OP_SRL  :
+                      ( inst_sra           ) ? `ALU_OP_SRA  :
                       ( inst_sltu          ) ? `ALU_OP_SLTU:
                       ( inst_sltiu         ) ? `ALU_OP_SLTIU:
                       ( inst_addi          ) ? `ALU_OP_ADD :
+                      ( inst_xori          ) ? `ALU_OP_XOR :
+                      ( inst_ori           ) ? `ALU_OP_OR  :
+                      ( inst_andi          ) ? `ALU_OP_AND :
+                      ( inst_srai          ) ? `ALU_OP_SRA :
+                      ( inst_slli          ) ? `ALU_OP_SLL :
+                      ( inst_srli          ) ? `ALU_OP_SRL :
                       ( inst_lui           ) ? `ALU_OP_ADD :
                       ( inst_auipc         ) ? `ALU_OP_ADD :
                       // Jump Inst
@@ -186,9 +225,20 @@ module inst_decode (
                       ( inst_sub           ) ? data1_i     :
                       ( inst_xor           ) ? data1_i     :
                       ( inst_or            ) ? data1_i     :
+                      ( inst_and           ) ? data1_i     :
+                      ( inst_sll           ) ? data1_i     :
+                      ( inst_slt           ) ? data1_i     :
+                      ( inst_srl           ) ? data1_i     :
+                      ( inst_sra           ) ? data1_i     :
                       ( inst_sltu          ) ? data1_i     :
                       ( inst_sltiu         ) ? data1_i     :
                       ( inst_addi          ) ? data1_i     :
+                      ( inst_xori          ) ? data1_i     :
+                      ( inst_ori           ) ? data1_i     :
+                      ( inst_andi          ) ? data1_i     :
+                      ( inst_slli          ) ? data1_i     :
+                      ( inst_srli          ) ? data1_i     :
+                      ( inst_srai          ) ? data1_i     :
                       ( inst_lui           ) ? `ZERO_WORD  :
                       ( inst_auipc         ) ? pc_i        :
                       ( inst_beq           ) ? data1_i     :
@@ -216,9 +266,20 @@ module inst_decode (
                       ( inst_sub           ) ? data2_i     :
                       ( inst_xor           ) ? data2_i     :
                       ( inst_or            ) ? data2_i     :
+                      ( inst_and           ) ? data2_i     :
+                      ( inst_sll           ) ? data2_i     :
+                      ( inst_slt           ) ? data2_i     :
+                      ( inst_srl           ) ? data2_i     :
+                      ( inst_sra           ) ? data2_i     :
                       ( inst_sltu          ) ? data2_i     :
-                      ( inst_sltiu         ) ? data2_i     :
+                      ( inst_sltiu         ) ? imm         :
                       ( inst_addi          ) ? imm         :
+                      ( inst_xori          ) ? imm         :
+                      ( inst_ori           ) ? imm         :
+                      ( inst_andi          ) ? imm         :
+                      ( inst_srai          ) ? imm         :
+                      ( inst_slli          ) ? imm         :
+                      ( inst_srli          ) ? imm         :
                       ( inst_lui           ) ? imm         :
                       ( inst_auipc         ) ? imm         :
                       ( inst_beq           ) ? data2_i     :

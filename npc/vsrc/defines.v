@@ -64,6 +64,11 @@
 `define ALU_OP_XOR      8'b0000_1101
 `define ALU_OP_OR       8'b0000_1110
 `define ALU_OP_SLTU     8'b0000_1111
+`define ALU_OP_AND      8'b0001_0000
+`define ALU_OP_SLL      8'b0001_0001
+`define ALU_OP_SRA      8'b0001_0010
+`define ALU_OP_SRL      8'b0001_0011
+`define ALU_OP_SLT      8'b0001_0100
 
 // -------------------------------------------------
 // TRAN_OP
@@ -104,12 +109,50 @@
 `define FUNCT3_OR          3'b110
 `define FUNCT7_OR          7'b000_0000
 
+`define OPCODE_AND         7'b011_0011
+`define FUNCT3_AND         3'b111
+`define FUNCT7_AND         7'b000_0000
+
+`define OPCODE_SLL         7'b011_0011
+`define FUNCT3_SLL         3'b001
+`define FUNCT7_SLL         7'b000_0000
+
+`define OPCODE_SRL         7'b011_0011
+`define FUNCT3_SRL         3'b101
+`define FUNCT7_SRL         7'b000_0000
+
+`define OPCODE_SRA         7'b011_0011
+`define FUNCT3_SRA         3'b101
+`define FUNCT7_SRA         7'b010_0000
+
+`define OPCODE_SLT         7'b011_0011
+`define FUNCT3_SLT         3'b010
+`define FUNCT7_SLT         7'b000_0000
+
 `define OPCODE_SLTU        7'b011_0011
 `define FUNCT3_SLTU        3'b011
 
 // ***  Register-Immediate Instructions
 `define OPCODE_ADDI        7'b001_0011
 `define FUNCT3_ADDI        3'b000
+
+`define OPCODE_XORI        7'b001_0011
+`define FUNCT3_XORI        3'b100
+
+`define OPCODE_ORI         7'b001_0011
+`define FUNCT3_ORI         3'b110
+
+`define OPCODE_ANDI        7'b001_0011
+`define FUNCT3_ANDI        3'b111
+
+`define OPCODE_SLLI        7'b001_0011
+`define FUNCT3_SLLI        3'b001
+
+`define OPCODE_SRLI        7'b001_0011
+`define FUNCT3_SRLI        3'b101
+
+`define OPCODE_SRAI        7'b001_0011
+`define FUNCT3_SRAI        3'b101
 
 `define OPCODE_SLTIU       7'b001_0011
 `define FUNCT3_SLTIU       3'b011
