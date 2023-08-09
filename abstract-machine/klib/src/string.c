@@ -103,7 +103,7 @@ void *memset(void *s, int c, size_t n) {
   uint8_t *sentry = (uint8_t*)s + n;
 
   while (p < sentry) {
-    *p = c;
+    *p = (uint8_t)c;
     p++;
   }
   assert(p == sentry);

@@ -34,6 +34,45 @@ static char* itoa(int num,char *str) {
     return str + k;
 }
 
+static char *ito_hexa(unsigned int num, char* str) {
+  int i = 0;
+  while (num) {
+    if (num < 0) {
+      str[i++] = '-';
+      num = -num;
+    }
+    str[i] = num % 16;
+    if (str[i] > 9) {
+      str[i] += 55;
+      i++;
+    } else {
+      str[i] += 48;
+      i++;
+    }
+    num /= 16;
+  }
+  str[i] = '\0';
+  int left = (str[0] == '-') ? 1 : 0, right = i - 1;
+  while (left < right) {
+    char temp = str[left];
+    str[left] = str[right];
+    str[right] = temp;
+    left++;
+    right--;
+  }
+  return str + i;
+}
+ 
+static void reverse_str(char *left, char *right) {
+	while(left < right) {
+		char tmp = *left;
+		*left = *right;
+		*right = tmp;
+		left++;
+		right--;
+	}
+}
+
 int printf(const char *fmt, ...) {
   char str[512] = { 0 };
   const char *fp = fmt;
@@ -58,7 +97,74 @@ int printf(const char *fmt, ...) {
           d = va_arg(ap, int);
           p = itoa(d, p);
           break;
-        default : assert(0); break;
+        case 'X':
+        case 'x':
+          d = va_arg(ap, int);
+          p = ito_hexa(d, p);
+          break;
+        case '0': {
+          int nr_chs = *(fp + 2) - '0';
+          d = va_arg(ap, int);
+          char *temp_p = p;
+          if (*(fp + 3) == 'd') {
+            p = itoa(d, p);
+          } else if ( *(fp + 3) == 'x') {
+            p = ito_hexa(d, p);
+          }
+          int nr_num = p - temp_p;
+          if (nr_num > nr_chs) {
+            fp += 2;
+            break;
+          }
+          for (int i = nr_num; i < nr_chs; i++) {
+            *p++ = '0';
+          }
+          *p = '\0';
+          reverse_str(temp_p, temp_p + nr_num - 1);
+          reverse_str(temp_p, p - 1);
+          fp += 2;
+          break; 
+        }
+        default : {
+          if (*(fp + 1) <= '9' && *(fp + 1) >= '0') {
+            int nr_chs = *(fp + 1) - '0';
+            char *temp_p = p;
+            switch (*(fp + 2)) {
+              case 's': 
+                s = va_arg(ap, char *);
+                int n = strlen(s);
+                strcpy(p, s);
+                p += n;
+                break;
+              case 'd':
+                d = va_arg(ap, int);
+                p = itoa(d, p);
+                break;
+              case 'X':
+              case 'x':
+                d = va_arg(ap, int);
+                p = ito_hexa(d, p);
+                break;
+              default: assert(0); break;
+            }
+            int nr_num = p - temp_p;
+            if (nr_num > nr_chs) {
+              fp += 1;
+              break;
+            }
+            for (int i = nr_num; i < nr_chs; i++) {
+              *p++ = ' ';
+            }
+            *p = '\0';
+            reverse_str(temp_p, temp_p + nr_num - 1);
+            reverse_str(temp_p, p - 1);
+            fp += 1;
+            break; 
+          } else {
+            assert(0);
+          }
+          break;
+        }
       }
       fp += 2;
     } else {
@@ -74,8 +180,6 @@ int printf(const char *fmt, ...) {
 int vsprintf(char *out, const char *fmt, va_list ap) {
   panic("Not implemented");
 }
-
-
 int sprintf(char *out, const char *fmt, ...) {
   char str[512] = { 0 };
   const char *fp = fmt;
