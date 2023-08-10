@@ -7,14 +7,27 @@ void __am_gpu_init() {
 }
 
 void __am_gpu_config(AM_GPU_CONFIG_T *cfg) {
-  *cfg = (AM_GPU_CONFIG_T) {
-    .present = true, .has_accel = false,
-    .width = 0, .height = 0,
-    .vmemsz = 0
-  };
+  uint32_t size = inl(VGACTL_ADDR);
+  cfg->present = true; // ?
+  cfg->has_accel = false; // ?
+  cfg->width = size >> 16;
+  cfg->height = size & 0x0000ffff;
+}
+
+static void write_pixels(AM_GPU_FBDRAW_T *ctl) {
+  int W = inw(VGACTL_ADDR + 2);
+  int H = inw(VGACTL_ADDR);
+  uint32_t *dst = (uint32_t*)(uintptr_t)FB_ADDR + ctl->x + ctl->y * W; 
+  uint32_t *src = (uint32_t*)(uintptr_t)ctl->pixels;
+  int nr_rows = (H - ctl->y) < ctl->h ? (H - ctl->y) : ctl->h;
+  for (int i = 0; i < nr_rows; i++) {
+    int nr_cols = (W - ctl->x) < ctl->w ? (W - ctl->x) : ctl->w;
+    memcpy(dst + i * W, src + i * ctl->w, nr_cols * 4);
+  }
 }
 
 void __am_gpu_fbdraw(AM_GPU_FBDRAW_T *ctl) {
+  write_pixels(ctl);
   if (ctl->sync) {
     outl(SYNC_ADDR, 1);
   }
