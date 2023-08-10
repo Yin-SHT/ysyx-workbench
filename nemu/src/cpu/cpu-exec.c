@@ -34,13 +34,12 @@ static bool g_print_step = false;
  * iringbuf for itrace
  * 
 */
-#ifdef CONFIG_RTRACE
 typedef struct iringbuf {
   int top;
   char *log[16];
 } IRingBuf;
 
-static IRingBuf irbuf;
+static IRingBuf irbuf __attribute__((unused));
 
 void init_iringbuf() {
   irbuf.top = 0;
@@ -49,7 +48,7 @@ void init_iringbuf() {
   }
 }
 
-static void iringbuf_trace_and_difftest() {
+void iringbuf_trace_and_difftest() {
   for (int i = 0; i < 16; i++) {
     char *p = irbuf.log[i];
     if (( i + 1 ) % 16 == irbuf.top) {
@@ -60,7 +59,8 @@ static void iringbuf_trace_and_difftest() {
   }
 }
 
-static void iringbuf_itrace_add(Decode *s) {
+void iringbuf_itrace_add(Decode *s) {
+#ifdef CONFIG_ITRACE
   int top = irbuf.top; 
   irbuf.top = (top + 1) % 16;
   char *p = irbuf.log[top];
@@ -86,9 +86,8 @@ static void iringbuf_itrace_add(Decode *s) {
 #else
   p[0] = '\0'; // the upstream llvm does not support loongarch32r
 #endif
-}
-
 #endif
+}
 
 void device_update();
 
@@ -136,9 +135,7 @@ static void exec_once(Decode *s, vaddr_t pc) {
 #endif
 #endif
 
-#ifdef CONFIG_RTRACE
-  iringbuf_itrace_add(s);
-#endif
+  IFDEF(CONFIG_RTRACE, iringbuf_itrace_add(s));
 }
 
 static void execute(uint64_t n) {
@@ -194,8 +191,6 @@ void cpu_exec(uint64_t n) {
           nemu_state.halt_pc);
       // fall through
     case NEMU_QUIT: statistic();
-#ifdef CONFIG_RTRACE
-    iringbuf_trace_and_difftest();
-#endif
+  IFDEF(CONFIG_RTRACE, iringbuf_trace_and_difftest());
   }
 }

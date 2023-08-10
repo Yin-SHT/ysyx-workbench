@@ -22,6 +22,7 @@ FILE *rlog_fp = NULL;
 FILE *mlog_fp = NULL;
 FILE *flog_fp = NULL;
 FILE *elf_fp = NULL;
+FILE *dlog_fp = NULL;
 
 void init_log(const char *log_file) {
   log_fp = stdout;
@@ -33,7 +34,6 @@ void init_log(const char *log_file) {
   Log("Log is written to %s", log_file ? log_file : "stdout");
 }
 
-#ifdef CONFIG_RTRACE
 void init_rlog(const char *rlog_file) {
   if (rlog_file == NULL) return;
   rlog_fp = stdout;
@@ -44,9 +44,7 @@ void init_rlog(const char *rlog_file) {
   }
   Log("RLog is written to %s", rlog_file ? rlog_file : "stdout");
 }
-#endif
 
-#ifdef CONFIG_MTRACE
 void init_mlog(const char *mlog_file) {
   if (mlog_file == NULL) return;
   mlog_fp = stdout;
@@ -57,9 +55,7 @@ void init_mlog(const char *mlog_file) {
   }
   Log("MLog is written to %s", mlog_file ? mlog_file : "stdout");
 }
-#endif
 
-#ifdef CONFIG_FTRACE
 void init_flog(const char *flog_file) {
   if (flog_file == NULL) return;
   flog_fp = stdout;
@@ -155,7 +151,6 @@ void func_sym_display() {
     printf("%d\t%08x\t%u\t%s\n", idx, st_value, st_size, fun_record.syminfos[i].name);
   }
 }
-#endif
 
 int call_count __attribute__((unused)) = -1;
 
@@ -201,6 +196,17 @@ void ftrace_ret(vaddr_t pc, vaddr_t dnpc) {
 #else
   return;
 #endif
+}
+
+void init_dlog(const char *dlog_file) {
+  if (dlog_file == NULL) return;
+  dlog_fp = stdout;
+  if (dlog_file != NULL) {
+    FILE *fp = fopen(dlog_file, "w");
+    Assert(fp, "Can not open '%s'", dlog_file);
+    dlog_fp = fp;
+  }
+  Log("dlog is written to %s", dlog_file ? dlog_file : "stdout");
 }
 
 bool log_enable() {

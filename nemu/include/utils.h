@@ -67,7 +67,6 @@ uint64_t get_time();
   } while (0) \
 )
 
-#ifdef CONFIG_RTRACE
 #define rlog_write(...) IFDEF(CONFIG_TARGET_NATIVE_ELF, \
   do { \
     extern FILE* rlog_fp; \
@@ -75,9 +74,7 @@ uint64_t get_time();
     fflush(rlog_fp); \
   } while (0) \
 )
-#endif
 
-#ifdef CONFIG_MTRACE
 #define mlog_write(...) IFDEF(CONFIG_TARGET_NATIVE_ELF, \
   do { \
     extern FILE* mlog_fp; \
@@ -85,9 +82,7 @@ uint64_t get_time();
     fflush(mlog_fp); \
   } while (0) \
 )
-#endif
 
-#ifdef CONFIG_FTRACE
 #define flog_write(...) IFDEF(CONFIG_TARGET_NATIVE_ELF, \
   do { \
     extern FILE* flog_fp; \
@@ -95,7 +90,14 @@ uint64_t get_time();
     fflush(flog_fp); \
   } while (0) \
 )
-#endif
+
+#define dlog_write(...) IFDEF(CONFIG_TARGET_NATIVE_ELF, \
+  do { \
+    extern FILE* dlog_fp; \
+    fprintf(dlog_fp, __VA_ARGS__); \
+    fflush(dlog_fp); \
+  } while (0) \
+)
 
 #define _Log(...) \
   do { \
