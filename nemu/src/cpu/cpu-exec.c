@@ -50,7 +50,7 @@ void init_iringbuf() {
 
 void iringbuf_trace_and_difftest() {
   for (int i = 0; i < 16; i++) {
-    char *p = irbuf.log[i];
+    char *p __attribute_maybe_unused__ = irbuf.log[i];
     if (( i + 1 ) % 16 == irbuf.top) {
       rlog_write(" -----> %s\n", p);
     } else {
