@@ -110,16 +110,19 @@ void init_monitor(int argc, char *argv[]) {
   init_log(log_file);
 
   /* Open the flog file */
-  init_flog(flog_file);
-
+//  init_flog(flog_file);
+ 
+  printf("0\n");
   /* Read elf file. */
-  init_elf_sym(elf_file);
-
+//  init_elf_sym(elf_file);
+  printf("1\n");
   /* Initialize memory. */
   init_mem();
+  printf("2\n");
 
   /* Perform ISA dependent initialization. */
   init_isa();
+  printf("3\n");
 
   /* Load the image to memory. This will overwrite the built-in image. */
   long img_size = load_img();

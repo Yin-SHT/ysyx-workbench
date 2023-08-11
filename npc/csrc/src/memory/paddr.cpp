@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <common.h>
 #include <utils.h>
+#include <sys/time.h>
 
 uint8_t pmem[CONFIG_MSIZE] PG_ALIGN = {};
 
@@ -51,7 +52,33 @@ extern "C" int npc_pmem_read(int addr) {
   return ret;
 }
 
+#define DEVICE_BASE 0xa0000000
+#define RTC_ADDR    (DEVICE_BASE + 0x0000048)
+static uint64_t boot_time = 0;
+
+static uint64_t get_time_internal() {
+  struct timeval now;
+  gettimeofday(&now, NULL);
+  uint64_t us = now.tv_sec * 1000000 + now.tv_usec;
+  return us;
+}
+
+uint64_t get_time() {
+  if (boot_time == 0) boot_time = get_time_internal();
+  uint64_t now = get_time_internal();
+  return now - boot_time;
+}
+
 extern "C" int data_npc_pmem_read(int addr) {
+  // Try Device Addr
+  if (addr == RTC_ADDR) {
+    uint64_t us = get_time();
+    return (uint32_t)us;
+  } else if (addr == RTC_ADDR + 4) {
+    uint32_t us = get_time();
+    return (uint32_t)(us >> 32);
+  }
+
   if (!in_pmem(addr)) {
     Assert("%x is out of bound ( READ )\n", addr);
   }
@@ -60,7 +87,16 @@ extern "C" int data_npc_pmem_read(int addr) {
   return ret;
 }
 
+#define DEVICE_BASE 0xa0000000
+#define SERIAL_PORT     (DEVICE_BASE + 0x00003f8)
 extern "C" void npc_pmem_write(int addr, int wdata, char wmask) {
+  // Try Device Addr
+  if (addr == SERIAL_PORT) {
+    char ch = wdata & 0xff;
+    putchar(ch);
+    return;
+  }
+
   if (!in_pmem(addr)) {
     Assert("%x is out of bound ( WRITE )\n", addr);
   }

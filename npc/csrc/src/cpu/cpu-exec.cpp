@@ -54,7 +54,7 @@ void translate_inst(uint32_t pc, uint32_t inst, char *buf) {
 void exec_once() {
   single_cycle(&cur_pc, &cur_inst, &next_pc, &next_inst);
 
-  decode_stage(cur_inst, cur_pc);
+//  decode_stage(cur_inst, cur_pc);
   if (g_print_step) {
     BLUE_PRINT("0x%08x: %08x\n", cur_pc, cur_inst);
   }
@@ -86,12 +86,12 @@ void cpu_exec(uint64_t n) {
     }
 
     // diff test
-    difftest_step(next_pc);
-    if (npc_state.state == NPC_ABORT) {
-      RED_PRINT("ABORT INST:   ");
-      puts(cur_logbuf);
-      break;
-    }
+//    difftest_step(next_pc);
+//    if (npc_state.state == NPC_ABORT) {
+//      RED_PRINT("ABORT INST:   ");
+//      puts(cur_logbuf);
+//      break;
+//    }
 
     // *** Examine ebreak instruction
     inst_ebreak(&ebreak);

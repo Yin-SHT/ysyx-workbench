@@ -1,10 +1,17 @@
 #include <am.h>
+#include <riscv/riscv.h>
 
+// Temp Device Addr, these will be changed in the future !!!
+#define DEVICE_BASE 0xa0000000
+#define RTC_ADDR    (DEVICE_BASE + 0x0000048)
 void __am_timer_init() {
 }
 
 void __am_timer_uptime(AM_TIMER_UPTIME_T *uptime) {
-  uptime->us = 0;
+  // Get High Bytes First !!!
+  uint32_t high_bytes = inl(RTC_ADDR + 4);
+  uint32_t low_bytes = inl(RTC_ADDR);
+  uptime->us = ((uint64_t)high_bytes << 32) | ((uint64_t)low_bytes & 0x00000000FFFFFFFF);
 }
 
 void __am_timer_rtc(AM_TIMER_RTC_T *rtc) {

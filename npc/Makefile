@@ -1,6 +1,6 @@
 TOP_NAME = Vtop
 IMG =
-NPC_ARGS = --log=$(NPC_HOME)/output/log.txt --flog=$(NPC_HOME)/output/flog.txt --elf=$(abspath $(IMG).elf) \
+NPC_ARGS += -b --log=$(NPC_HOME)/output/log.txt --flog=$(NPC_HOME)/output/flog.txt --elf=$(abspath $(IMG).elf) \
           --diff=$(NEMU_HOME)/build/riscv32-nemu-interpreter-so
 IMG_PATH = $(abspath $(IMG).bin)
 
