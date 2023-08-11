@@ -3,6 +3,8 @@
 
 #define SYNC_ADDR (VGACTL_ADDR + 4)
 
+void  *memcpy    (void *dst, const void *src, size_t n);
+
 void __am_gpu_init() {
 }
 

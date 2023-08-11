@@ -17,6 +17,13 @@
 #include <device/map.h>
 #include <SDL2/SDL.h>
 
+#define FREQ_OFFSET 0x00
+#define CHAN_OFFSET 0x04
+#define SAMP_OFFSET 0x08
+#define SIZE_OFFSET 0x0c
+#define INIT_OFFSET 0x10
+#define COUN_OFFSET 0x14
+
 enum {
   reg_freq,
   reg_channels,
@@ -29,8 +36,90 @@ enum {
 
 static uint8_t *sbuf = NULL;
 static uint32_t *audio_base = NULL;
+static bool is_data = false;
+static int front = 0;
+static int rear = 0;
+
+static void signal_enqueue(int16_t signal) {
+  int16_t *dst = (int16_t*)sbuf;
+  int n = audio_base[reg_sbuf_size] / 2;
+  dst[rear] = signal;
+  rear = (rear + 1) % n;
+  Assert(rear != front, "key queue overflow!");
+}
+
+static int16_t signal_dequeue() {
+  int16_t signal = 0;
+  int16_t *src = (int16_t*)sbuf;
+  int n = audio_base[reg_sbuf_size] / 2;
+  if (rear != front) {
+    signal = src[front];
+    front = (front + 1) % n;
+  }
+  return signal;
+}
+
+void sdl_AudioCallback(void *userdata, Uint8 *stream, int len) {
+  int n = audio_base[reg_sbuf_size] / 2;
+  int count = (rear - front + n) % n;
+  int16_t *dst = (int16_t*)stream;
+  
+  int i = 0;
+  len /= 2;   // Note that difference between byte and int16_t
+  while (i < len && i < count) {
+    dst[i] = signal_dequeue();
+    i++;
+  }
+
+  while (i < len) {
+    dst[i] = 0;
+    i++;
+  }
+}
+
+static void init_sdl_audio() {
+  SDL_AudioSpec s = {};
+
+  s.format = AUDIO_S16SYS;  // 假设系统中音频数据的格式总是使用16位有符号数来表示
+  s.userdata = NULL;        // 不使用
+  s.freq = audio_base[reg_freq];
+  s.channels = audio_base[reg_channels];
+  s.samples = audio_base[reg_samples];
+  s.callback = sdl_AudioCallback;
+
+  SDL_InitSubSystem(SDL_INIT_AUDIO);
+  SDL_OpenAudio(&s, NULL);
+  SDL_PauseAudio(0);
+}
 
 static void audio_io_handler(uint32_t offset, int len, bool is_write) {
+  assert(len == 1 || len == 2 || len == 4);
+  if (is_write) {
+    // Write 
+    switch (offset) {
+      case FREQ_OFFSET:
+      case CHAN_OFFSET:
+      case SAMP_OFFSET:
+        break;
+      case INIT_OFFSET: 
+        if (!is_data) {
+          init_sdl_audio();
+          is_data = true;
+        } else {
+          signal_enqueue(audio_base[reg_init]);
+        }
+        break;
+      default: panic("do not support offset = %d", offset);
+    }
+    return;
+  }
+  // Read
+  int n = audio_base[reg_sbuf_size] / 2;
+  switch (offset) {
+    case SIZE_OFFSET: audio_base[reg_sbuf_size] = CONFIG_SB_SIZE; break;
+    case COUN_OFFSET: audio_base[reg_count] = (rear - front + n) % n; break;
+    default: panic("do not support offset = %d", offset);
+  }
 }
 
 void init_audio() {
