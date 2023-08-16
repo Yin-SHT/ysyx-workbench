@@ -98,6 +98,7 @@ int printf(const char *fmt, ...) {
           p = itoa(d, p);
           break;
         case 'X':
+        case 'p':
         case 'x':
           d = va_arg(ap, int);
           p = ito_hexa(d, p);
