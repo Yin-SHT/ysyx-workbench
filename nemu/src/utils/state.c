@@ -16,8 +16,10 @@
 #include <utils.h>
 
 NEMUState nemu_state = { .state = NEMU_STOP };
+void iringbuf_trace();
 
 int is_exit_status_bad() {
+  IFDEF(CONFIG_RTRACE, iringbuf_trace());
   int good = (nemu_state.state == NEMU_END && nemu_state.halt_ret == 0) ||
     (nemu_state.state == NEMU_QUIT);
   return !good;

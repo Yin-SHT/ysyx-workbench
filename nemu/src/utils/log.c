@@ -15,6 +15,7 @@
 
 #include <common.h>
 #include <elf.h>
+#include <cpu/decode.h>
 
 extern uint64_t g_nr_guest_inst;
 FILE *log_fp = NULL;
@@ -36,34 +37,28 @@ void init_log(const char *log_file) {
 
 void init_rlog(const char *rlog_file) {
   if (rlog_file == NULL) return;
-  rlog_fp = stdout;
-  if (rlog_file != NULL) {
-    FILE *fp = fopen(rlog_file, "w");
-    Assert(fp, "Can not open '%s'", rlog_file);
-    rlog_fp = fp;
-  }
+
+  FILE *fp = fopen(rlog_file, "w");
+  Assert(fp, "Can not open '%s'", rlog_file);
+  rlog_fp = fp;
   Log("RLog is written to %s", rlog_file ? rlog_file : "stdout");
 }
 
 void init_mlog(const char *mlog_file) {
   if (mlog_file == NULL) return;
-  mlog_fp = stdout;
-  if (mlog_file != NULL) {
-    FILE *fp = fopen(mlog_file, "w");
-    Assert(fp, "Can not open '%s'", mlog_file);
-    mlog_fp = fp;
-  }
+  
+  FILE *fp = fopen(mlog_file, "w");
+  Assert(fp, "Can not open '%s'", mlog_file);
+  mlog_fp = fp;
   Log("MLog is written to %s", mlog_file ? mlog_file : "stdout");
 }
 
 void init_flog(const char *flog_file) {
   if (flog_file == NULL) return;
-  flog_fp = stdout;
-  if (flog_file != NULL) {
-    FILE *fp = fopen(flog_file, "w");
-    Assert(fp, "Can not open '%s'", flog_file);
-    flog_fp = fp;
-  }
+  
+  FILE *fp = fopen(flog_file, "w");
+  Assert(fp, "Can not open '%s'", flog_file);
+  flog_fp = fp;
   Log("FLog is written to %s", flog_file ? flog_file : "stdout");
 }
 
@@ -198,14 +193,68 @@ void ftrace_ret(vaddr_t pc, vaddr_t dnpc) {
 #endif
 }
 
+typedef struct iringbuf {
+  int top;
+  char *log[16];
+} IRingBuf;
+
+static IRingBuf irbuf __attribute__((unused));
+
+void init_iringbuf() {
+  irbuf.top = 0;
+  for (int i = 0; i < 16; i++) {
+    irbuf.log[i] = (char*)calloc(128, sizeof(char));
+  }
+}
+
+void iringbuf_trace() {
+  for (int i = 0; i < 16; i++) {
+    char *p __attribute_maybe_unused__ = irbuf.log[i];
+    if (( i + 1 ) % 16 == irbuf.top) {
+      rlog_write(" -----> %s\n", p);
+    } else {
+      rlog_write("        %s\n", p);
+    }
+  }
+}
+
+void iringbuf_itrace_add(Decode *s) {
+#ifdef CONFIG_ITRACE
+  int top = irbuf.top; 
+  irbuf.top = (top + 1) % 16;
+  char *p = irbuf.log[top];
+
+  p += snprintf(p, 128, FMT_WORD ":", s->pc);
+  int ilen = s->snpc - s->pc;
+  int i;
+  uint8_t *inst = (uint8_t *)&s->isa.inst.val;
+  for (i = ilen - 1; i >= 0; i --) {
+    p += snprintf(p, 4, " %02x", inst[i]);
+  }
+  int ilen_max = MUXDEF(CONFIG_ISA_x86, 8, 4);
+  int space_len = ilen_max - ilen;
+  if (space_len < 0) space_len = 0;
+  space_len = space_len * 3 + 1;
+  memset(p, ' ', space_len);
+  p += space_len;
+
+#ifndef CONFIG_ISA_loongarch32r
+  void disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
+  disassemble(p, irbuf.log[top] + 128 - p,
+      MUXDEF(CONFIG_ISA_x86, s->snpc, s->pc), (uint8_t *)&s->isa.inst.val, ilen);
+#else
+  p[0] = '\0'; // the upstream llvm does not support loongarch32r
+#endif
+#endif
+}
+
+
 void init_dlog(const char *dlog_file) {
   if (dlog_file == NULL) return;
-  dlog_fp = stdout;
-  if (dlog_file != NULL) {
-    FILE *fp = fopen(dlog_file, "w");
-    Assert(fp, "Can not open '%s'", dlog_file);
-    dlog_fp = fp;
-  }
+  
+  FILE *fp = fopen(dlog_file, "w");
+  Assert(fp, "Can not open '%s'", dlog_file);
+  dlog_fp = fp;
   Log("dlog is written to %s", dlog_file ? dlog_file : "stdout");
 }
 

@@ -30,66 +30,9 @@ uint64_t g_nr_guest_inst = 0;
 static uint64_t g_timer = 0; // unit: us
 static bool g_print_step = false;
 
-/*
- * iringbuf for itrace
- * 
-*/
-typedef struct iringbuf {
-  int top;
-  char *log[16];
-} IRingBuf;
-
-static IRingBuf irbuf __attribute__((unused));
-
-void init_iringbuf() {
-  irbuf.top = 0;
-  for (int i = 0; i < 16; i++) {
-    irbuf.log[i] = (char*)calloc(128, sizeof(char));
-  }
-}
-
-void iringbuf_trace_and_difftest() {
-  for (int i = 0; i < 16; i++) {
-    char *p __attribute_maybe_unused__ = irbuf.log[i];
-    if (( i + 1 ) % 16 == irbuf.top) {
-      rlog_write(" -----> %s\n", p);
-    } else {
-      rlog_write("        %s\n", p);
-    }
-  }
-}
-
-void iringbuf_itrace_add(Decode *s) {
-#ifdef CONFIG_ITRACE
-  int top = irbuf.top; 
-  irbuf.top = (top + 1) % 16;
-  char *p = irbuf.log[top];
-
-  p += snprintf(p, 128, FMT_WORD ":", s->pc);
-  int ilen = s->snpc - s->pc;
-  int i;
-  uint8_t *inst = (uint8_t *)&s->isa.inst.val;
-  for (i = ilen - 1; i >= 0; i --) {
-    p += snprintf(p, 4, " %02x", inst[i]);
-  }
-  int ilen_max = MUXDEF(CONFIG_ISA_x86, 8, 4);
-  int space_len = ilen_max - ilen;
-  if (space_len < 0) space_len = 0;
-  space_len = space_len * 3 + 1;
-  memset(p, ' ', space_len);
-  p += space_len;
-
-#ifndef CONFIG_ISA_loongarch32r
-  void disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
-  disassemble(p, irbuf.log[top] + 128 - p,
-      MUXDEF(CONFIG_ISA_x86, s->snpc, s->pc), (uint8_t *)&s->isa.inst.val, ilen);
-#else
-  p[0] = '\0'; // the upstream llvm does not support loongarch32r
-#endif
-#endif
-}
-
 void device_update();
+void iringbuf_itrace_add(Decode *s);
+void iringbuf_trace();
 
 extern bool scan_wp_pool(char *inst);
 
@@ -134,8 +77,6 @@ static void exec_once(Decode *s, vaddr_t pc) {
   p[0] = '\0'; // the upstream llvm does not support loongarch32r
 #endif
 #endif
-
-  IFDEF(CONFIG_RTRACE, iringbuf_itrace_add(s));
 }
 
 static void execute(uint64_t n) {
@@ -146,6 +87,7 @@ static void execute(uint64_t n) {
     trace_and_difftest(&s, cpu.pc);
     if (nemu_state.state != NEMU_RUNNING) break;
     IFDEF(CONFIG_DEVICE, device_update());
+    IFDEF(CONFIG_RTRACE, iringbuf_itrace_add(&s));
   }
 }
 
@@ -191,6 +133,5 @@ void cpu_exec(uint64_t n) {
           nemu_state.halt_pc);
       // fall through
     case NEMU_QUIT: statistic();
-  IFDEF(CONFIG_RTRACE, iringbuf_trace_and_difftest());
   }
 }
