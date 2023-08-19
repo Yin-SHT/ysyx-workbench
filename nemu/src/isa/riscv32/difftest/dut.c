@@ -17,20 +17,13 @@
 #include <cpu/difftest.h>
 #include "../local-include/reg.h"
 
-const char *my_regs[] = {
-  "$0", "ra", "sp", "gp", "tp", "t0", "t1", "t2",
-  "s0", "s1", "a0", "a1", "a2", "a3", "a4", "a5",
-  "a6", "a7", "s2", "s3", "s4", "s5", "s6", "s7",
-  "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"
-};
 bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
-  for (int i = 0; i < MUXDEF(CONFIG_RVE, 16, 32); i++) {
-    if (ref_r->gpr[i] != cpu.gpr[i]) {
-      RED_PRINT("%s: %x\t %s: %x\n", my_regs[i], ref_r->gpr[i], my_regs[i], cpu.gpr[i]);
-      return false;
-    }
+  int nr_error = 0;
+  nr_error = difftest_check_reg("PC", pc, ref_r->pc, cpu.pc) ? nr_error : nr_error + 1;  
+  for (int i = 0; i < RISCV_GPR_NUM; i++) {
+    nr_error = difftest_check_reg(reg_name(i), pc, ref_r->gpr[i], cpu.gpr[i]) ? nr_error : nr_error + 1;
   }
-  return true;
+  return nr_error == 0 ? true : false;
 }
 
 void isa_difftest_attach() {

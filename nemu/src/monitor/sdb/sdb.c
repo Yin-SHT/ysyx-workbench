@@ -53,6 +53,7 @@ static int cmd_si(char *args) {
   int step_num = 1;
   if (args) step_num = atoi(args);
   cpu_exec(step_num);
+  if (nemu_state.state != NEMU_STOP) return -1;
   return 0;
 }
 

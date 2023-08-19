@@ -48,6 +48,7 @@ static state_t *state = NULL;
 void sim_t::diff_init(int port) {
   p = get_core("0");
   state = p->get_state();
+//  state->mstatus->write(0x1800); // riscv32: 0x1800 riscv64: 0xa00001800
 }
 
 void sim_t::diff_step(uint64_t n) {
