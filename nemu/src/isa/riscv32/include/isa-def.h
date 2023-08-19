@@ -32,4 +32,10 @@ typedef struct {
 
 #define isa_mmu_check(vaddr, len, type) (MMU_DIRECT)
 
+// CSRs
+#define MSTATUS 0x300
+#define MTVEC   0x305
+#define MEPC    0x341
+#define MCAUSE  0x342
+
 #endif

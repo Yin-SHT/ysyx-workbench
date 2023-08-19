@@ -74,7 +74,7 @@ static void reverse_str(char *left, char *right) {
 }
 
 int printf(const char *fmt, ...) {
-  char str[65536] = { 0 };
+  char str[4096] = { 0 };
   const char *fp = fmt;
   char *p = str;
 
@@ -182,7 +182,7 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
   panic("Not implemented");
 }
 int sprintf(char *out, const char *fmt, ...) {
-  char str[65536] = { 0 };
+  char str[4096] = { 0 };
   const char *fp = fmt;
   char *p = str;
 

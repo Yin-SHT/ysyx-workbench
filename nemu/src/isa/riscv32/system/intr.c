@@ -15,12 +15,12 @@
 
 #include <isa.h>
 
-word_t isa_raise_intr(word_t NO, vaddr_t epc) {
-  /* TODO: Trigger an interrupt/exception with ``NO''.
-   * Then return the address of the interrupt/exception vector.
-   */
+MUXDEF(CONFIG_ISA64, uint64_t, uint32_t) CSRs[4096] = {0};
 
-  return 0;
+word_t isa_raise_intr(word_t NO, vaddr_t epc) {
+  CSRs[MEPC] = epc;
+  CSRs[MCAUSE] = NO;
+  return CSRs[MTVEC];
 }
 
 word_t isa_query_intr() {
