@@ -1,3 +1,7 @@
+`define MSTATUS 12'h300
+`define MTVEC   12'h305
+`define MEPC    12'h341
+`define MCAUSE  12'h342
 
 `define ALU_DATA  1'b0
 `define MEM_DATA  1'b1
@@ -14,6 +18,7 @@
 `define ZERO_ADDR         32'h0000_0000
 `define ZERO_WORD         32'h0000_0000
 `define ZERO_REG          5'b00000
+`define CSR_ZERO_REG      12'b00000
 `define ZERO_BYTE_OFFSET  2'b0
 `define ZERO_MASK         8'b0000_0000
 
@@ -32,6 +37,12 @@
 
 `define INST_DATA_WIDTH         32
 `define INST_DATA_BUS           31:0
+
+`define CSR_REG_ADDR_WIDTH      12
+`define CSR_REG_ADDR_BUS        11:0
+
+`define CSR_REG_DATA_WIDTH      32
+`define CSR_REG_DATA_BUS        31:0
 
 `define REG_ADDR_WIDTH          5
 `define REG_ADDR_BUS            4:0
@@ -69,6 +80,8 @@
 `define ALU_OP_SRA      8'b0001_0010
 `define ALU_OP_SRL      8'b0001_0011
 `define ALU_OP_SLT      8'b0001_0100
+`define ALU_OP_SLTI     8'b0001_0101
+`define ALU_OP_ECALL    8'b0001_0110
 
 // -------------------------------------------------
 // TRAN_OP
@@ -153,6 +166,9 @@
 
 `define OPCODE_SRAI        7'b001_0011
 `define FUNCT3_SRAI        3'b101
+
+`define OPCODE_SLTI        7'b001_0011
+`define FUNCT3_SLTI        3'b010
 
 `define OPCODE_SLTIU       7'b001_0011
 `define FUNCT3_SLTIU       3'b011

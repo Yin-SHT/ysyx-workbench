@@ -50,6 +50,7 @@ module execute (
         `ALU_OP_SRL   : alu_result = operand1_i  >> operand2_i[4:0]; 
         `ALU_OP_SRA   : alu_result = $signed(operand1_i) >>> operand2_i[4:0]; 
         `ALU_OP_SLTU  : alu_result = {{31{1'b0}}, unsigned_less_than}; 
+        `ALU_OP_SLTI  : alu_result = {{31{1'b0}}, $signed(operand1_i) < $signed(operand2_i)}; 
         `ALU_OP_SLTIU : alu_result = {{31{1'b0}}, unsigned_less_than}; 
         `ALU_OP_JUMP  : alu_result = `INST_LENGTH + operand2_i;
         default       : alu_result =                `ZERO_WORD; 
