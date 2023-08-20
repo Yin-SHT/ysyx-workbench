@@ -117,10 +117,12 @@ printf("\033[0;37m"); \
 printf(format, ##__VA_ARGS__); \
 printf("\033[0m");
 
-#define Assert(format, ...) \
+#define Assert(cond, format, ...) \
 do {                            \
-  RED_BOLD_PRINT(format, ##__VA_ARGS__); \
-  assert(0); \
+  if (!cond) {  \
+    RED_BOLD_PRINT(format, ##__VA_ARGS__); \
+    assert(0); \
+  } \
 } while (0)
 
 #define Log(format, ...) \

@@ -1,7 +1,10 @@
-TOP_NAME = Vtop
 IMG =
-NPC_ARGS += -b --log=$(NPC_HOME)/output/log.txt --flog=$(NPC_HOME)/output/flog.txt --elf=$(abspath $(IMG).elf) \
-          --diff=$(NEMU_HOME)/build/riscv32-nemu-interpreter-so
+TOP_NAME = Vtop
+NPC_ARGS += -b \
+						--log=$(NPC_HOME)/output/log.txt \
+						--flog=$(NPC_HOME)/output/flog.txt \
+						--elf=$(abspath $(IMG).elf) \
+          	--diff=$(NEMU_HOME)/build/riscv32-nemu-interpreter-so
 IMG_PATH = $(abspath $(IMG).bin)
 
 CSRC_DIR = csrc
@@ -10,7 +13,7 @@ INC_DIR = $(NPC_HOME)/csrc/include
 OBJ_DIR = build
 
 INCFLAGS = $(addprefix -I, $(INC_DIR))
-CFLAGS += $(INCFLAGS) $(shell llvm-config --cxxflags)
+CFLAGS += $(INCFLAGS) $(shell llvm-config --cxxflags) 
 LDFLAGS = -lreadline $(shell llvm-config --libs)
 
 
@@ -19,7 +22,7 @@ VSRCS = $(shell find $(VSRC_DIR) -name "*.v" )
 
 VERILATOR = verilator
 COMPILE_FLAG = --cc --trace --top-module top --Wall --timing -Ivsrc -Mdir $(OBJ_DIR)
-SIM_FLAG = --cc --trace --top-module top --Wall --timing -Ivsrc -Mdir $(OBJ_DIR) --exe --build -j 80
+SIM_FLAG = $(COMPILE_FLAG) --exe --build -j 80
 
 all:
 	@echo "Write this Makefile by your self."
@@ -29,7 +32,10 @@ compile:
 
 sim:
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
-	$(VERILATOR) $(SIM_FLAG) $(addprefix -CFLAGS , $(CFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) $(CSRCS) $(VSRCS)
+	$(VERILATOR) $(SIM_FLAG) \
+			$(addprefix -CFLAGS , $(CFLAGS)) \
+			$(addprefix -LDFLAGS , $(LDFLAGS)) \
+			$(CSRCS) $(VSRCS)
 	$(OBJ_DIR)/$(TOP_NAME) $(NPC_ARGS) $(IMG_PATH)
 
 run: sim

@@ -9,6 +9,7 @@ uint8_t pmem[CONFIG_MSIZE] PG_ALIGN = {};
 
 uint8_t* guest_to_host(paddr_t paddr) { return pmem + paddr - CONFIG_MBASE; }
 paddr_t host_to_guest(uint8_t *haddr) { return haddr - pmem + CONFIG_MBASE; }
+void difftest_skip_ref();
 
 static bool in_pmem(paddr_t addr) {
   return addr - CONFIG_MBASE < CONFIG_MSIZE;
@@ -20,7 +21,7 @@ static word_t host_read(void *addr, int len) {
     case 2: return *(uint16_t *)addr;
     case 4: return *(uint32_t *)addr;
     case 8: return *(uint64_t *)addr;
-    default: assert(0);
+    default: Assert(0, "Unsupported %d in read\n", len);
   }
 }
 
@@ -30,7 +31,7 @@ static inline void host_write(void *addr, int len, word_t data) {
     case 2: *(uint16_t *)addr = data; return;
     case 4: *(uint32_t *)addr = data; return;
     case 8: *(uint64_t *)addr = data; return;
-    default: assert(0);
+    default: Assert(0, "Unsupported %d in write\n", len);
   }
 }
 
@@ -45,7 +46,7 @@ static void pmem_write(paddr_t addr, int len, word_t data) {
 
 extern "C" int npc_pmem_read(int addr) {
   if (!in_pmem(addr)) {
-    Assert("%x is out of bound ( READ )\n", addr);
+    Assert(0, "0x%08x is out of bound ( READ )\n", addr);
   }
   addr = addr & (~(0x3u));
   word_t ret = host_read(guest_to_host(addr), 4);
@@ -72,15 +73,17 @@ uint64_t get_time() {
 extern "C" int data_npc_pmem_read(int addr) {
   // Try Device Addr
   if (addr == RTC_ADDR) {
+    difftest_skip_ref();
     uint64_t us = get_time();
     return (uint32_t)us;
   } else if (addr == RTC_ADDR + 4) {
-    uint32_t us = get_time();
+    difftest_skip_ref();
+    uint64_t us = get_time();
     return (uint32_t)(us >> 32);
   }
 
   if (!in_pmem(addr)) {
-    Assert("%x is out of bound ( READ )\n", addr);
+    Assert(0, "%x is out of bound ( READ )\n", addr);
   }
   addr = addr & (~(0x3u));
   word_t ret = host_read(guest_to_host(addr), 4);
@@ -92,13 +95,14 @@ extern "C" int data_npc_pmem_read(int addr) {
 extern "C" void npc_pmem_write(int addr, int wdata, char wmask) {
   // Try Device Addr
   if (addr == SERIAL_PORT) {
+    difftest_skip_ref();
     char ch = wdata & 0xff;
     putchar(ch);
     return;
   }
 
   if (!in_pmem(addr)) {
-    Assert("%x is out of bound ( WRITE )\n", addr);
+    Assert(0, "%x is out of bound ( WRITE )\n", addr);
   }
   addr = addr & (~(0x3u));
   int len = 0;
@@ -143,13 +147,13 @@ extern "C" void npc_pmem_write(int addr, int wdata, char wmask) {
 
 word_t paddr_read(paddr_t addr, int len) {
   if (in_pmem(addr)) return pmem_read(addr, len);
-  Assert("%x is out of bound\n", addr);
+  Assert(0, "%x is out of bound\n", addr);
   return 0;
 }
 
 void paddr_write(paddr_t addr, int len, word_t data) {
   if (in_pmem(addr)) { pmem_write(addr, len, data); return; }
-  Assert("%x is out of bound\n", addr);
+  Assert(0, "%x is out of bound\n", addr);
 }
 
 void init_mem() {
@@ -158,7 +162,6 @@ void init_mem() {
   for (i = 0; i < (int) (CONFIG_MSIZE / sizeof(p[0])); i ++) {
     p[i] = rand();
   }
-  Log("physical memory area [%x , %x]\n", CONFIG_MBASE, CONFIG_MBASE + CONFIG_MSIZE);
 }
 
 

@@ -9,10 +9,20 @@ module inst_decode (
   // Signal From Mem   
   input   [`INST_DATA_BUS]    inst_i,
 
-  /* verilator lint_off UNUSEDSIGNAL */
   // Signal From Regfile
   input   [`REG_DATA_BUS]     data1_i,
   input   [`REG_DATA_BUS]     data2_i,
+
+  // Signal From CSRs
+  input   [`REG_DATA_BUS]     csr_data_i,
+
+  // Signal To CSRs
+  output  [`REG_DATA_BUS]     csr_cause_o,
+  output  [`CSR_REG_ADDR_BUS] csr_waddr_o,
+  output                      csr_wena_o,
+  output  [`CSR_REG_DATA_BUS] csr_wdata_o,
+  output  [`CSR_REG_ADDR_BUS] csr_raddr_o,
+  output                      csr_rena_o,
 
   // Signal To Regfile
   output                      rena1_o,
@@ -121,21 +131,27 @@ module inst_decode (
   wire inst_lui   = ( opcode == `OPCODE_LUI   );
   wire inst_auipc = ( opcode == `OPCODE_AUIPC );
 
+  wire inst_csrrw = ( opcode == `OPCODE_CSRRW ) & ( funct3 == `FUNCT3_CSRRW );
+  wire inst_csrrs = ( opcode == `OPCODE_CSRRS ) & ( funct3 == `FUNCT3_CSRRS );
+  wire inst_mret  = ( opcode == `OPCODE_MRET   ) & ( funct3 == `FUNCT3_MRET   ) & ( funct12 == `FUNCT12_MRET   );
+ 
   wire ebreak     = ( opcode == `OPCODE_EBREAK ) & ( funct3 == `FUNCT3_EBREAK ) & ( funct12 == `FUNCT12_EBREAK );
+  wire ecall      = ( opcode == `OPCODE_ECALL  ) & ( funct3 == `FUNCT3_ECALL  ) & ( funct12 == `FUNCT12_ECALL  );
 
   // Check Unknown Instruction
   wire unknown    = !(
-                      inst_add  | inst_sub   | 
-                      inst_xor  | inst_or    | inst_and  |
-                      inst_sll  | inst_slt   | inst_srl  | inst_sra  | inst_sltu  |
-                      inst_addi | inst_xori  | inst_ori  | inst_andi |
-                      inst_slli | inst_srli  | inst_srai | inst_slti | inst_sltiu | 
-                      inst_lb   | inst_lh    | inst_lw   | inst_lbu  | inst_lhu   | 
-                      inst_sb   | inst_sh    | inst_sw   |
-                      inst_beq  | inst_bne   | inst_blt  | inst_bge  | inst_bltu  | inst_bgeu |
-                      inst_jal  | inst_jalr  |
-                      inst_lui  | inst_auipc |
-                      ebreak   
+                      inst_add   | inst_sub   | 
+                      inst_xor   | inst_or    | inst_and  |
+                      inst_sll   | inst_slt   | inst_srl  | inst_sra  | inst_sltu  |
+                      inst_addi  | inst_xori  | inst_ori  | inst_andi |
+                      inst_slli  | inst_srli  | inst_srai | inst_slti | inst_sltiu | 
+                      inst_lb    | inst_lh    | inst_lw   | inst_lbu  | inst_lhu   | 
+                      inst_sb    | inst_sh    | inst_sw   |
+                      inst_beq   | inst_bne   | inst_blt  | inst_bge  | inst_bltu  | inst_bgeu |
+                      inst_jal   | inst_jalr  |
+                      inst_lui   | inst_auipc |
+                      inst_csrrw | inst_csrrs | inst_mret |
+                      ebreak     | ecall
                      );
   // Parser Imm
   wire [`REG_DATA_BUS] imm =  ( inst_addi | inst_xori | inst_ori  | inst_andi  | 
@@ -145,7 +161,8 @@ module inst_decode (
                               ( inst_jal                                                                ) ? immJ :
                               ( inst_jalr                                                               ) ? immI : 
                               ( inst_sb   | inst_sh  | inst_sw                                          ) ? immS : 
-                              ( inst_lui  | inst_auipc                                                  ) ? immU : `ZERO_WORD;
+                              ( inst_lui  | inst_auipc                                                  ) ? immU :
+                              ( inst_csrrw| inst_csrrs                                                  ) ? immI : `ZERO_WORD;
 
   // *** Signal To Regfile
   assign rena1_o  = ( rst == `RST_DISABLE ) & 
@@ -158,7 +175,9 @@ module inst_decode (
                       inst_lb   | inst_lh   | inst_lw   | inst_lbu   | inst_lhu   |
                       inst_sb   | inst_sh   | inst_sw   |
                       inst_beq  | inst_bne  | inst_blt  | inst_bge   | inst_bltu  | inst_bgeu |
-                      inst_jalr 
+                      inst_jalr |
+                      inst_csrrw| inst_csrrs|
+                      ecall
                     );
 
   assign rena2_o  = ( rst == `RST_DISABLE ) & 
@@ -172,17 +191,19 @@ module inst_decode (
 
   assign wena_o   = ( rst == `RST_DISABLE ) & 
                     ( 
-                      inst_add  | inst_sub  | 
-                      inst_xor  | inst_or   | inst_and  |
-                      inst_sll  | inst_slt  | inst_srl  | inst_sra   | inst_sltu  | 
-                      inst_addi | inst_xori | inst_ori  | inst_andi  |
-                      inst_slli | inst_srli | inst_srai | inst_slti  | inst_sltiu |
-                      inst_lb   | inst_lh   | inst_lw   | inst_lbu   | inst_lhu   |
-                      inst_jal  | inst_jalr |
-                      inst_lui  | inst_auipc 
+                      inst_add  | inst_sub   | 
+                      inst_xor  | inst_or    | inst_and  |
+                      inst_sll  | inst_slt   | inst_srl  | inst_sra   | inst_sltu  | 
+                      inst_addi | inst_xori  | inst_ori  | inst_andi  |
+                      inst_slli | inst_srli  | inst_srai | inst_slti  | inst_sltiu |
+                      inst_lb   | inst_lh    | inst_lw   | inst_lbu   | inst_lhu   |
+                      inst_jal  | inst_jalr  |
+                      inst_lui  | inst_auipc |
+                      inst_csrrw| inst_csrrs 
                     );
 
-  assign raddr1_o = ( rena1_o == `READ_DISABLE  ) ? `ZERO_REG : rs1;
+  assign raddr1_o = ( rena1_o == `READ_DISABLE  ) ? `ZERO_REG :
+                    ( ecall                     ) ? 5'b0_1111 : rs1; // 0_1111 for riscv-e
   assign raddr2_o = ( rena2_o == `READ_DISABLE  ) ? `ZERO_REG : rs2;
   assign waddr_o  = ( wena_o  == `WRITE_DISABLE ) ? `ZERO_REG :  rd;
 
@@ -226,7 +247,10 @@ module inst_decode (
                       ( inst_jalr          ) ? `ALU_OP_JUMP:
 
                       ( inst_lui           ) ? `ALU_OP_ADD :
-                      ( inst_auipc         ) ? `ALU_OP_ADD : `ALU_OP_NOP;
+                      ( inst_auipc         ) ? `ALU_OP_ADD : 
+                      ( inst_csrrw         ) ? `ALU_OP_CSRRW :
+                      ( inst_csrrs         ) ? `ALU_OP_CSRRS :
+                      ( ecall              ) ? `ALU_OP_ECALL : `ALU_OP_NOP;
 
   // *** operand* To Alu/Tran
   assign operand1_o = ( rst == `RST_ENABLE ) ? `ZERO_WORD  :
@@ -240,9 +264,13 @@ module inst_decode (
                         inst_sb   | inst_sh   | inst_sw   |
                         inst_beq  | inst_bne  | inst_blt  | inst_bge   | inst_bltu  | inst_bgeu |
                         inst_jalr 
-                      )              ? data1_i :
-                      ( inst_auipc ) ? pc_i    : `ZERO_WORD;
-    
+                      )              ? data1_i    :
+                      ( inst_auipc ) ? pc_i       :
+                      ( inst_csrrw ) ? csr_data_i :
+                      ( inst_csrrs ) ? csr_data_i :
+                      ( inst_mret  ) ? csr_data_i :
+                      ( ecall      ) ? csr_data_i : `ZERO_WORD;
+
   assign operand2_o = ( rst == `RST_ENABLE ) ? `ZERO_WORD  :
                       (
                         inst_add  | inst_sub  |  
@@ -268,7 +296,9 @@ module inst_decode (
                       ( inst_bltu          ) ? `TRAN_OP_BLTU :
                       ( inst_bgeu          ) ? `TRAN_OP_BGEU :
                       ( inst_jal           ) ? `TRAN_OP_JAL  :
-                      ( inst_jalr          ) ? `TRAN_OP_JALR : `TRAN_OP_NOP;
+                      ( inst_jalr          ) ? `TRAN_OP_JALR :
+                      ( inst_mret          ) ? `TRAN_OP_MRET : 
+                      ( ecall              ) ? `TRAN_OP_ECALL: `TRAN_OP_NOP;
  
   assign pc_o  = pc_i;               
   assign imm_o = imm ;
@@ -286,5 +316,29 @@ module inst_decode (
   // Signal To Write-Back
   assign wsel_o     = ( rst == `RST_ENABLE                                ) ? `ALU_DATA :
                       ( inst_lb | inst_lh | inst_lw | inst_lbu | inst_lhu ) ? `MEM_DATA : `ALU_DATA;
+
+  // Signal To CSRs
+  assign csr_cause_o = ( rst == `RST_ENABLE        ) ? `ZERO_WORD     :
+                       ( ecall                     ) ? data1_i        : `ZERO_WORD;
+
+  assign csr_wdata_o = ( rst == `RST_ENABLE        ) ? `ZERO_WORD     :
+                       ( inst_csrrw                ) ? data1_i        : 
+                       ( inst_csrrs                ) ? data1_i | csr_data_i : `ZERO_WORD;
+
+  assign csr_waddr_o = ( rst == `RST_ENABLE        ) ? `CSR_ZERO_REG  :
+                       ( inst_csrrw | inst_csrrs   ) ? imm[11:0]      : `CSR_ZERO_REG;
+
+  assign csr_wena_o  = ( rst == `RST_ENABLE        ) ? `WRITE_DISABLE :
+                       ( inst_csrrw | inst_csrrs   ) ? `WRITE_ENABLE  : `WRITE_DISABLE;
+
+  assign csr_raddr_o = ( rst == `RST_ENABLE        ) ? `CSR_ZERO_REG  :
+                       ( inst_csrrw | inst_csrrs   ) ? imm[11:0]      : 
+                       ( inst_mret                 ) ? `MEPC          : 
+                       ( ecall                     ) ? `MTVEC         : `CSR_ZERO_REG;
+
+  assign csr_rena_o  = ( rst == `RST_ENABLE        ) ? `READ_DISABLE  :
+                       ( inst_csrrw | inst_csrrs   ) ? `READ_ENABLE   : 
+                       ( inst_mret  | ecall        ) ? `READ_ENABLE   : `READ_DISABLE;
+
 
 endmodule

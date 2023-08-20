@@ -43,7 +43,9 @@ module addr_transfer (
                     ( tran_op_i == `TRAN_OP_BGEU) ? ( $unsigned(operand1_i) >= $unsigned(operand2_i)) :
 //                    ( tran_op_i == `TRAN_OP_BGEU) ? ( unsigned_greater_equal   ) :
                     ( tran_op_i == `TRAN_OP_JAL ) ? ( `TRAN_ENABLE             ) :
-                    ( tran_op_i == `TRAN_OP_JALR) ? ( `TRAN_ENABLE             ) : `TRAN_DISABLE;
+                    ( tran_op_i == `TRAN_OP_JALR) ? ( `TRAN_ENABLE             ) :
+                    ( tran_op_i == `TRAN_OP_MRET ) ? ( `TRAN_ENABLE             ) : 
+                    ( tran_op_i == `TRAN_OP_ECALL) ? ( `TRAN_ENABLE             ) : `TRAN_DISABLE;
 
   assign dnpc_o = ( rst       == `RST_ENABLE   ) ? `RESET_PC           :
                   ( transfer  == `TRAN_DISABLE ) ? pc_i + `INST_LENGTH : 
@@ -54,6 +56,8 @@ module addr_transfer (
                   ( tran_op_i == `TRAN_OP_BLTU ) ? pc_i + imm_i        :
                   ( tran_op_i == `TRAN_OP_BGEU ) ? pc_i + imm_i        :
                   ( tran_op_i == `TRAN_OP_JAL  ) ? pc_i + imm_i        :
-                  ( tran_op_i == `TRAN_OP_JALR ) ? operand1_i  + imm_i : pc_i + `INST_LENGTH;
+                  ( tran_op_i == `TRAN_OP_JALR ) ? operand1_i  + imm_i :
+                  ( tran_op_i == `TRAN_OP_MRET ) ? operand1_i  + `INST_LENGTH : 
+                  ( tran_op_i == `TRAN_OP_ECALL) ? 32'h80000420       : pc_i + `INST_LENGTH;
 
 endmodule

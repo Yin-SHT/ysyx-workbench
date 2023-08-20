@@ -2,11 +2,10 @@
 #include <paddr.h>
 #include <utils.h>
 #include <getopt.h>
+#include <common.h>
 
 void init_rand();
 void init_log(const char *log_file);
-void init_rlog(const char *rlog_file);
-void init_mlog(const char *mlog_file);
 void init_flog(const char *flog_file);
 void init_elf_sym(const char *elf_file);
 void init_mem();
@@ -16,8 +15,8 @@ void init_verilator(int argc, char **argv);
 
 static void welcome() {
   BLUE_BOLD_PRINT("Build time: %s, %s\n", __TIME__, __DATE__);
-  GREEN_BOLD_PRINT("Welcome to RISCV32-NPC!\n");
-  GREEN_BOLD_PRINT("For help, type \"help\"\n");
+  printf("Welcome to RISCV32-NPC!\n");
+  printf("For help, type \"help\"\n");
 }
 
 void sdb_set_batch_mode();
@@ -38,9 +37,7 @@ static long load_img() {
   }
 
   FILE *fp = fopen(img_file, "rb");
-  if (!fp) {
-    Assert("Can not open '%s'\n", img_file);
-  }
+  Assert(fp, "Can not open '%s'\n", img_file);
 
   fseek(fp, 0, SEEK_END);
   long size = ftell(fp);
@@ -49,7 +46,7 @@ static long load_img() {
 
   fseek(fp, 0, SEEK_SET);
   int ret = fread(guest_to_host(RESET_VECTOR), size, 1, fp);
-  assert(ret == 1);
+  Assert(ret == 1, "ret != 1");
 
   fclose(fp);
   return size;
@@ -59,8 +56,6 @@ static int parse_args(int argc, char *argv[]) {
   const struct option table[] = {
     {"batch"    , no_argument      , NULL, 'b'},
     {"log"      , required_argument, NULL, 'l'},
-    {"rlog"     , required_argument, NULL, 'r'},
-    {"mlog"     , required_argument, NULL, 'm'},
     {"flog"     , required_argument, NULL, 'f'},
     {"elf"      , required_argument, NULL, 'e'},
     {"diff"     , required_argument, NULL, 'd'},
@@ -69,13 +64,11 @@ static int parse_args(int argc, char *argv[]) {
     {0          , 0                , NULL,  0 },
   };
   int o;
-  while ( (o = getopt_long(argc, argv, "-bhl:r:m:f:e:d:p:", table, NULL)) != -1) {
+  while ( (o = getopt_long(argc, argv, "-bhl:f:e:d:p:", table, NULL)) != -1) {
     switch (o) {
       case 'b': sdb_set_batch_mode(); break;
       case 'p': sscanf(optarg, "%d", &difftest_port); break;
       case 'l': log_file = optarg; break;
-      case 'r': rlog_file = optarg; break;
-      case 'm': mlog_file = optarg; break;
       case 'f': flog_file = optarg; break;
       case 'e': elf_file = optarg; break;
       case 'd': diff_so_file = optarg; break;
@@ -84,8 +77,6 @@ static int parse_args(int argc, char *argv[]) {
         printf("Usage: %s [OPTION...] IMAGE [args]\n\n", argv[0]);
         printf("\t-b,--batch              run with batch mode\n");
         printf("\t-l,--log=FILE           output log to FILE\n");
-        printf("\t-r,--rlog=FILE          output iringbuf log to FILE\n");
-        printf("\t-m,--mlog=FILE          output mtrace log to FILE\n");
         printf("\t-f,--flog=FILE          output ftrace log to FILE\n");
         printf("\t-e,--elf=FILE           read elf FILE\n");
         printf("\t-d,--diff=REF_SO        run DiffTest with reference REF_SO\n");
@@ -109,20 +100,17 @@ void init_monitor(int argc, char *argv[]) {
   /* Open the log file. */
   init_log(log_file);
 
-  /* Open the flog file */
-//  init_flog(flog_file);
- 
-  printf("0\n");
-  /* Read elf file. */
-//  init_elf_sym(elf_file);
-  printf("1\n");
+  /* Open the ftrace log file. */
+#ifdef CONFIG_FTRACE
+  init_flog(flog_file);
+  init_elf_sym(elf_file);
+#endif
+
   /* Initialize memory. */
   init_mem();
-  printf("2\n");
 
   /* Perform ISA dependent initialization. */
   init_isa();
-  printf("3\n");
 
   /* Load the image to memory. This will overwrite the built-in image. */
   long img_size = load_img();

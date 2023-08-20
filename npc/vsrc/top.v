@@ -35,7 +35,7 @@ module top (
   wire [`REG_DATA_BUS] operand1__inst_decode;
   wire [`REG_DATA_BUS] operand2__inst_decode;
   wire [`TRAN_OP_BUS]  tran_op__inst_decode;
-  wire [`INST_ADDR_BUS] pc_inst__decode;
+  wire [`INST_ADDR_BUS] pc__inst_decode;
   wire [`REG_DATA_BUS] imm__inst_decode;
   wire [`REG_ADDR_BUS] waddr__inst_decode;
   wire [`REG_ADDR_BUS] raddr1__inst_decode;
@@ -44,6 +44,28 @@ module top (
   wire                 rena1__inst_decode;
   wire                 rena2__inst_decode;
 
+  wire [`REG_DATA_BUS] csr_data__csrs;
+  wire [`REG_DATA_BUS] csr_cause__inst_decode;
+  wire [`CSR_REG_ADDR_BUS] csr_waddr__inst_decode;
+  wire                     csr_wena__inst_decode;
+  wire [`CSR_REG_DATA_BUS] csr_wdata__inst_decode;
+  wire [`CSR_REG_ADDR_BUS] csr_raddr__inst_decode;
+  wire                     csr_rena__inst_decode;
+
+  csrs u_csrs (
+    .clk ( clk ),
+    .rst ( rst ),
+    .alu_op_i ( alu_op__inst_decode ),
+    .pc_i ( pc__inst_decode ),
+    .csr_cause_i ( csr_cause__inst_decode ),
+    .csr_waddr_i ( csr_waddr__inst_decode ),
+    .csr_wdata_i ( csr_wdata__inst_decode ),
+    .csr_wena_i ( csr_wena__inst_decode ),
+    .csr_raddr_i ( csr_raddr__inst_decode ),
+    .csr_rena_i ( csr_rena__inst_decode ),
+    .csr_data_o ( csr_data__csrs )
+  );
+
   inst_decode u_inst_decode (
     .rst ( rst ),
 
@@ -51,6 +73,14 @@ module top (
     .inst_i ( inst__inst_mem ),
     .data1_i ( data1__regfile ),
     .data2_i ( data2__regfile ),
+
+    .csr_data_i ( csr_data__csrs ),
+    .csr_cause_o ( csr_cause__inst_decode ),
+    .csr_waddr_o ( csr_waddr__inst_decode ),
+    .csr_wena_o ( csr_wena__inst_decode ),
+    .csr_wdata_o ( csr_wdata__inst_decode ),
+    .csr_raddr_o ( csr_raddr__inst_decode ),
+    .csr_rena_o ( csr_rena__inst_decode ),
 
     .wsel_o ( wsel__inst_deocde ),
 
@@ -64,7 +94,7 @@ module top (
     .operand2_o ( operand2__inst_decode ),
     
     .tran_op_o ( tran_op__inst_decode ),
-    .pc_o ( pc_inst__decode ), 
+    .pc_o ( pc__inst_decode ), 
     .imm_o ( imm__inst_decode ),
     
     .waddr_o ( waddr__inst_decode ),
@@ -115,7 +145,7 @@ module top (
     .operand1_i ( operand1__inst_decode ),
     .operand2_i ( operand2__inst_decode ),
     .tran_op_i ( tran_op__inst_decode ),
-    .pc_i ( pc_inst__decode ),
+    .pc_i ( pc__inst_decode ),
     .imm_i ( imm__inst_decode ),
     .dnpc_o ( dnpc__addr_transfer )
   ); 

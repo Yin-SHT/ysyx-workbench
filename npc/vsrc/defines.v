@@ -81,7 +81,10 @@
 `define ALU_OP_SRL      8'b0001_0011
 `define ALU_OP_SLT      8'b0001_0100
 `define ALU_OP_SLTI     8'b0001_0101
-`define ALU_OP_ECALL    8'b0001_0110
+`define ALU_OP_CSRRW    8'b0001_0110
+`define ALU_OP_ECALL    8'b0001_0111
+`define ALU_OP_CSRRS    8'b0001_1000
+`define ALU_OP_MRET     8'b0001_1001
 
 // -------------------------------------------------
 // TRAN_OP
@@ -98,6 +101,8 @@
 `define TRAN_OP_BGEU    8'b1000_0110
 `define TRAN_OP_JAL     8'b1000_0111
 `define TRAN_OP_JALR    8'b1000_1000
+`define TRAN_OP_ECALL   8'b1000_1001
+`define TRAN_OP_MRET    8'b1000_1010
 
 // -------------------------------------------------
 // Instruction OPCODE
@@ -224,6 +229,21 @@
 `define OPCODE_AUIPC        7'b001_0111
 `define OPCODE_LUI          7'b011_0111
 
+// ***  CSR Instructions
+`define OPCODE_CSRRW        7'b111_0011
+`define FUNCT3_CSRRW        3'b001
+
+`define OPCODE_CSRRS        7'b111_0011
+`define FUNCT3_CSRRS        3'b010
+
+`define OPCODE_MRET         7'b111_0011
+`define FUNCT3_MRET         3'b000
+`define FUNCT12_MRET        12'b0011_0000_0010
+
 `define OPCODE_EBREAK       7'b111_0011
 `define FUNCT3_EBREAK       3'b000
 `define FUNCT12_EBREAK      12'b0000_0000_0001
+
+`define OPCODE_ECALL        7'b111_0011
+`define FUNCT3_ECALL        3'b000
+`define FUNCT12_ECALL       12'b0000_0000_0000

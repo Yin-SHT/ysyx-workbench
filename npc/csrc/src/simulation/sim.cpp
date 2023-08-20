@@ -91,13 +91,16 @@ void single_cycle(uint32_t *cur_pc, uint32_t *cur_inst, uint32_t *next_pc, uint3
   *cur_pc = top->rootp->top__DOT__pc___05Finst_fetch;
   *cur_inst = top->rootp->top__DOT__u_inst_mem__DOT__rdata;
 
+  int decode_stage(uint32_t inst, vaddr_t pc);
+  decode_stage(*cur_inst, *cur_pc); // For write ftrace
+
   top->clk = 1; 
   top->eval(); tfp->dump(contextp->time()); contextp->timeInc(1);
 
   *next_pc = top->rootp->top__DOT__pc___05Finst_fetch;
   *next_inst = top->rootp->top__DOT__u_inst_mem__DOT__rdata;
 
-  // Regfile 是同步写，异步读。因此把 update_cpu() 放在这里来获取 执行完一条指令后的 regfile 的状态。
+  // Regfile 是同步写，异步读。因此把 update_cpu() 放在这里来获取执行完一条指令后的 regfile 的状态。
   // cur_pc 是所执行指令的 pc
   update_cpu(*cur_pc);
 }
@@ -124,6 +127,11 @@ void init_verilator(int argc, char **argv) {
   tfp = new VerilatedVcdC;
   top->trace( tfp, 99 ); // Trace 99 levels of hierarchy (or see below)
   tfp->open( "./output/sim.vcd" );
+
+  // Prepare for DPI-C
+  const svScope scope_pd = svGetScopeFromName("TOP.top.u_inst_decode");
+  Assert(scope_pd, "scope_pd is null"); // Check for nullptr if scope not found
+  svSetScope(scope_pd);
 
   // Reset NPC Model
   reset( 10 );

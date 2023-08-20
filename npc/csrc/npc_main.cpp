@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <common.h>
 
 void init_monitor(int, char *[]);
 void sdb_mainloop();

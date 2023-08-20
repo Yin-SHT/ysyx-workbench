@@ -1,4 +1,5 @@
 #include <common.h>
+#include <assert.h>
 
 #define R(i) npc_regs(i)
 

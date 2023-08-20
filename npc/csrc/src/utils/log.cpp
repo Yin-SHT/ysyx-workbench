@@ -15,24 +15,19 @@ void init_log(const char *log_file) {
   log_fp = stdout;
   if (log_file != NULL) {
     FILE *fp = fopen(log_file, "w");
-    if (!fp) {
-      Assert("Can not open '%s'\n", log_file);
-    }
+    Assert(fp, "Can not open '%s'\n", log_file);
     log_fp = fp;
   }
   Log("Log is written to %s\n", log_file ? log_file : "stdout");
 }
 
 void init_flog(const char *flog_file) {
-  flog_fp = stdout;
-  if (flog_file != NULL) {
-    FILE *fp = fopen(flog_file, "w");
-    if (!fp) {
-      Assert("Can not open '%s'\n", flog_file);
-    }
-    flog_fp = fp;
-  }
-  Log("Log is written to %s\n", flog_file ? flog_file : "stdout");
+  if (flog_file == NULL) return;
+  
+  FILE *fp = fopen(flog_file, "w");
+  Assert(fp, "Can not open '%s'", flog_file);
+  flog_fp = fp;
+  Log("FLog is written to %s\n", flog_file ? flog_file : "stdout");
 }
 
 typedef struct syminfo {
@@ -52,10 +47,7 @@ FunInfo fun_record;
 void init_elf_sym(const char *elf_file) {
   if (elf_file == NULL) return;
   FILE *fp = fopen(elf_file, "r");
-  if (!fp) {
-    RED_PRINT("Can not read %s\n", elf_file);
-    assert(0);
-  }
+  Assert(fp, "Can not read %s\n", elf_file);
 
   int UNUSED __attribute__((unused));
   // 读取程序头表，获取节头表的偏移与节头表表项的数目
@@ -123,6 +115,7 @@ void func_sym_display() {
 static int call_count __attribute__((unused)) = -1;
 
 void ftrace_call(vaddr_t pc, vaddr_t dnpc) {
+#ifdef CONFIG_FTRACE
   for (int i = 0; i < fun_record.top; i++) {
     Elf32_Addr st_value = fun_record.syminfos[i].st_value;
     Elf32_Word st_size = fun_record.syminfos[i].st_size;
@@ -138,10 +131,12 @@ void ftrace_call(vaddr_t pc, vaddr_t dnpc) {
   }
   printf("No call!!!\n");
   assert(0);
+#endif
   return;
 }
 
 void ftrace_ret(vaddr_t pc, vaddr_t dnpc) {
+#ifdef CONFIG_FTRACE
   for (int i = 0; i < fun_record.top; i++) {
     Elf32_Addr st_value = fun_record.syminfos[i].st_value;
     Elf32_Word st_size = fun_record.syminfos[i].st_size;
@@ -157,5 +152,6 @@ void ftrace_ret(vaddr_t pc, vaddr_t dnpc) {
   }
   printf("No ret!!!\n");
   assert(0);
+#endif
   return;
 }
