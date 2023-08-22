@@ -2,10 +2,12 @@
 #include <utils.h>
 #include <paddr.h>
 #include <device.h>
+#include <difftest.h>
 
 extern "C" int npc_pmem_read(int addr) {
   /* Try Device */
   if ((addr == RTC_ADDR) || (addr == RTC_ADDR + 4)) {
+    difftest_skip_ref();
     uint64_t us = get_time();
     return addr == RTC_ADDR ? (uint32_t)us : (uint32_t)(us >> 32);
   } 
@@ -20,6 +22,7 @@ extern "C" int npc_pmem_read(int addr) {
 extern "C" void npc_pmem_write(int addr, int wdata, char wmask) {
   /* Try Device */
   if (addr == SERIAL_PORT) {
+    difftest_skip_ref();
     putchar(wdata & 0xff);
     return;
   }

@@ -18,17 +18,24 @@ void init_log(const char *log_file) {
     Assert(fp, "Can not open '%s'\n", log_file);
     log_fp = fp;
   }
-  Log("Log is written to %s\n", log_file ? log_file : "stdout");
+  Log("Log is written to %s", log_file ? log_file : "stdout");
 }
 
-void init_flog(const char *flog_file) {
+#ifdef CONFIG_FTRACE
+void init_flog(const char *flog_file, const char *elf_file) {
   if (flog_file == NULL) return;
   
   FILE *fp = fopen(flog_file, "w");
   Assert(fp, "Can not open '%s'", flog_file);
   flog_fp = fp;
-  Log("FLog is written to %s\n", flog_file ? flog_file : "stdout");
+  Log("FLog is written to %s", flog_file ? flog_file : "stdout");
+
+  void init_elf_sym(const char *elf_file);
+  init_elf_sym(elf_file);
 }
+#else
+void init_flog(const char *flog_file, const char *elf_file) { }
+#endif
 
 typedef struct syminfo {
     int idx;
@@ -114,8 +121,8 @@ void func_sym_display() {
 
 static int call_count __attribute__((unused)) = -1;
 
-void ftrace_call(vaddr_t pc, vaddr_t dnpc) {
 #ifdef CONFIG_FTRACE
+void ftrace_call(vaddr_t pc, vaddr_t dnpc) {
   for (int i = 0; i < fun_record.top; i++) {
     Elf32_Addr st_value = fun_record.syminfos[i].st_value;
     Elf32_Word st_size = fun_record.syminfos[i].st_size;
@@ -131,12 +138,14 @@ void ftrace_call(vaddr_t pc, vaddr_t dnpc) {
   }
   printf("No call!!!\n");
   assert(0);
-#endif
   return;
 }
+#else
+void ftrace_call(vaddr_t pc, vaddr_t dnpc) { }
+#endif
 
-void ftrace_ret(vaddr_t pc, vaddr_t dnpc) {
 #ifdef CONFIG_FTRACE
+void ftrace_ret(vaddr_t pc, vaddr_t dnpc) {
   for (int i = 0; i < fun_record.top; i++) {
     Elf32_Addr st_value = fun_record.syminfos[i].st_value;
     Elf32_Word st_size = fun_record.syminfos[i].st_size;
@@ -152,6 +161,8 @@ void ftrace_ret(vaddr_t pc, vaddr_t dnpc) {
   }
   printf("No ret!!!\n");
   assert(0);
-#endif
   return;
 }
+#else
+void ftrace_ret(vaddr_t pc, vaddr_t dnpc) { }
+#endif

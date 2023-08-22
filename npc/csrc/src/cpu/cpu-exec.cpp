@@ -3,6 +3,7 @@
 #include <utils.h>
 #include <sim.h>
 #include <cpu.h>
+#include <difftest.h>
 
 #define MAX_INST_TO_PRINT 10
 
@@ -36,11 +37,21 @@ void translate_inst(uint32_t pc, uint32_t inst, char *buf) {
   log_write("%s\n", buf);
 }
 
+static void trace_and_difftest(vaddr_t pc, vaddr_t dnpc) {
+  translate_inst(cur_pc, cur_inst, logbuf);
+  if (g_print_step) { BLUE_PRINT("0x%08x: %08x\n", cur_pc, cur_inst);}
+#ifdef CONFIG_FTRACE
+  int decode_ftrace(uint32_t inst, vaddr_t pc);
+  decode_ftrace(cur_inst, cur_pc);
+#endif
+#ifdef CONFIG_DIFFTEST
+  difftest_step(pc, dnpc);
+#endif
+}
+
 void exec_once() {
   single_cycle();
-
-  if (g_print_step) { BLUE_PRINT("0x%08x: %08x\n", cur_pc, cur_inst);}
-  translate_inst(cur_pc, cur_inst, logbuf);
+  trace_and_difftest(cur_pc, cpu.pc);
 }
 
 static void execute(uint64_t n) {
@@ -65,7 +76,7 @@ void cpu_exec(uint64_t n) {
     case NPC_RUNNING: npc_state.state = NPC_STOP; break;
 
     case NPC_END: case NPC_ABORT:
-      Log("npc: %s at pc = " FMT_WORD "\n",
+      Log("npc: %s at pc = " FMT_WORD,
           (npc_state.state == NPC_ABORT ? ANSI_FMT("ABORT", ANSI_FG_RED) :
            (npc_state.halt_ret == 0 ? ANSI_FMT("HIT GOOD TRAP", ANSI_FG_GREEN) :
             ANSI_FMT("HIT BAD TRAP", ANSI_FG_RED))),

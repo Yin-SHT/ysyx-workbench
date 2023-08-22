@@ -38,7 +38,7 @@ static void decode_operand(uint32_t inst, int *rd, word_t *src1, word_t *src2, w
   }
 }
 
-int decode_stage(uint32_t inst, vaddr_t pc) {
+int decode_ftrace(uint32_t inst, vaddr_t pc) {
   vaddr_t snpc = pc + 4;
   vaddr_t dnpc = pc + 4;
   int rd = 0;

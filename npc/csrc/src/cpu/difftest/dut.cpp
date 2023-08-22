@@ -42,24 +42,23 @@ void init_difftest(char *ref_so_file, long img_size, int port) {
   void (*ref_difftest_init)(int) = (void(*)(int))dlsym(handle, "difftest_init");
   assert(ref_difftest_init);
 
-  Log("Differential testing: %s\n", "ON");
-  Log("The result of every instruction will be compared with %s.\n", ref_so_file);
+  Log("Differential testing: %s", "ON");
+  Log("The result of every instruction will be compared with %s.", ref_so_file);
 
   ref_difftest_init(port);
   ref_difftest_memcpy(RESET_VECTOR, guest_to_host(RESET_VECTOR), img_size, DIFFTEST_TO_REF);
   ref_difftest_regcpy(&cpu, DIFFTEST_TO_REF);
 }
 
-static void checkregs(CPU_state *ref, vaddr_t npc) {
-  bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t npc);
-  if (!isa_difftest_checkregs(ref, npc)) {
-    void isa_diff_reg_display(CPU_state *ref_r);
+static void checkregs(CPU_state *ref, vaddr_t pc) {
+  if (!isa_difftest_checkregs(ref, pc)) {
     npc_state.state = NPC_ABORT;
-    isa_diff_reg_display(ref);
+    npc_state.halt_pc = pc;
+    isa_reg_display();
   }
 }
 
-void difftest_step(vaddr_t npc) {
+void difftest_step(vaddr_t pc, vaddr_t npc) {
   CPU_state ref_r;
 
   if (is_skip_ref) {
@@ -72,7 +71,7 @@ void difftest_step(vaddr_t npc) {
   ref_difftest_exec(1);
   ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
 
-  checkregs(&ref_r, npc);
+  checkregs(&ref_r, pc);
 }
 #else
 void init_difftest(char *ref_so_file, long img_size, int port) { }

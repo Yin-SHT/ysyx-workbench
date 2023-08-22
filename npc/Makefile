@@ -2,9 +2,9 @@ IMG =
 TOP_NAME = Vtop
 NPC_ARGS += -b \
 						--log=$(NPC_HOME)/output/log.txt \
-#						--flog=$(NPC_HOME)/output/flog.txt \
+						--flog=$(NPC_HOME)/output/flog.txt \
 						--elf=$(abspath $(IMG).elf) \
-          	--diff=$(NEMU_HOME)/build/riscv32-nemu-interpreter-so
+#          	--diff=$(NEMU_HOME)/build/riscv32-nemu-interpreter-so
 
 IMG_PATH = $(abspath $(IMG).bin)
 
@@ -16,7 +16,6 @@ OBJ_DIR = build
 INCFLAGS = $(addprefix -I, $(INC_DIR))
 CFLAGS += $(INCFLAGS) $(shell llvm-config --cxxflags) 
 LDFLAGS = -lreadline $(shell llvm-config --libs)
-
 
 CSRCS = $(shell find $(CSRC_DIR) -name "*.cpp" )
 VSRCS = $(shell find $(VSRC_DIR) -name "*.v" )

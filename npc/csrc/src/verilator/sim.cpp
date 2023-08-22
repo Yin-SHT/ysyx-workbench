@@ -1,4 +1,5 @@
 #include <common.h>
+#include <difftest.h>
 #include <utils.h>
 #include <isa.h>
 #include <cpu.h>
@@ -6,6 +7,11 @@
 #include "verilated_vcd_c.h"
 #include "Vtop__Dpi.h"
 #include "Vtop___024root.h"
+
+#define MSTATUS 0x300
+#define MTVEC   0x305
+#define MEPC    0x341
+#define MCAUSE  0x342
 
 static VerilatedContext* contextp;
 static VerilatedVcdC* tfp;
@@ -36,6 +42,20 @@ void single_cycle() {
   cur_pc = top->rootp->top__DOT__pc___05Finst_fetch;
   cur_inst = top->rootp->top__DOT__u_inst_mem__DOT__rdata;
   word_t a0 = top->rootp->top__DOT__u_regfile__DOT__regs[10];
+
+  if (cur_pc == 0x80000468 || cur_pc == 0x800004f0) {
+    printf("CSRs[MTVEC] = 0x%08x\n", top->rootp->top__DOT__u_csrs__DOT__CSRs[MTVEC]);
+    printf("CSRs[EPC] = 0x%08x\n", top->rootp->top__DOT__u_csrs__DOT__CSRs[MEPC]);
+    printf("CSRs[MCAUSE] = 0x%08x\n", top->rootp->top__DOT__u_csrs__DOT__CSRs[MCAUSE]);
+  }
+  uint32_t mcause = top->rootp->top__DOT__u_csrs__DOT__CSRs[MCAUSE];
+  uint32_t mepc = top->rootp->top__DOT__u_csrs__DOT__CSRs[MEPC];
+  if (mcause == -1 ) {
+    if (mepc != 0x80000440) {
+      printf("curpc 0x%08x\n", cur_pc);
+      assert(0);
+    }
+  }
 
   NPCTRAP(cur_pc, a0);
   INV(cur_inst, cur_pc);

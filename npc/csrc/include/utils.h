@@ -150,9 +150,14 @@ do {                            \
   } \
 } while (0)
 
+#define _Log(...) \
+  do { \
+    printf(__VA_ARGS__); \
+    log_write(__VA_ARGS__); \
+  } while (0)
+
 #define Log(format, ...) \
-do {      \
-  BLUE_BOLD_PRINT(format, ##__VA_ARGS__) \
-} while(0); 
+    _Log(ANSI_FMT("[%s:%d %s] " format, ANSI_FG_BLUE) "\n", \
+        __FILE__, __LINE__, __func__, ## __VA_ARGS__)
 
 #endif

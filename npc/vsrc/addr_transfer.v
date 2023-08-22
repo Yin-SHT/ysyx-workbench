@@ -58,6 +58,6 @@ module addr_transfer (
                   ( tran_op_i == `TRAN_OP_JAL  ) ? pc_i + imm_i        :
                   ( tran_op_i == `TRAN_OP_JALR ) ? operand1_i  + imm_i :
                   ( tran_op_i == `TRAN_OP_MRET ) ? operand1_i  + `INST_LENGTH : 
-                  ( tran_op_i == `TRAN_OP_ECALL) ? 32'h80000420       : pc_i + `INST_LENGTH;
+                  ( tran_op_i == `TRAN_OP_ECALL) ? operand1_i       : pc_i + `INST_LENGTH;
 
 endmodule
