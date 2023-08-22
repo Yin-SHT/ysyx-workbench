@@ -1,12 +1,16 @@
 #include <common.h>
 #include <utils.h>
 #include <paddr.h>
+#include <device.h>
 
 extern "C" int npc_pmem_read(int addr) {
-  if (!in_pmem(addr)) {
-    Assert(0, "0x%08x is out of bound ( READ )\n", addr);
-  }
+  /* Try Device */
+  if ((addr == RTC_ADDR) || (addr == RTC_ADDR + 4)) {
+    uint64_t us = get_time();
+    return addr == RTC_ADDR ? (uint32_t)us : (uint32_t)(us >> 32);
+  } 
 
+  Assert((in_pmem(addr)), "0x%08x is out of bound ( READ )\n", addr);
   addr = addr & (~(0x3u));
   word_t ret = host_read(guest_to_host(addr), 4);
 
@@ -14,10 +18,13 @@ extern "C" int npc_pmem_read(int addr) {
 }
 
 extern "C" void npc_pmem_write(int addr, int wdata, char wmask) {
-  if (!in_pmem(addr)) {
-    Assert(0, "%x is out of bound ( WRITE )\n", addr);
+  /* Try Device */
+  if (addr == SERIAL_PORT) {
+    putchar(wdata & 0xff);
+    return;
   }
 
+  Assert((in_pmem(addr)), "0x%08x is out of bound ( WRITE )\n", addr);
   int len = 0;
   addr = addr & (~(0x3u));
   switch (wmask) {
