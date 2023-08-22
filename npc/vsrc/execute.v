@@ -53,6 +53,8 @@ module execute (
         `ALU_OP_SLTI  : alu_result = {{31{1'b0}}, $signed(operand1_i) < $signed(operand2_i)}; 
         `ALU_OP_SLTIU : alu_result = {{31{1'b0}}, unsigned_less_than}; 
         `ALU_OP_JUMP  : alu_result = `INST_LENGTH + operand2_i;
+        `ALU_OP_CSRRW : alu_result = operand1_i;
+        `ALU_OP_CSRRS : alu_result = operand1_i;
         default       : alu_result =                `ZERO_WORD; 
       endcase
     end
