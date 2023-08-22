@@ -20,7 +20,7 @@ module data_mem (
   output [`MEM_DATA_BUS]  rmem_data_o
 );
 
-  import "DPI-C" function int data_npc_pmem_read( input int raddr );
+  import "DPI-C" function int npc_pmem_read( input int raddr );
   import "DPI-C" function void npc_pmem_write( input int waddr, input int wdata, input byte wmask );
 
   reg [`MEM_DATA_BUS] rmem_data; 
@@ -29,7 +29,7 @@ module data_mem (
     if ( rst == `RST_ENABLE ) begin
       rmem_data = `ZERO_WORD;
     end if ( rmem_ena_i == `READ_ENABLE ) begin
-      rmem_data = data_npc_pmem_read( rmem_addr_i );
+      rmem_data = npc_pmem_read( rmem_addr_i );
     end else begin
       rmem_data = `ZERO_WORD;
     end

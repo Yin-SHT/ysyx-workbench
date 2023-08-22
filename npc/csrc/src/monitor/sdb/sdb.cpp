@@ -5,85 +5,12 @@
 #include <common.h>
 #include <utils.h>
 #include <paddr.h>
-
-void isa_reg_display();
-void cpu_exec(uint64_t n);
+#include <cpu.h>
 
 static bool is_batch_mode = false;
 
-int cmd_q(char *args) {
-  npc_state.state = NPC_QUIT;
-  return -1;
-}
-
-int cmd_shell(char *args) {
-  return 0;
-}
-
-int cmd_c(char *args) {
-  cpu_exec(-1);
-  if (npc_state.state == NPC_EBREAK || npc_state.state == NPC_ABORT || npc_state.state == NPC_UNKNOWN) return -1;
-  return 0;
-}
-
-int cmd_si(char *args) {
-  int step_num = 1;
-  if (args) step_num = atoi(args);
-  cpu_exec(step_num);
-  if (npc_state.state == NPC_EBREAK) return -1;
-  return 0;
-}
-
-int cmd_info(char *args) {
-  if (!strcmp(args, "r")) {
-    isa_reg_display();
-  } else {
-    printf("Unsupported %s\n", args);
-  }
-  return 0;
-}
-
-int cmd_x(char *args) {
-  int value;
-  uint32_t addr;
-
-  sscanf(args, "%x %x", &value, &addr);
-  for (int i = 0; i < value; i++) {
-    word_t word = paddr_read(addr + i * 4, 4);
-    GREEN_PRINT("0x%08x:\t", addr + i * 4); BLUE_PRINT("%08x\n", word);
-  }
-  return 0;
-}
-
-int cmd_help(char *args) {
-  return 0;
-}
-
-struct {
-  const char *name;
-  const char *description;
-  int (*handler) (char *);
-} cmd_table [] = {
-  { "help", "Display information about all supported commands", cmd_help },
-  { "c", "Continue the execution of the program", cmd_c },
-  { "q", "Exit NEMU", cmd_q },
-  { "si", "Singlt execute", cmd_si },
-  { "info", "Information about reg or mem", cmd_info },
-  { "x", "Scan memory", cmd_x },
-  { "shell", "Exe shell command", cmd_shell },
-
-  /* TODO: Add more commands */
-
-};
-
-#define NR_CMD ARRLEN(cmd_table)
-
-void sdb_set_batch_mode() {
-  is_batch_mode = true;
-}
-
 /* We use the `readline' library to provide more flexibility to read from stdin. */
-char* rl_gets() {
+static char* rl_gets() {
   static char *line_read = NULL;
 
   if (line_read) {
@@ -100,9 +27,68 @@ char* rl_gets() {
   return line_read;
 }
 
+static int cmd_q(char *args) {
+  npc_state.state = NPC_QUIT;
+  return -1;
+}
+
+static int cmd_c(char *args) {
+  cpu_exec(-1);
+  return 0;
+}
+
+static int cmd_si(char *args) {
+  int step_num = 1;
+  if (args) step_num = atoi(args);
+  cpu_exec(step_num);
+  return 0;
+}
+
+static int cmd_help(char *args);
+
+struct {
+  const char *name;
+  const char *description;
+  int (*handler) (char *);
+} cmd_table [] = {
+  { "help", "Display information about all supported commands", cmd_help },
+  { "c", "Continue the execution of the program", cmd_c },
+  { "q", "Exit NEMU", cmd_q },
+  { "si", "Singlt execute", cmd_si },
+};
+
+#define NR_CMD ARRLEN(cmd_table)
+
+static int cmd_help(char *args) {
+  /* extract the first argument */
+  char *arg = strtok(NULL, " ");
+  int i;
+
+  if (arg == NULL) {
+    /* no argument given */
+    for (i = 0; i < NR_CMD; i ++) {
+      printf("%s - %s\n", cmd_table[i].name, cmd_table[i].description);
+    }
+  }
+  else {
+    for (i = 0; i < NR_CMD; i ++) {
+      if (strcmp(arg, cmd_table[i].name) == 0) {
+        printf("%s - %s\n", cmd_table[i].name, cmd_table[i].description);
+        return 0;
+      }
+    }
+    printf("Unknown command '%s'\n", arg);
+  }
+  return 0;
+}
+
+void sdb_set_batch_mode() {
+  is_batch_mode = true;
+}
+
 void sdb_mainloop() {
   if (is_batch_mode) {
-    cpu_exec(-1);
+    cmd_c(NULL);
     return;
   }
 

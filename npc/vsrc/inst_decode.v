@@ -62,8 +62,8 @@ module inst_decode (
       _ebreak = { {31{1'b0}}, ebreak };
   endfunction
 
-  export "DPI-C" function inst_unknown;
-  function inst_unknown;
+  export "DPI-C" function inst_invalid;
+  function inst_invalid;
       output int _unknown;
       _unknown = { {31{1'b0}}, unknown };
   endfunction

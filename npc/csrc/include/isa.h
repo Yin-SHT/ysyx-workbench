@@ -17,7 +17,4 @@ void init_isa();
 extern CPU_state cpu;
 void isa_reg_display();
 
-// cpu
-
-
 #endif

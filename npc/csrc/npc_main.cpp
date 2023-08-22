@@ -1,19 +1,15 @@
 #include <common.h>
 
 void init_monitor(int, char *[]);
-void sdb_mainloop();
-void check_return_state();
-void clean_up();
+void engine_start();
+int is_exit_status_bad();
 
 int main(int argc, char **argv) {
-
+  /* Initialize the monitor */
   init_monitor(argc, argv);
 
-  sdb_mainloop();
+  /* Start engine. */
+  engine_start();
 
-  check_return_state();
-
-  clean_up();
-
-  return 0;
+  return is_exit_status_bad();
 }
