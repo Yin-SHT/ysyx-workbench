@@ -1,7 +1,10 @@
 #include <common.h>
 
+void do_syscall(Context *c);
+
 static Context* do_event(Event e, Context* c) {
   switch (e.event) {
+    case EVENT_SYSCALL: do_syscall(c); break;
     case EVENT_YIELD: printf("Yield event: %d\n", e.event); break;
     default: panic("Unhandled event ID = %d", e.event);
   }

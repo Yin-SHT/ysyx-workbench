@@ -4,7 +4,7 @@
 struct Context {
   // TODO: fix the order of these members to match trap.S
   // riscve should be 16, riscv should be 32
-  uintptr_t gpr[16], mcause, mstatus, mepc;
+  uintptr_t gpr[32], mcause, mstatus, mepc;
   void *pdir;
 };
 
@@ -14,9 +14,9 @@ struct Context {
 #define GPR1 gpr[17] // a7
 #endif
 
-#define GPR2 gpr[0]
-#define GPR3 gpr[0]
-#define GPR4 gpr[0]
-#define GPRx gpr[0]
+#define GPR2 gpr[10] // a0
+#define GPR3 gpr[11] // a1
+#define GPR4 gpr[12] // a2
+#define GPRx gpr[10] // a0
 
 #endif

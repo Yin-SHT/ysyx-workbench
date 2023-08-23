@@ -4,10 +4,20 @@
 
 static Context* (*user_handler)(Event, Context*) = NULL;
 
+// SYS_CALL num that reversed in a7/a5
+enum {
+  SYS_exit, SYS_yield, SYS_open, SYS_read, SYS_write,
+  SYS_kill, SYS_getpid, SYS_close, SYS_lseek, SYS_brk,
+  SYS_fstat, SYS_time, SYS_signal, SYS_execve, SYS_fork,
+  SYS_link, SYS_unlink, SYS_wait, SYS_times, SYS_gettimeofday
+};
+
 Context* __am_irq_handle(Context *c) {
   if (user_handler) {
     Event ev = {0};
     switch (c->mcause) {
+      case SYS_exit: case SYS_brk: case SYS_write:
+      case SYS_yield: ev.event = EVENT_SYSCALL; break;
       case -1: ev.event = EVENT_YIELD; break;
       default: ev.event = EVENT_ERROR; break;
     }
