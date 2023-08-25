@@ -3,19 +3,7 @@
 #include "syscall.h"
 
 static uintptr_t sys_write(int fd, void *buf, size_t len) {
-  if (fd == 1 || fd == 2) {
-    char *str = (char*)buf;
-    for (size_t i = 0; i < len; i++) {
-      putch(str[i]);
-    }
-    return len;
-  }
-
-  if (fd >= 3) {
-    return fs_write(fd, buf, len);
-  }
-
-  return -1;
+  return fs_write(fd, buf, len);
 }
 
 static uintptr_t sys_brk(uintptr_t addr) {
