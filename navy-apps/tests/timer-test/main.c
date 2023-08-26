@@ -1,17 +1,20 @@
 #include <stdio.h>
 #include <sys/time.h>
+#include <NDL.h>
 
 int main() {
   int sec = 1;
-  struct timeval tv;
+  NDL_Init(0);
   while (1) {
     while(1) {
-      gettimeofday(&tv, NULL);
-      if (tv.tv_usec / 500000 >= sec) {
+      uint32_t usec = NDL_GetTicks();
+      if (usec / 500000 >= sec) {
         break;
       }
     }
     printf("Hello, timer! (%d)\n", sec);
     sec ++;
   }
+  NDL_Quit();
+  return 0;
 }
