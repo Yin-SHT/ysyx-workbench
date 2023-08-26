@@ -1,4 +1,5 @@
 #include <common.h>
+#include <sys/time.h>
 #include <fs.h>
 #include "syscall.h"
 
@@ -26,6 +27,11 @@ static uintptr_t sys_close(int fd) {
   return fs_close(fd);
 }
 
+static uintptr_t sys_gettimeofday(struct timeval *tv) {
+  tv->tv_usec = io_read(AM_TIMER_UPTIME).us;
+  return 0;
+}
+
 void do_syscall(Context *c) {
   uintptr_t a[4];
   a[0] = c->GPR1;
@@ -34,6 +40,7 @@ void do_syscall(Context *c) {
   a[3] = c->GPR4;
 
   switch (a[0]) {
+    case SYS_gettimeofday: c->GPRx = sys_gettimeofday((struct timeval*)a[1]); break;
     case SYS_exit: halt(a[1]); break;
     case SYS_yield: yield(); break;
     case SYS_open: c->GPRx = sys_open((const char*)a[1], a[2], a[3]); break;

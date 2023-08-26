@@ -16,7 +16,7 @@ Context* __am_irq_handle(Context *c) {
   if (user_handler) {
     Event ev = {0};
     switch (c->mcause) {
-      case SYS_close:
+      case SYS_close: case SYS_gettimeofday:
       case SYS_open: case SYS_exit: case SYS_brk: case SYS_write:
       case SYS_yield: case SYS_read: case SYS_lseek: ev.event = EVENT_SYSCALL; break;
       case -1: ev.event = EVENT_YIELD; break;
