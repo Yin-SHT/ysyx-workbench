@@ -13,7 +13,7 @@ typedef struct {
   int type;
 } Finfo;
 
-enum {FD_STDIN, FD_STDOUT, FD_STDERR, FD_FB, FD_DEV_EVENTS, FD_PROC_DISPINFO};
+enum {FD_STDIN, FD_STDOUT, FD_STDERR, FD_FB, FD_DEV_EVENTS, FD_PROC_DISPINFO, FD_PROC_CANVAS};
 enum {REGULAR_FILE, DEVICE_FILE};
 
 size_t invalid_read(void *buf, size_t offset, size_t len) {
@@ -34,6 +34,7 @@ static Finfo file_table[] __attribute__((used)) = {
   [FD_FB] = {"/dev/fb", 0, 0, invalid_read, fb_write, 0, DEVICE_FILE},
   [FD_DEV_EVENTS] = {"/dev/events", 0, 0, events_read, invalid_write, 0, DEVICE_FILE},
   [FD_PROC_DISPINFO] = {"/proc/dispinfo", 0, 0, dispinfo_read, invalid_write, 0, DEVICE_FILE},
+  [FD_PROC_CANVAS] = {"/proc/canvas", 0, 0, dispinfo_read, canvas_write, 0, DEVICE_FILE},
 #include "files.h"
 };
 
@@ -44,9 +45,8 @@ int fs_open(const char *pathname, int flags, int mode) {
     if (!strcmp(pathname, file_table[i].name)) {
       file_table[i].open_offset = 0;
       /* Real file system for regular write */
-      if (file_table[i].type == REGULAR_FILE) {
-        assert(!file_table[i].read);
-        assert(!file_table[i].write);
+      if (!file_table[i].read && !file_table[i].write) {
+        assert(file_table[i].type == REGULAR_FILE);
         file_table[i].read = ramdisk_read;
         file_table[i].write = ramdisk_write;
       }
