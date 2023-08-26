@@ -10,9 +10,11 @@ typedef struct {
   ReadFn read;
   WriteFn write;
   size_t open_offset;
+  int type;
 } Finfo;
 
-enum {FD_STDIN, FD_STDOUT, FD_STDERR, FD_FB};
+enum {FD_STDIN, FD_STDOUT, FD_STDERR, FD_FB, FD_DEV_EVENTS};
+enum {REGULAR_FILE, DEVICE_FILE};
 
 size_t invalid_read(void *buf, size_t offset, size_t len) {
   panic("should not reach here");
@@ -26,9 +28,11 @@ size_t invalid_write(const void *buf, size_t offset, size_t len) {
 
 /* This is the information about all files in disk. */
 static Finfo file_table[] __attribute__((used)) = {
-  [FD_STDIN]  = {"stdin", 0, 0, invalid_read, invalid_write},
-  [FD_STDOUT] = {"stdout", 0, 0, invalid_read, serial_write},
-  [FD_STDERR] = {"stderr", 0, 0, invalid_read, serial_write},
+  [FD_STDIN]  = {"stdin", 0, 0, invalid_read, invalid_write, 0, DEVICE_FILE},
+  [FD_STDOUT] = {"stdout", 0, 0, invalid_read, serial_write, 0, DEVICE_FILE},
+  [FD_STDERR] = {"stderr", 0, 0, invalid_read, serial_write, 0, DEVICE_FILE},
+  [FD_FB] = {"frame-buffer", 0, 0, invalid_read, invalid_write, 0, DEVICE_FILE},
+  [FD_DEV_EVENTS] = {"/dev/events", 0, 0, events_read, invalid_write, 0, DEVICE_FILE},
 #include "files.h"
 };
 
@@ -38,8 +42,13 @@ int fs_open(const char *pathname, int flags, int mode) {
   for (int i = 0; i < NR_FILE; i++) {
     if (!strcmp(pathname, file_table[i].name)) {
       file_table[i].open_offset = 0;
-      /* fs_write for regular write */
-      if (!file_table[i].write) file_table[i].write = ramdisk_write;
+      /* Real file system for regular write */
+      if (file_table[i].type == REGULAR_FILE) {
+        assert(!file_table[i].read);
+        assert(!file_table[i].write);
+        file_table[i].read = ramdisk_read;
+        file_table[i].write = ramdisk_write;
+      }
       return i;
     }
   }
@@ -48,29 +57,33 @@ int fs_open(const char *pathname, int flags, int mode) {
 }
 
 size_t fs_read(int fd, void *buf, size_t len) {
-  size_t remain_len = file_table[fd].size - file_table[fd].open_offset;
-  len = len < remain_len ? len : remain_len;
-
-  ramdisk_read(buf, file_table[fd].disk_offset + file_table[fd].open_offset, len);
-  file_table[fd].open_offset += len;
-
-  return len;
-}
-
-size_t fs_write(int fd, const void *buf, size_t len) {
-  if (fd >= 3) {
-    /* Regular file */
+  if (file_table[fd].type == REGULAR_FILE) {
     size_t remain_len = file_table[fd].size - file_table[fd].open_offset;
     len = len < remain_len ? len : remain_len;
   }
 
-  file_table[fd].write(buf, file_table[fd].disk_offset + file_table[fd].open_offset, len);
-  if (fd >= 3) {
-    /* Regular file */
+  size_t r_len = file_table[fd].read(buf, file_table[fd].disk_offset + file_table[fd].open_offset, len);
+
+  if (file_table[fd].type == REGULAR_FILE) {
     file_table[fd].open_offset += len;
   }
 
-  return len;
+  return r_len;
+}
+
+size_t fs_write(int fd, const void *buf, size_t len) {
+  if (file_table[fd].type == REGULAR_FILE) {
+    size_t remain_len = file_table[fd].size - file_table[fd].open_offset;
+    len = len < remain_len ? len : remain_len;
+  }
+
+  size_t r_len = file_table[fd].write(buf, file_table[fd].disk_offset + file_table[fd].open_offset, len);
+
+  if (file_table[fd].type == REGULAR_FILE) {
+    file_table[fd].open_offset += len;
+  }
+
+  return r_len;
 }
 
 size_t fs_lseek(int fd, size_t offset, int whence) {

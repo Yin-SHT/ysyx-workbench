@@ -9,6 +9,8 @@ static int evtdev = -1;
 static int fbdev = -1;
 static int screen_w = 0, screen_h = 0;
 
+enum {FD_STDIN, FD_STDOUT, FD_STDERR, FD_FB, FD_DEV_EVENTS};
+
 uint32_t NDL_GetTicks() {
   struct timeval tv;
   gettimeofday(&tv, NULL);
@@ -16,7 +18,7 @@ uint32_t NDL_GetTicks() {
 }
 
 int NDL_PollEvent(char *buf, int len) {
-  return 0;
+  return read(FD_DEV_EVENTS, buf, len);
 }
 
 void NDL_OpenCanvas(int *w, int *h) {
