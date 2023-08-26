@@ -39,6 +39,21 @@ void NDL_OpenCanvas(int *w, int *h) {
       if (strcmp(buf, "mmap ok") == 0) break;
     }
     close(fbctl);
+  } else {
+    char buf[128];
+    int fd = open("/proc/dispinfo", 0);
+    read(fd, buf, sizeof(buf));
+    sscanf(buf, "WIDTH : %d HEIGHT : %d", &screen_w, &screen_h);
+    printf("SCREEN_W: %d SCREEN_H: %d\n", screen_w, screen_h);
+    printf("CANVAS_W: %d CANVAS_H: %d\n", *w, *h);
+    if (*w > screen_w) {
+      *w = screen_w;
+      printf("A-CANVAS_W: %d ", *w);
+    }
+    if (*h > screen_h) {
+      *h = screen_h;
+      printf("A-CANVAS_H: %d\n", *h);
+    }
   }
 }
 

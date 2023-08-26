@@ -13,7 +13,7 @@ typedef struct {
   int type;
 } Finfo;
 
-enum {FD_STDIN, FD_STDOUT, FD_STDERR, FD_FB, FD_DEV_EVENTS};
+enum {FD_STDIN, FD_STDOUT, FD_STDERR, FD_FB, FD_DEV_EVENTS, FD_PROC_DISPINFO};
 enum {REGULAR_FILE, DEVICE_FILE};
 
 size_t invalid_read(void *buf, size_t offset, size_t len) {
@@ -33,6 +33,7 @@ static Finfo file_table[] __attribute__((used)) = {
   [FD_STDERR] = {"stderr", 0, 0, invalid_read, serial_write, 0, DEVICE_FILE},
   [FD_FB] = {"frame-buffer", 0, 0, invalid_read, invalid_write, 0, DEVICE_FILE},
   [FD_DEV_EVENTS] = {"/dev/events", 0, 0, events_read, invalid_write, 0, DEVICE_FILE},
+  [FD_PROC_DISPINFO] = {"/proc/dispinfo", 0, 0, dispinfo_read, invalid_write, 0, DEVICE_FILE},
 #include "files.h"
 };
 

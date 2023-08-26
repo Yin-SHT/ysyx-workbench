@@ -253,7 +253,7 @@ int snprintf(char *out, size_t n, const char *fmt, ...) {
   strncpy(out, str, n);
   out[n] = '\0'; // ensure that end of line
 
-  return (p - str) < n ? (p - str) : n;
+  return n;
 }
 
 int vsnprintf(char *out, size_t n, const char *fmt, va_list ap) {
