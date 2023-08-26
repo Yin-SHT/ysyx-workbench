@@ -31,7 +31,7 @@ static Finfo file_table[] __attribute__((used)) = {
   [FD_STDIN]  = {"stdin", 0, 0, invalid_read, invalid_write, 0, DEVICE_FILE},
   [FD_STDOUT] = {"stdout", 0, 0, invalid_read, serial_write, 0, DEVICE_FILE},
   [FD_STDERR] = {"stderr", 0, 0, invalid_read, serial_write, 0, DEVICE_FILE},
-  [FD_FB] = {"frame-buffer", 0, 0, invalid_read, invalid_write, 0, DEVICE_FILE},
+  [FD_FB] = {"/dev/fb", 0, 0, invalid_read, fb_write, 0, DEVICE_FILE},
   [FD_DEV_EVENTS] = {"/dev/events", 0, 0, events_read, invalid_write, 0, DEVICE_FILE},
   [FD_PROC_DISPINFO] = {"/proc/dispinfo", 0, 0, dispinfo_read, invalid_write, 0, DEVICE_FILE},
 #include "files.h"
@@ -104,5 +104,8 @@ int fs_close(int fd) {
 }
 
 void init_fs() {
-  // TODO: initialize the size of /dev/fb
+  int w = io_read(AM_GPU_CONFIG).width;
+  int h = io_read(AM_GPU_CONFIG).height;
+  file_table[FD_FB].size = w * h * sizeof(uint32_t);
+  Log("Initializing file system: /dev/fb has %d bytes", file_table[FD_FB].size);
 }
