@@ -8,6 +8,7 @@
 static int evtdev = -1;
 static int fbdev = -1;
 static int screen_w = 0, screen_h = 0;
+static int canvas_w = 0, canvas_h = 0;
 
 int open(const char *path, int flags, ...);
 
@@ -40,35 +41,34 @@ void NDL_OpenCanvas(int *w, int *h) {
     }
     close(fbctl);
   } else {
-    char buf[128];
-    int fd = open("/proc/dispinfo", 0);
-    read(fd, buf, sizeof(buf));
-    sscanf(buf, "WIDTH : %d HEIGHT : %d", &screen_w, &screen_h);
-    printf("SCREEN_W: %d SCREEN_H: %d\n", screen_w, screen_h);
-    printf("CANVAS_W: %d CANVAS_H: %d\n", *w, *h);
-    if (*w > screen_w) {
+    printf("canvas_W: %d canvas_H: %d\n", *w, *h);
+    if (*w > screen_w || *w == 0) {
       *w = screen_w;
-      printf("A-CANVAS_W: %d ", *w);
     }
-    if (*h > screen_h) {
+    if (*h > screen_h || *h == 0) {
       *h = screen_h;
-      printf("A-CANVAS_H: %d\n", *h);
     }
+    canvas_w = *w;
+    canvas_h = *h;
+    printf("CANVAS_W: %d CANVAS_H: %d\n", canvas_w, canvas_h);
   }
 }
 
 void NDL_DrawRect(uint32_t *pixels, int x, int y, int w, int h) {
   int fd = open("/dev/fb", 0);
-  int canvas_fd = open("/proc/canvas", 0);
-  lseek(fd, x + y * screen_w, SEEK_SET);
-  if (!x && !y && !w && !h) {
-    /* Tell the width of canvas to os */
-    write(canvas_fd, NULL, screen_w);
-    write(fd, pixels, screen_w * screen_h * sizeof(uint32_t));
-  } else {
-    write(canvas_fd, NULL, w);
-    write(fd, pixels, w * h * sizeof(uint32_t));
+  int rect_fd = open("/proc/rect", 0);
+  /* Upper left of canvas is (delta_x, delta_y) */
+  if (!canvas_w) {
+    canvas_w = screen_w;
   }
+  if (!canvas_h) {
+    canvas_h = screen_h;
+  }
+  int delta_x = (screen_w - canvas_w) / 2;
+  int delta_y = (screen_h - canvas_h) / 2;
+  lseek(fd, (delta_x + delta_y * screen_w + x + y * canvas_w) * sizeof(uint32_t), SEEK_SET);
+  write(rect_fd, NULL, w);
+  write(fd, pixels, w * h * sizeof(uint32_t));
 }
 
 void NDL_OpenAudio(int freq, int channels, int samples) {
@@ -88,6 +88,12 @@ int NDL_QueryAudio() {
 int NDL_Init(uint32_t flags) {
   if (getenv("NWM_APP")) {
     evtdev = 3;
+  } else {
+    char buf[128];
+    int fd = open("/proc/dispinfo", 0);
+    read(fd, buf, sizeof(buf));
+    sscanf(buf, "WIDTH : %d HEIGHT : %d", &screen_w, &screen_h);
+    printf("SCREEN_W: %d SCREEN_H: %d\n", screen_w, screen_h);
   }
   return 0;
 }

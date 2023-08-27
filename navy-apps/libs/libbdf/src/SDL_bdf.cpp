@@ -1,6 +1,7 @@
 #include <SDL_bdf.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <stdio.h>
 
 SDL_Surface* BDF_CreateSurface(BDF_Font *font, char ch, uint32_t fg, uint32_t bg) {
   uint32_t *bm = font->font[ch];

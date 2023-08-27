@@ -36,25 +36,25 @@ size_t dispinfo_read(void *buf, size_t offset, size_t len) {
   return snprintf(buf, len, "WIDTH : %d HEIGHT : %d", w, h);
 }
 
-static size_t canvas_w;
-static size_t canvas_h;
+static size_t rect_w = 0;
+static size_t rect_h = 0;
 
-size_t canvas_write(const void *buf, size_t offset, size_t len) {
-  canvas_w = len;
+size_t rect_write(const void *buf, size_t offset, size_t len) {
+  rect_w = len;
   // 0 means success
   return 0;
 }
 
 size_t fb_write(const void *buf, size_t offset, size_t len) {
   int w = io_read(AM_GPU_CONFIG).width;
-  int x = offset % w;
-  int y = offset / w;
-  canvas_h = len / sizeof(uint32_t) / canvas_w;
+  int x = (offset / sizeof(uint32_t)) % w;
+  int y = (offset / sizeof(uint32_t)) / w;
+  rect_h = len / sizeof(uint32_t) / rect_w;
   char *tmp = malloc(len);
   memcpy(tmp, buf, len);
-  io_write(AM_GPU_FBDRAW, x, y, tmp, canvas_w, canvas_h, false);
+  io_write(AM_GPU_FBDRAW, x, y, tmp, rect_w, rect_h, false);
   io_write(AM_GPU_FBDRAW, 0, 0, NULL, 0, 0, true);
-  return 0;
+  return len;
 }
 
 void init_device() {

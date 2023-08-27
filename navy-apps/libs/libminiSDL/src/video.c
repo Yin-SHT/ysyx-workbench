@@ -3,18 +3,77 @@
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
+
+int open(const char *path, int flags, ...);
+size_t read(int fd, void *buf, size_t count);
+size_t write(int fd, const void *buf, size_t count);
 
 void SDL_BlitSurface(SDL_Surface *src, SDL_Rect *srcrect, SDL_Surface *dst, SDL_Rect *dstrect) {
   assert(dst && src);
   assert(dst->format->BitsPerPixel == src->format->BitsPerPixel);
+  if (!SDL_LockSurface(src)) {
+    // Ignore impact of SDL_SetAlpha
+    int dst_x, dst_y;
+    int src_x, src_y;
+    int rect_w, rect_h;
+    if (!srcrect) {
+      rect_w = src->w;
+      rect_h = src->h;
+      src_x = 0;
+      src_y = 0;
+    } else {
+      rect_w = srcrect->w;
+      rect_h = srcrect->h;
+      src_x = srcrect->x;
+      src_y = srcrect->y;
+    }
+    if (!dstrect) {
+      dst_x = 0;
+      dst_y = 0;
+    } else {
+      dst_x = dstrect->x;
+      dst_y = dstrect->y;
+    }
+    uint32_t *dpixels = (uint32_t *)dst->pixels;
+    uint32_t *spixels = (uint32_t *)src->pixels;
+    for (int i = 0; i < rect_h; i++ ) {
+      memcpy(dpixels + dst_x + (dst_y + i) * dst->w, spixels + src_x + (src_y + i) * rect_w, rect_w * sizeof(uint32_t));
+    }
+  }
 }
 
 void SDL_FillRect(SDL_Surface *dst, SDL_Rect *dstrect, uint32_t color) {
+  int x, y, w, h;
+  if (!dstrect) {
+    x = 0;
+    y = 0;
+    w = dst->w;
+    h = dst->h;
+  } else {
+    x = dstrect->x;
+    y = dstrect->y;
+    w = dstrect->w;
+    h = dstrect->h;
+  }
+  uint32_t *pixels = (uint32_t *)dst->pixels;
+  uint32_t len = w * h;
+  for (uint32_t i = 0; i < len; i++) {
+    *pixels = color;
+    pixels ++;
+  }
+  NDL_DrawRect(dst->pixels, x, y, w, h);
 }
 
 void SDL_UpdateRect(SDL_Surface *s, int x, int y, int w, int h) {
   if (!SDL_LockSurface(s)) {
-    NDL_DrawRect((uint32_t*)s->pixels, x, y, w, h);
+    if (!x && !y && !w && !h) {
+      x = 0;
+      y = 0;
+      w = s->w;
+      h = s->h;
+    }
+    NDL_DrawRect(s->pixels, x, y, w, h);
   }
 }
 
