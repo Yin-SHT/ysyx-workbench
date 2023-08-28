@@ -45,14 +45,22 @@ size_t rect_write(const void *buf, size_t offset, size_t len) {
   return 0;
 }
 
+/* Temporary variable for fb */
+/* Need to modify when free() is finished */
+static char *pixels_addr = 0;
+bool is_alloc = false;
+
 size_t fb_write(const void *buf, size_t offset, size_t len) {
   int w = io_read(AM_GPU_CONFIG).width;
   int x = (offset / sizeof(uint32_t)) % w;
   int y = (offset / sizeof(uint32_t)) / w;
   rect_h = len / sizeof(uint32_t) / rect_w;
-  char *tmp = malloc(len);
-  memcpy(tmp, buf, len);
-  io_write(AM_GPU_FBDRAW, x, y, tmp, rect_w, rect_h, false);
+  if (!is_alloc) {
+    pixels_addr = malloc(len);
+    is_alloc = true;
+  }
+  memcpy(pixels_addr, buf, len);
+  io_write(AM_GPU_FBDRAW, x, y, pixels_addr, rect_w, rect_h, false);
   io_write(AM_GPU_FBDRAW, 0, 0, NULL, 0, 0, true);
   return len;
 }

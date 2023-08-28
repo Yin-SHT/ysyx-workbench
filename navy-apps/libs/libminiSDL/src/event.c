@@ -15,21 +15,17 @@ int SDL_PushEvent(SDL_Event *ev) {
 }
 
 int SDL_PollEvent(SDL_Event *ev) {
-  return 0;
-}
-
-int SDL_WaitEvent(SDL_Event *event) {
   char buf[64];
   if (!NDL_PollEvent(buf, sizeof(buf))) {
-    return 1;
+    return 0;
   }
   char kmotion[32];
   char key[32];
   sscanf(buf, " %s %s ", kmotion, key);
   if (!strcmp(kmotion, "kd")) {
-    event->key.type =  SDL_KEYDOWN;
+    ev->key.type =  SDL_KEYDOWN;
   } else if (!strcmp(kmotion, "ku")) {
-    event->key.type =  SDL_KEYUP;
+    ev->key.type =  SDL_KEYUP;
   } else {
     // TODO
   }
@@ -39,7 +35,34 @@ int SDL_WaitEvent(SDL_Event *event) {
       break;
     }
   }
-  event->key.keysym.sym = sym;
+  ev->key.keysym.sym = sym;
+  return 1;
+}
+
+int SDL_WaitEvent(SDL_Event *event) {
+  char buf[64];
+  while (1) {
+    if (NDL_PollEvent(buf, sizeof(buf))) {
+      char kmotion[32];
+      char key[32];
+      sscanf(buf, " %s %s ", kmotion, key);
+      if (!strcmp(kmotion, "kd")) {
+        event->key.type =  SDL_KEYDOWN;
+      } else if (!strcmp(kmotion, "ku")) {
+        event->key.type =  SDL_KEYUP;
+      } else {
+        // TODO
+      }
+      uint8_t sym = 0;
+      for (; sym < 64; sym++) {
+        if (!strcmp(keyname[sym], key)) {
+          break;
+        }
+      }
+      event->key.keysym.sym = sym;
+      return 0;
+    }
+  }
 
   return 1;
 }
