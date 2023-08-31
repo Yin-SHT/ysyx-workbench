@@ -62,7 +62,7 @@ void _exit(int status) {
 
 int _open(const char *path, int flags, mode_t mode) {
   int ret = _syscall_(SYS_open, (intptr_t)path, flags, mode);
-  if (ret == -1) _exit(1);
+//  if (ret == -1) _exit(1);
   return ret;
 }
 
