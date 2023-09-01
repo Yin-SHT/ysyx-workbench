@@ -35,10 +35,21 @@ void SDL_BlitSurface(SDL_Surface *src, SDL_Rect *srcrect, SDL_Surface *dst, SDL_
       dst_x = dstrect->x;
       dst_y = dstrect->y;
     }
-    uint32_t *dpixels = (uint32_t *)dst->pixels;
-    uint32_t *spixels = (uint32_t *)src->pixels;
-    for (int i = 0; i < rect_h; i++ ) {
-      memcpy(dpixels + dst_x + (dst_y + i) * dst->w, spixels + src_x + (src_y + i) * rect_w, rect_w * sizeof(uint32_t));
+
+    if (dst->format->BytesPerPixel == 1) {
+      uint8_t *dpixels = (uint8_t *)dst->pixels;
+      uint8_t *spixels = (uint8_t *)src->pixels;
+      for (int i = 0; i < rect_h; i++ ) {
+        memcpy(dpixels + dst_x + (dst_y + i) * dst->w, spixels + src_x + (src_y + i) * rect_w, rect_w * sizeof(uint8_t));
+      }
+    } else if (dst->format->BytesPerPixel == 4) {
+      uint32_t *dpixels = (uint32_t *)dst->pixels;
+      uint32_t *spixels = (uint32_t *)src->pixels;
+      for (int i = 0; i < rect_h; i++ ) {
+        memcpy(dpixels + dst_x + (dst_y + i) * dst->w, spixels + src_x + (src_y + i) * rect_w, rect_w * sizeof(uint32_t));
+      }
+    } else {
+      assert(0);
     }
   }
 }
@@ -56,15 +67,22 @@ void SDL_FillRect(SDL_Surface *dst, SDL_Rect *dstrect, uint32_t color) {
     w = dstrect->w;
     h = dstrect->h;
   }
-  uint32_t *pixels = (uint32_t *)dst->pixels;
-  uint32_t len = w * h;
-  for (uint32_t i = 0; i < len; i++) {
-    *pixels = color;
-    pixels ++;
+
+  if (dst->format->BytesPerPixel == 1) {
+    for (int i = 0; i < h; i++) {
+      memset((uint8_t *)dst->pixels + x + (y + i) * dst->w, (uint8_t)color, w * sizeof(uint8_t));
+    }
+  } else if (dst->format->BytesPerPixel == 4) {
+    for (int i = 0; i < h; i++) {
+      memset((uint32_t *)dst->pixels + x + (y + i) * dst->w, color, w * sizeof(uint32_t));
+    }
+  } else {
+    assert(0);
   }
-  NDL_DrawRect(dst->pixels, x, y, w, h);
 }
 
+static char *pixels_addr = 0;
+static int is_alloc = 0;
 void SDL_UpdateRect(SDL_Surface *s, int x, int y, int w, int h) {
   if (!SDL_LockSurface(s)) {
     if (!x && !y && !w && !h) {
@@ -73,7 +91,27 @@ void SDL_UpdateRect(SDL_Surface *s, int x, int y, int w, int h) {
       w = s->w;
       h = s->h;
     }
-    NDL_DrawRect(s->pixels, x, y, w, h);
+
+    int len = w * h;
+    if (s->format->BytesPerPixel == 1) {
+      if (!is_alloc) {
+        pixels_addr = (char *)malloc(400 * 300 * sizeof(uint32_t));
+        is_alloc = 1;
+      }
+      uint32_t *pixels = (uint32_t *)pixels_addr;
+      uint32_t *st_pix = pixels_addr;
+      for (int i = 0; i < len; i++) {
+        SDL_Color color = s->format->palette->colors[s->pixels[i]];
+        // SDL_Coloe: r g b a NDL: 0 r g b (don't use a)
+        *pixels = color.a << 24 | color.r << 16 | color.g << 8 | color.b;
+        pixels ++;
+      }
+      NDL_DrawRect(st_pix, x, y, w, h);
+    } else if (s->format->BytesPerPixel == 4) {
+      NDL_DrawRect(s->pixels, x, y, w, h);
+    } else {
+      assert(0);
+    }
   }
 }
 
