@@ -41,16 +41,20 @@ extern NPCState npc_state;
 #define log_write(...)                          \
   do {                                          \
     extern FILE* log_fp;                        \
-    fprintf(log_fp, __VA_ARGS__);               \
-    fflush(log_fp);                             \
+    if (log_fp) {                               \
+      fprintf(log_fp, __VA_ARGS__);             \
+      fflush(log_fp);                           \
+    }                                           \
   } while (0)                                   \
 
 // *** FLog Write
-#define flog_write(...)                          \
+#define flog_write(...)                         \
   do {                                          \
-    extern FILE* flog_fp;                        \
-    fprintf(flog_fp, __VA_ARGS__);               \
-    fflush(flog_fp);                             \
+    extern FILE* flog_fp;                       \
+    if (log_fp) {                               \
+      fprintf(log_fp, __VA_ARGS__);             \
+      fflush(log_fp);                           \
+    }                                           \
   } while (0)                                   \
 
 // ----------- Bold Color OUTPUT -----------

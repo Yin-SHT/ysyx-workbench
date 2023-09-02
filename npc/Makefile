@@ -1,7 +1,8 @@
 IMG =
 TOP_NAME = Vtop
 ARGS = -b \
-			 --log=$(NPC_HOME)/output/log.txt 
+			 --log=$(NPC_HOME)/output/log.txt \
+			 --diff=$(NEMU_HOME)/build/riscv32-nemu-interpreter-so
 
 CSRC_DIR = csrc
 VSRC_DIR = vsrc
@@ -27,7 +28,7 @@ compile:
 
 sim:
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
-	$(VERILATOR) $(SIM_FLAG) \
+	@$(VERILATOR) $(SIM_FLAG) \
 			$(addprefix -CFLAGS , $(CFLAGS)) \
 			$(addprefix -LDFLAGS , $(LDFLAGS)) \
 			$(CSRCS) $(VSRCS)

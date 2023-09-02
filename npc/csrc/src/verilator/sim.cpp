@@ -30,7 +30,7 @@ static void update_cpu(uint32_t next_pc) {
 
 void single_cycle() {
   top->clk = 0; 
-  top->eval(); tfp->dump(contextp->time()); contextp->timeInc(1);
+  top->eval(); IFDEF(CONFIG_WAVEFORM, tfp->dump(contextp->time())); contextp->timeInc(1);
 
   cur_pc = top->rootp->top__DOT__pc___05Finst_fetch;
   cur_inst = top->rootp->top__DOT__u_inst_mem__DOT__rdata;
@@ -40,7 +40,7 @@ void single_cycle() {
   INV(cur_inst, cur_pc);
 
   top->clk = 1; 
-  top->eval(); tfp->dump(contextp->time()); contextp->timeInc(1);
+  top->eval(); IFDEF(CONFIG_WAVEFORM, tfp->dump(contextp->time())); contextp->timeInc(1);
 
   next_pc = top->rootp->top__DOT__pc___05Finst_fetch;
   next_inst = top->rootp->top__DOT__u_inst_mem__DOT__rdata;
@@ -49,7 +49,7 @@ void single_cycle() {
    * 因此把 update_cpu() 放在这里来获取执行完一条指令后的 regfile 的状态。
    * next_pc is the next pc that will be executed
    */
-  update_cpu(next_pc);
+  IFDEF(CONFIG_DIFFTEST, update_cpu(next_pc));
 }
 
 void init_verilator(int argc, char **argv) {
@@ -61,10 +61,12 @@ void init_verilator(int argc, char **argv) {
   top = new Vtop{contextp};
 
   // Build Trace Object
+#ifdef CONFIG_WAVETRACE
   Verilated::traceEverOn( true );
   tfp = new VerilatedVcdC;
   top->trace( tfp, 99 ); // Trace 99 levels of hierarchy (or see below)
   tfp->open( "./output/sim.vcd" );
+#endif
 
   // Prepare for DPI-C
   const svScope scope_pd = svGetScopeFromName("TOP.top.u_inst_decode");
@@ -80,15 +82,15 @@ void init_verilator(int argc, char **argv) {
 void reset(int n) {
   top->rst = 1;
   while (n -- > 0) {
-    top->clk = 0; top->eval(); tfp->dump(contextp->time()); contextp->timeInc(1);
-    top->clk = 1; top->eval(); tfp->dump(contextp->time()); contextp->timeInc(1);
+    top->clk = 0; top->eval(); IFDEF(CONFIG_WAVEFORM, tfp->dump(contextp->time())); contextp->timeInc(1);
+    top->clk = 1; top->eval(); IFDEF(CONFIG_WAVEFORM, tfp->dump(contextp->time())); contextp->timeInc(1);
   }
   top->rst = 0;
 }
 
 void clean_up() {
   tfp->close();
-  delete tfp;
+  IFDEF(CONFIG_WAVEFORM, delete tfp);
   delete top;
   delete contextp;
 }

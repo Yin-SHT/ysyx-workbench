@@ -11,6 +11,7 @@ FILE *flog_fp = NULL;
 FILE *elf_fp = NULL;
 FILE *mlog_fp = NULL;
 
+#ifdef CONFIG_ITRACE
 void init_log(const char *log_file) {
   log_fp = stdout;
   if (log_file != NULL) {
@@ -20,6 +21,9 @@ void init_log(const char *log_file) {
   }
   Log("Log is written to %s", log_file ? log_file : "stdout");
 }
+#else
+void init_log(const char *log_file) { }
+#endif
 
 #ifdef CONFIG_FTRACE
 void init_flog(const char *flog_file, const char *elf_file) {
