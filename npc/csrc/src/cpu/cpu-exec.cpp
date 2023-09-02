@@ -38,8 +38,10 @@ void translate_inst(uint32_t pc, uint32_t inst, char *buf) {
 }
 
 static void trace_and_difftest(vaddr_t pc, vaddr_t dnpc) {
+#ifdef CONFIG_ITRACE
   translate_inst(cur_pc, cur_inst, logbuf);
   if (g_print_step) { BLUE_PRINT("0x%08x: %08x\n", cur_pc, cur_inst);}
+#endif
 #ifdef CONFIG_FTRACE
   int decode_ftrace(uint32_t inst, vaddr_t pc);
   decode_ftrace(cur_inst, cur_pc);

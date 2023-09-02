@@ -45,7 +45,7 @@ extern NPCState npc_state;
     fflush(log_fp);                             \
   } while (0)                                   \
 
-// *** Log Write
+// *** FLog Write
 #define flog_write(...)                          \
   do {                                          \
     extern FILE* flog_fp;                        \
