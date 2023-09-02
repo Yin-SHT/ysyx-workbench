@@ -21,4 +21,4 @@ image: $(IMAGE).elf
 	@$(OBJCOPY) -S --set-section-flags .bss=alloc,contents -O binary $(IMAGE).elf $(IMAGE).bin
 
 run: image
-	$(MAKE) -C $(NPC_HOME) IMG=$(IMAGE) IMG_PATH=$(abspath $(IMAGE).bin) run
+	$(MAKE) -s -C $(NPC_HOME) IMG=$(abspath $(IMAGE).bin) run

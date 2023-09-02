@@ -46,9 +46,7 @@ static void trace_and_difftest(vaddr_t pc, vaddr_t dnpc) {
   int decode_ftrace(uint32_t inst, vaddr_t pc);
   decode_ftrace(cur_inst, cur_pc);
 #endif
-#ifdef CONFIG_DIFFTEST
-  difftest_step(pc, dnpc);
-#endif
+  IFDEF(CONFIG_DIFFTEST, difftest_step(pc, dnpc));
 }
 
 void exec_once() {

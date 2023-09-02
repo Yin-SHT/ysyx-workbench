@@ -11,6 +11,7 @@ void init_mem();
 void init_difftest(char *ref_so_file, long img_size, int port);
 void init_disasm(const char *triple);
 void init_verilator(int argc, char **argv);
+void init_device();
 
 static void welcome() {
   BLUE_BOLD_PRINT("Build time: %s, %s\n", __TIME__, __DATE__);
@@ -102,6 +103,9 @@ void init_monitor(int argc, char *argv[]) {
 
   /* Initialize memory. */
   init_mem();
+
+  /* Initialize memory. */
+  init_device();
 
   /* Perform ISA dependent initialization. */
   init_isa();

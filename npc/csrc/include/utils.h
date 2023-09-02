@@ -143,12 +143,16 @@ printf(format, ##__VA_ARGS__); \
 printf("\033[0m");
 
 #define Assert(cond, format, ...) \
-do {                            \
-  if (!cond) {  \
-    RED_BOLD_PRINT(format, ##__VA_ARGS__); \
-    assert(0); \
-  } \
-} while (0)
+  do { \
+    if (!(cond)) { \
+      MUXDEF(CONFIG_TARGET_AM, printf(ANSI_FMT(format, ANSI_FG_RED) "\n", ## __VA_ARGS__), \
+        (fflush(stdout), fprintf(stderr, ANSI_FMT(format, ANSI_FG_RED) "\n", ##  __VA_ARGS__))); \
+      IFNDEF(CONFIG_TARGET_AM, extern FILE* log_fp; fflush(log_fp)); \
+      assert(cond); \
+    } \
+  } while (0)
+
+#define panic(format, ...) Assert(0, format, ## __VA_ARGS__)
 
 #define _Log(...) \
   do { \

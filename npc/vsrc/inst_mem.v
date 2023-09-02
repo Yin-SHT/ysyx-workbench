@@ -10,7 +10,7 @@ module inst_mem (
   output  [`INST_DATA_BUS] inst_o
 );
 
-  import "DPI-C" function int npc_pmem_read( input int raddr );
+  import "DPI-C" function int paddr_read(input int raddr, input int len);
 
   reg [`INST_DATA_BUS] rdata;
 
@@ -18,7 +18,7 @@ module inst_mem (
     if ( rst == `RST_ENABLE ) begin
       rdata = `ZERO_WORD;
     end else begin
-      rdata = npc_pmem_read( pc_i );
+      rdata = paddr_read( pc_i, 4 );
     end
   end
 

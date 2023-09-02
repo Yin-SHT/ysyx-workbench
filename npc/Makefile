@@ -1,12 +1,7 @@
 IMG =
 TOP_NAME = Vtop
-NPC_ARGS += -b \
-						--log=$(NPC_HOME)/output/log.txt \
-						--flog=$(NPC_HOME)/output/flog.txt \
-						--elf=$(abspath $(IMG).elf) \
-	         	#          	--diff=$(NEMU_HOME)/build/riscv32-nemu-interpreter-so
-
-IMG_PATH = $(abspath $(IMG).bin)
+ARGS = -b \
+			 --log=$(NPC_HOME)/output/log.txt 
 
 CSRC_DIR = csrc
 VSRC_DIR = vsrc
@@ -15,7 +10,7 @@ OBJ_DIR = build
 
 INCFLAGS = $(addprefix -I, $(INC_DIR))
 CFLAGS += $(INCFLAGS) $(shell llvm-config --cxxflags) 
-LDFLAGS = -lreadline $(shell llvm-config --libs)
+LDFLAGS = -lreadline -lSDL2 $(shell llvm-config --libs)
 
 CSRCS = $(shell find $(CSRC_DIR) -name "*.cpp" )
 VSRCS = $(shell find $(VSRC_DIR) -name "*.v" )
@@ -36,7 +31,7 @@ sim:
 			$(addprefix -CFLAGS , $(CFLAGS)) \
 			$(addprefix -LDFLAGS , $(LDFLAGS)) \
 			$(CSRCS) $(VSRCS)
-	$(OBJ_DIR)/$(TOP_NAME) $(NPC_ARGS) $(IMG_PATH)
+	$(OBJ_DIR)/$(TOP_NAME) $(ARGS) $(IMG)
 
 run: sim
 
