@@ -8,11 +8,6 @@
 #include "Vtop__Dpi.h"
 #include "Vtop___024root.h"
 
-#define MSTATUS 0x300
-#define MTVEC   0x305
-#define MEPC    0x341
-#define MCAUSE  0x342
-
 static VerilatedContext* contextp;
 static VerilatedVcdC* tfp;
 static Vtop *top;
@@ -34,8 +29,6 @@ static void update_cpu(uint32_t next_pc) {
 }
 
 void single_cycle() {
-  top->eval();
-
   top->clk = 0; 
   top->eval(); tfp->dump(contextp->time()); contextp->timeInc(1);
 
