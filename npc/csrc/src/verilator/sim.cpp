@@ -61,7 +61,7 @@ void init_verilator(int argc, char **argv) {
   top = new Vtop{contextp};
 
   // Build Trace Object
-#ifdef CONFIG_WAVETRACE
+#ifdef CONFIG_WAVEFORM
   Verilated::traceEverOn( true );
   tfp = new VerilatedVcdC;
   top->trace( tfp, 99 ); // Trace 99 levels of hierarchy (or see below)

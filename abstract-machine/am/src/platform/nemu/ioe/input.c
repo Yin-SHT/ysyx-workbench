@@ -6,6 +6,6 @@
 
 void __am_input_keybrd(AM_INPUT_KEYBRD_T *kbd) {
   uint32_t kbd_reg = inl(KBD_ADDR);
-  kbd->keydown = (kbd_reg & KEYDOWN_MASK) >> 12;
+  kbd->keydown = kbd_reg & KEYDOWN_MASK;
   kbd->keycode = kbd_reg & SCANCODE_MASK;
 }

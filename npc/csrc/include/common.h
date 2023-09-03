@@ -45,10 +45,11 @@ typedef uint16_t ioaddr_t;
 #define CONFIG_HAS_SERIAL 1
 #define CONFIG_HAS_TIMER 1
 #define CONFIG_HAS_VGA 1
+#define CONFIG_HAS_KEYBOARD 1
 
 //#define CONFIG_ITRACE 1
 //#define CONFIG_FTRACE 1
-//#define CONFIG_WAVETRACE 1
+//#define CONFIG_WAVEFORM 1
 //#define CONFIG_DIFFTEST 1
 
 #endif
