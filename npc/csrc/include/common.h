@@ -44,6 +44,7 @@ typedef uint16_t ioaddr_t;
 #define CONFIG_DEVICE 1
 #define CONFIG_HAS_SERIAL 1
 #define CONFIG_HAS_TIMER 1
+#define CONFIG_HAS_VGA 1
 
 //#define CONFIG_ITRACE 1
 //#define CONFIG_FTRACE 1

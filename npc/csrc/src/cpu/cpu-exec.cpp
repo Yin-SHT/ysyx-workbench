@@ -4,6 +4,7 @@
 #include <sim.h>
 #include <cpu.h>
 #include <difftest.h>
+#include <device.h>
 
 #define MAX_INST_TO_PRINT 10
 
@@ -52,6 +53,7 @@ static void trace_and_difftest(vaddr_t pc, vaddr_t dnpc) {
 void exec_once() {
   single_cycle();
   trace_and_difftest(cur_pc, cpu.pc);
+  IFDEF(CONFIG_DEVICE, device_update());
 }
 
 static void execute(uint64_t n) {
