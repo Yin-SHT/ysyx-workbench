@@ -4,7 +4,12 @@
 struct Context {
   // TODO: fix the order of these members to match trap.S
   // riscve should be 16, riscv should be 32
-  uintptr_t gpr[32], mcause, mstatus, mepc;
+#ifdef __riscv_e
+  uintptr_t gpr[16];
+#else
+  uintptr_t gpr[32];
+#endif
+  uintptr_t mcause, mstatus, mepc;
   void *pdir;
 };
 
