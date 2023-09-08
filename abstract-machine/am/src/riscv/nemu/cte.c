@@ -4,14 +4,6 @@
 
 static Context* (*user_handler)(Event, Context*) = NULL;
 
-// SYS_CALL num that reversed in a7/a5
-enum {
-  SYS_exit, SYS_yield, SYS_open, SYS_read, SYS_write,
-  SYS_kill, SYS_getpid, SYS_close, SYS_lseek, SYS_brk,
-  SYS_fstat, SYS_time, SYS_signal, SYS_execve, SYS_fork,
-  SYS_link, SYS_unlink, SYS_wait, SYS_times, SYS_gettimeofday
-};
-
 Context* __am_irq_handle(Context *c) {
 #ifdef __riscv_e
   int syscall_num = c->gpr[15];   // x15/a5
@@ -25,7 +17,7 @@ Context* __am_irq_handle(Context *c) {
       // 11: Environment call from M-mode
       case 11: {
         switch (syscall_num) {
-          case -1: ev.event = SYS_yield; break;
+          case -1: ev.event = EVENT_YIELD; break;
           default: ev.event = EVENT_ERROR; break;
         }
         break;
