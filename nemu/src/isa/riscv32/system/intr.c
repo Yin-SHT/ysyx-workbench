@@ -15,12 +15,38 @@
 
 #include <isa.h>
 
-MUXDEF(CONFIG_ISA64, uint64_t, uint32_t) CSRs[4096] = {0};
+word_t read_csr(word_t imm) {
+  switch (imm) {
+    case MSTATUS: return cpu.mstatus;
+    case MCAUSE: return cpu.mcause;
+    case MTVEC: return cpu.mtvec;
+    case MEPC: return cpu.mepc;
+    default: panic("CSRs[%d] is not immplement\n", imm);
+  }
+}
+
+void write_csr(word_t imm, word_t val) {
+  switch (imm) {
+    case MSTATUS: cpu.mstatus = val; break;
+    case MCAUSE: cpu.mcause = val; break;
+    case MTVEC: cpu.mtvec = val; break;
+    case MEPC: cpu.mepc = val; break;
+    default: panic("CSRs[%d] is not immplement\n", imm);
+  }
+}
 
 word_t isa_raise_intr(word_t NO, vaddr_t epc) {
-  CSRs[MEPC] = epc;
-  CSRs[MCAUSE] = NO;
-  return CSRs[MTVEC];
+  /* Set the initial CSRs. */
+  /* To put it plainly, I don't know why do this! */
+#ifdef CONFIG_ISA64
+  cpu.mstatus = 0xa00001800;
+#else
+  cpu.mstatus = 0x1800;
+#endif
+
+  cpu.mcause = NO;
+  cpu.mepc = epc;
+  return cpu.mtvec;
 }
 
 word_t isa_query_intr() {

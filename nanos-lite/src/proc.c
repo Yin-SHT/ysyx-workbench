@@ -25,8 +25,8 @@ void init_proc() {
   Log("Initializing processes...");
 
   // load program here
-  void naive_uload(PCB *pcb, const char *filename);
-  naive_uload(NULL, "/bin/pal");
+//  void naive_uload(PCB *pcb, const char *filename);
+//  naive_uload(NULL, "/bin/pal");
 
 }
 

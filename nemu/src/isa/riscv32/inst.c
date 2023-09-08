@@ -24,7 +24,6 @@
 
 void ftrace_call(vaddr_t pc, vaddr_t dnpc);
 void ftrace_ret(vaddr_t pc, vaddr_t dnpc);
-extern MUXDEF(CONFIG_ISA64, uint64_t, uint32_t) CSRs[4096];
 
 enum {
   TYPE_I, TYPE_U, TYPE_S,
@@ -127,12 +126,12 @@ static int decode_exec(Decode *s) {
   INSTPAT("0000001 ????? ????? 111 ????? 01100 11", remu   , R, R(rd) = src1 % src2);
 
   // MACHINE-MODE PRIVILEGED INSTRUCTIONS
-  INSTPAT("??????? ????? ????? 001 ????? 11100 11", csrrw  , I, word_t t = CSRs[imm]; CSRs[imm] = src1; R(rd) = t);
-  INSTPAT("??????? ????? ????? 010 ????? 11100 11", csrrs  , I, word_t t = CSRs[imm]; CSRs[imm] = t | src1; R(rd) = t);
-  INSTPAT("0011000 00010 00000 000 00000 11100 11", mret   , R, s->dnpc = CSRs[MEPC] + 4);
+  INSTPAT("??????? ????? ????? 001 ????? 11100 11", csrrw  , I, word_t t = read_csr(imm); write_csr(imm, src1); R(rd) = t);
+  INSTPAT("??????? ????? ????? 010 ????? 11100 11", csrrs  , I, word_t t = read_csr(imm); write_csr(imm, t | src1) ; R(rd) = t);
+  INSTPAT("0011000 00010 00000 000 00000 11100 11", mret   , R, s->dnpc = read_csr(MEPC); cpu.mstatus |= (1 << 7); cpu.mstatus &= ~(0x1800));
 
+  INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall  , I, s->dnpc = isa_raise_intr(ECALL_FROM_M, s->pc)); // 11: Environment call from M-mode
   INSTPAT("0000000 00001 00000 000 00000 11100 11", ebreak , N, NEMUTRAP(s->pc, R(10))); // R(10) is $a0
-  INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall  , I, s->dnpc = isa_raise_intr(R(17), s->pc)); // This should locate after all system instructions
 
   INSTPAT("??????? ????? ????? ??? ????? ????? ??", inv    , N, INV(s->pc));
   INSTPAT_END();

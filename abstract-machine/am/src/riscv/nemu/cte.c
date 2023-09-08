@@ -13,13 +13,23 @@ enum {
 };
 
 Context* __am_irq_handle(Context *c) {
+#ifdef __riscv_e
+  int syscall_num = c->gpr[15];   // x15/a5
+#else
+  int syscall_num = c->gpr[17];   // x17/a7
+#endif
+
   if (user_handler) {
     Event ev = {0};
     switch (c->mcause) {
-      case SYS_close: case SYS_gettimeofday:
-      case SYS_open: case SYS_exit: case SYS_brk: case SYS_write:
-      case SYS_yield: case SYS_read: case SYS_lseek: ev.event = EVENT_SYSCALL; break;
-      case -1: ev.event = EVENT_YIELD; break;
+      // 11: Environment call from M-mode
+      case 11: {
+        switch (syscall_num) {
+          case -1: ev.event = SYS_yield; break;
+          default: ev.event = EVENT_ERROR; break;
+        }
+        break;
+      }
       default: ev.event = EVENT_ERROR; break;
     }
 

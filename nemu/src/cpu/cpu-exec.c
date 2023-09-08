@@ -37,6 +37,7 @@ void iringbuf_trace();
 extern bool scan_wp_pool(char *inst);
 
 static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
+  IFDEF(CONFIG_RTRACE, iringbuf_itrace_add(&s));
 #ifdef CONFIG_ITRACE_COND
   if (ITRACE_COND) { log_write("%s\n", _this->logbuf); }
 #endif
@@ -85,9 +86,8 @@ static void execute(uint64_t n) {
     exec_once(&s, cpu.pc);
     g_nr_guest_inst ++;
     trace_and_difftest(&s, cpu.pc);
-    if (nemu_state.state != NEMU_RUNNING) break;
     IFDEF(CONFIG_DEVICE, device_update());
-    IFDEF(CONFIG_RTRACE, iringbuf_itrace_add(&s));
+    if (nemu_state.state != NEMU_RUNNING) break;
   }
 }
 

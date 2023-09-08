@@ -18,9 +18,24 @@
 
 #include <common.h>
 
+// CSRs
+#define MSTATUS 0x300
+#define MTVEC   0x305
+#define MEPC    0x341
+#define MCAUSE  0x342
+
+// Machine cause register (mcause) values after trap.
+#define ECALL_FROM_M 11
+
 typedef struct {
   word_t gpr[MUXDEF(CONFIG_RVE, 16, 32)];
   vaddr_t pc;
+
+  // control and status registers
+  word_t mstatus;
+  word_t mcause;
+  word_t mtvec;
+  word_t mepc;
 } MUXDEF(CONFIG_RV64, riscv64_CPU_state, riscv32_CPU_state);
 
 // decode
@@ -31,11 +46,5 @@ typedef struct {
 } MUXDEF(CONFIG_RV64, riscv64_ISADecodeInfo, riscv32_ISADecodeInfo);
 
 #define isa_mmu_check(vaddr, len, type) (MMU_DIRECT)
-
-// CSRs
-#define MSTATUS 0x300
-#define MTVEC   0x305
-#define MEPC    0x341
-#define MCAUSE  0x342
 
 #endif
