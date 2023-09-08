@@ -149,7 +149,6 @@ void func_sym_display() {
 }
 
 int call_count __attribute__((unused)) = -1;
-int irq_call_count __attribute__((unused)) = -1;
 
 void ftrace_call(vaddr_t pc, vaddr_t dnpc) {
 #ifdef CONFIG_FTRACE
@@ -163,18 +162,6 @@ void ftrace_call(vaddr_t pc, vaddr_t dnpc) {
         flog_write("  ");
       }
       flog_write("call[%s@%#08x]\n", fun_record.syminfos[i].name, dnpc);
-#ifdef CONFIG_ETRACE
-      char *name = fun_record.syminfos[i].name;
-      if (!strcmp(name, "yield") || !strcmp(name, "__am_asm_trap") || \
-          !strcmp(name, "__am_irq_handle") || !strcmp(name, "do_event")) {
-        elog_write("%#08x: ", pc);
-        irq_call_count++;
-        for (int i = 0; i < irq_call_count; i++) {
-          elog_write("  ");
-        }
-        elog_write("call[%s@%#08x]\n", fun_record.syminfos[i].name, dnpc);
-      }
-#endif
       return;
     }
   }
@@ -197,18 +184,6 @@ void ftrace_ret(vaddr_t pc, vaddr_t dnpc) {
       }
       flog_write("ret[%s@%#08x]\n", fun_record.syminfos[i].name, dnpc);
       call_count--;
-#ifdef CONFIG_ETRACE
-      char *name = fun_record.syminfos[i].name;
-      if (!strcmp(name, "yield") || !strcmp(name, "__am_asm_trap") || \
-          !strcmp(name, "__am_irq_handle") || !strcmp(name, "do_event")) {
-        elog_write("%#08x: ", pc);
-        for (int i = 0; i < irq_call_count; i++) {
-          elog_write("  ");
-        }
-        elog_write("ret[%s@%#08x]\n", fun_record.syminfos[i].name, dnpc);
-        irq_call_count--;
-      }
-#endif
       return;
     }
   }

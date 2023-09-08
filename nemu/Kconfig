@@ -167,7 +167,7 @@ config DTRACE
   default n
 
 config ETRACE
-  depends on FTRACE
+  depends on TRACE
   bool "Enable expection tracer"
   default n
 

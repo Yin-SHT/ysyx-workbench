@@ -128,9 +128,9 @@ static int decode_exec(Decode *s) {
   // MACHINE-MODE PRIVILEGED INSTRUCTIONS
   INSTPAT("??????? ????? ????? 001 ????? 11100 11", csrrw  , I, word_t t = read_csr(imm); write_csr(imm, src1); R(rd) = t);
   INSTPAT("??????? ????? ????? 010 ????? 11100 11", csrrs  , I, word_t t = read_csr(imm); write_csr(imm, t | src1) ; R(rd) = t);
-  INSTPAT("0011000 00010 00000 000 00000 11100 11", mret   , R, s->dnpc = read_csr(MEPC); cpu.mstatus |= (1 << 7); cpu.mstatus &= ~(0x1800));
+  INSTPAT("0011000 00010 00000 000 00000 11100 11", mret   , R, s->dnpc = read_csr(MEPC); cpu.mstatus |= (1 << 7); cpu.mstatus &= ~(0x1800); etrace_ret());
 
-  INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall  , I, s->dnpc = isa_raise_intr(ECALL_FROM_M, s->pc)); // 11: Environment call from M-mode
+  INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall  , I, s->dnpc = isa_raise_intr(ECALL_FROM_M, s->pc); etrace_call(ECALL_FROM_M)); // 11: Environment call from M-mode
   INSTPAT("0000000 00001 00000 000 00000 11100 11", ebreak , N, NEMUTRAP(s->pc, R(10))); // R(10) is $a0
 
   INSTPAT("??????? ????? ????? ??? ????? ????? ??", inv    , N, INV(s->pc));

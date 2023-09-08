@@ -15,6 +15,24 @@
 
 #include <isa.h>
 
+enum {
+  SYS_exit, SYS_yield, SYS_open, SYS_read, 
+  SYS_write, SYS_kill,  SYS_getpid, SYS_close, 
+  SYS_lseek, SYS_brk, SYS_fstat, SYS_time,  
+  SYS_signal, SYS_execve,  SYS_fork, SYS_link,  
+  SYS_unlink, SYS_wait,  SYS_times,  SYS_gettimeofday
+};
+
+static char *syscall_names[] = {
+  "SYS_exit", "SYS_yield", "SYS_open",  "SYS_read", 
+  "SYS_write", "SYS_kill",  "SYS_getpid", "SYS_close", 
+  "SYS_lseek", "SYS_brk", "SYS_fstat", "SYS_time",  
+  "SYS_signal", "SYS_execve",  "SYS_fork", "SYS_link",  
+  "SYS_unlink", "SYS_wait",  "SYS_times",  "SYS_gettimeofday"
+};
+
+#define NR_SYSCALL_NAMES ARRLEN(syscall_names)
+
 word_t read_csr(word_t imm) {
   switch (imm) {
     case MSTATUS: return cpu.mstatus;
@@ -35,14 +53,46 @@ void write_csr(word_t imm, word_t val) {
   }
 }
 
+#ifdef CONFIG_ETRACE
+static int syscall_count = -1;
+void etrace_call(word_t NO) {
+  if (NO == ECALL_FROM_M) {
+    int syscall_num = MUXDEF(CONFIG_RVE, cpu.gpr[15], cpu.gpr[17]);
+    assert((syscall_num == -1) || (syscall_num >= 0 && syscall_num < (NR_SYSCALL_NAMES)));
+    
+    elog_write("%#08x: ", cpu.pc);
+    syscall_count++;
+    for (int i = 0; i < syscall_count; i++) {
+      elog_write("  ");
+    }
+
+    if (syscall_num == -1) {
+      elog_write("\t%s\n", "SYS_yield");
+    } else {
+      elog_write("\t%s\n", syscall_names[syscall_num]);
+    }
+  } else {
+    panic("Don't support NO\n");
+  }
+}
+void etrace_ret() {
+  elog_write("%#08x: ", cpu.pc);
+  for (int i = 0; i < syscall_count; i++) {
+    elog_write("  ");
+  }
+  elog_write("\tmret\n");
+  syscall_count--;
+  return;
+}
+#else
+void etrace_call(word_t NO) { }
+void etrace_ret() { }
+#endif
+
 word_t isa_raise_intr(word_t NO, vaddr_t epc) {
   /* Set the initial CSRs. */
   /* To put it plainly, I don't know why do this! */
-#ifdef CONFIG_ISA64
-  cpu.mstatus = 0xa00001800;
-#else
-  cpu.mstatus = 0x1800;
-#endif
+  cpu.mstatus = MUXDEF(CONFIG_ISA64, 0xa00001800, 0x1800);
 
   cpu.mcause = NO;
   cpu.mepc = epc;
