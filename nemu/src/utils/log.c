@@ -121,7 +121,7 @@ void init_mtrace(const char *mtrace_file) {
   FILE *fp = fopen(mtrace_file, "w");
   Assert(fp, "Can not open '%s'", mtrace_file);
   mtrace_fp = fp;
-  Log("mtrace is written to %s", mtrace_file);
+  Log("memory access trace is written to %s", mtrace_file);
 }
 #else
 void init_mtrace(const char *mtrace_file) { }
@@ -277,7 +277,7 @@ void init_dtrace(const char *dtrace_file) {
   FILE *fp = fopen(dtrace_file, "w");
   Assert(fp, "Can not open '%s'", dtrace_file);
   dtrace_fp = fp;
-  Log("dtrace is written to %s", dtrace_file);
+  Log("device access trace is written to %s", dtrace_file);
 }
 #else
 void init_dtrace(const char *dtrace_file) { }
