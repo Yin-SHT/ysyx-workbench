@@ -14,9 +14,9 @@ LDFLAGS   += --gc-sections -e _start
 NEMUFLAGS += -b \
           --itrace=$(NEMU_HOME)/build/nemu-itrace.txt \
           --ltrace=$(NEMU_HOME)/build/nemu-ltrace.txt \
-          --mlog=$(NEMU_HOME)/build/nemu-mlog.txt \
+          --mtrace=$(NEMU_HOME)/build/nemu-mtrace.txt \
           --flog=$(NEMU_HOME)/build/nemu-flog.txt \
-          --dlog=$(NEMU_HOME)/build/nemu-dlog.txt \
+          --dtrace=$(NEMU_HOME)/build/nemu-dtrace.txt \
           --elog=$(NEMU_HOME)/build/nemu-elog.txt \
           --elf=$(IMAGE).elf
 

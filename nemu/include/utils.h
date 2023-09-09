@@ -77,12 +77,12 @@ uint64_t get_time();
   } while (0) \
 )
 
-#define mlog_write(...) IFDEF(CONFIG_TARGET_NATIVE_ELF, \
+#define mtrace_write(...) IFDEF(CONFIG_TARGET_NATIVE_ELF, \
   do { \
-    extern FILE* mlog_fp; \
-    if (!mlog_fp) break; \
-    fprintf(mlog_fp, __VA_ARGS__); \
-    fflush(mlog_fp); \
+    extern FILE* mtrace_fp; \
+    if (!mtrace_fp) break; \
+    fprintf(mtrace_fp, __VA_ARGS__); \
+    fflush(mtrace_fp); \
   } while (0) \
 )
 
@@ -95,12 +95,12 @@ uint64_t get_time();
   } while (0) \
 )
 
-#define dlog_write(...) IFDEF(CONFIG_TARGET_NATIVE_ELF, \
+#define dtrace_write(...) IFDEF(CONFIG_TARGET_NATIVE_ELF, \
   do { \
-    extern FILE* dlog_fp; \
-    if (!dlog_fp) break; \
-    fprintf(dlog_fp, __VA_ARGS__); \
-    fflush(dlog_fp); \
+    extern FILE* dtrace_fp; \
+    if (!dtrace_fp) break; \
+    fprintf(dtrace_fp, __VA_ARGS__); \
+    fflush(dtrace_fp); \
   } while (0) \
 )
 

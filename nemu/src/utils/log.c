@@ -20,10 +20,10 @@
 extern uint64_t g_nr_guest_inst;
 FILE *itrace_fp = NULL;
 FILE *ltrace_fp = NULL;
-FILE *mlog_fp = NULL;
+FILE *mtrace_fp = NULL;
 FILE *flog_fp = NULL;
 FILE *elf_fp = NULL;
-FILE *dlog_fp = NULL;
+FILE *dtrace_fp = NULL;
 FILE *elog_fp = NULL;
 
 #ifdef CONFIG_ITRACE
@@ -111,14 +111,21 @@ void init_ltrace(const char *ltrace_file) {
 void init_ltrace(const char *rlog_file) { }
 #endif
 
-void init_mlog(const char *mlog_file) {
-  if (mlog_file == NULL) return;
+#ifdef CONFIG_MTRACE
+void init_mtrace(const char *mtrace_file) {
+  if (mtrace_file == NULL) {
+    Log("mtrace_file is NULL\n");
+    return;
+  }
   
-  FILE *fp = fopen(mlog_file, "w");
-  Assert(fp, "Can not open '%s'", mlog_file);
-  mlog_fp = fp;
-  Log("MLog is written to %s", mlog_file ? mlog_file : "stdout");
+  FILE *fp = fopen(mtrace_file, "w");
+  Assert(fp, "Can not open '%s'", mtrace_file);
+  mtrace_fp = fp;
+  Log("mtrace is written to %s", mtrace_file);
 }
+#else
+void init_mtrace(const char *mtrace_file) { }
+#endif
 
 void init_flog(const char *flog_file) {
   if (flog_file == NULL) return;
@@ -260,15 +267,21 @@ void ftrace_ret(vaddr_t pc, vaddr_t dnpc) {
 #endif
 }
 
-
-void init_dlog(const char *dlog_file) {
-  if (dlog_file == NULL) return;
+#ifdef CONFIG_DTRACE
+void init_dtrace(const char *dtrace_file) {
+  if (dtrace_file == NULL) {
+    Log("dtrace_file is NULL\n");
+    return;
+  }
   
-  FILE *fp = fopen(dlog_file, "w");
-  Assert(fp, "Can not open '%s'", dlog_file);
-  dlog_fp = fp;
-  Log("dlog is written to %s", dlog_file ? dlog_file : "stdout");
+  FILE *fp = fopen(dtrace_file, "w");
+  Assert(fp, "Can not open '%s'", dtrace_file);
+  dtrace_fp = fp;
+  Log("dtrace is written to %s", dtrace_file);
 }
+#else
+void init_dtrace(const char *dtrace_file) { }
+#endif
 
 void init_elog(const char *elog_file) {
   if (elog_file == NULL) return;

@@ -19,10 +19,10 @@
 void init_rand();
 void init_itrace(const char *itrace_file); // overall instructions trace
 void init_ltrace(const char *ltrace_file); // latest instructions trace
-void init_mlog(const char *mlog_file);
+void init_mtrace(const char *mtrace_file); // memory access trace
 void init_flog(const char *flog_file);
 void init_elf_sym(const char *elf_file);
-void init_dlog(const char *dlog_file);
+void init_dtrace(const char *dtrace_file); // device access trace
 void init_elog(const char *elog_file);
 void init_mem();
 void init_difftest(char *ref_so_file, long img_size, int port);
@@ -48,10 +48,10 @@ void sdb_set_batch_mode();
 
 static char *itrace_file = NULL;
 static char *ltrace_file = NULL;
-static char *mlog_file = NULL;
+static char *mtrace_file = NULL;
 static char *flog_file = NULL;
 static char *elf_file = NULL;
-static char *dlog_file = NULL;
+static char *dtrace_file = NULL;
 static char *elog_file = NULL;
 static char *diff_so_file = NULL;
 static char *img_file = NULL;
@@ -84,10 +84,10 @@ static int parse_args(int argc, char *argv[]) {
     {"batch"    , no_argument      , NULL, 'b'},
     {"itrace"   , required_argument, NULL, 'i'},
     {"ltrace"   , required_argument, NULL, 'l'},
-    {"mlog"     , required_argument, NULL, 'm'},
+    {"mtrace"   , required_argument, NULL, 'm'},
     {"flog"     , required_argument, NULL, 'f'},
     {"elf"      , required_argument, NULL, 'e'},
-    {"dlog"     , required_argument, NULL, 'v'},
+    {"dtrace"   , required_argument, NULL, 'v'},
     {"elog"     , required_argument, NULL, 'x'},
     {"diff"     , required_argument, NULL, 'd'},
     {"port"     , required_argument, NULL, 'p'},
@@ -95,16 +95,16 @@ static int parse_args(int argc, char *argv[]) {
     {0          , 0                , NULL,  0 },
   };
   int o;
-  while ( (o = getopt_long(argc, argv, "-bhl:r:m:f:e:v:d:x:p:", table, NULL)) != -1) {
+  while ( (o = getopt_long(argc, argv, "-bhi:l:m:f:e:v:d:x:p:", table, NULL)) != -1) {
     switch (o) {
       case 'b': sdb_set_batch_mode(); break;
       case 'p': sscanf(optarg, "%d", &difftest_port); break;
       case 'i': itrace_file = optarg; break;
       case 'l': ltrace_file = optarg; break;
-      case 'm': mlog_file = optarg; break;
+      case 'm': mtrace_file = optarg; break;
       case 'f': flog_file = optarg; break;
       case 'e': elf_file = optarg; break;
-      case 'v': dlog_file = optarg; break;
+      case 'v': dtrace_file = optarg; break;
       case 'x': elog_file = optarg; break;
       case 'd': diff_so_file = optarg; break;
       case 1: img_file = optarg; return 0;
@@ -113,10 +113,10 @@ static int parse_args(int argc, char *argv[]) {
         printf("\t-b,--batch              run with batch mode\n");
         printf("\t-i,--itrace=FILE        output overall instructions trace to FILE\n");
         printf("\t-r,--ltrace=FILE        output latest instructions trace to FILE\n");
-        printf("\t-m,--mlog=FILE          output mtrace log to FILE\n");
+        printf("\t-m,--mtrace=FILE        output memory access trace to FILE\n");
         printf("\t-f,--flog=FILE          output ftrace log to FILE\n");
         printf("\t-e,--elf=FILE           read elf FILE\n");
-        printf("\t-v,--dlog=FILE          output dtrace log to FILE\n");
+        printf("\t-v,--dtrace=FILE        output device access trace to FILE\n");
         printf("\t-x,--elog=FILE          output etrace log to FILE\n");
         printf("\t-d,--diff=REF_SO        run DiffTest with reference REF_SO\n");
         printf("\t-p,--port=PORT          run DiffTest with port PORT\n");
@@ -139,16 +139,12 @@ void init_monitor(int argc, char *argv[]) {
   /* Open the *trace file. */
   init_itrace(itrace_file);
   init_ltrace(ltrace_file);
-  
-  /* Open the mtrace log file. */
-  IFDEF(CONFIG_MTRACE, init_mlog(mlog_file));
+  init_mtrace(mtrace_file);
+  init_dtrace(dtrace_file);
 
   /* Open the ftrace log file. */
   IFDEF(CONFIG_FTRACE, init_flog(flog_file));
   IFDEF(CONFIG_FTRACE, init_elf_sym(elf_file));
-
-  /* Open the dtrace log file. */
-  IFDEF(CONFIG_DTRACE, init_dlog(dlog_file));
 
   /* Open the etrace log file. */
   IFDEF(CONFIG_ETRACE, init_elog(elog_file));
