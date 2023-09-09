@@ -17,8 +17,8 @@
 #include <memory/paddr.h>
 
 void init_rand();
-void init_log(const char *log_file);
-void init_rlog(const char *rlog_file);
+void init_itrace(const char *itrace_file); // overall instructions trace
+void init_ltrace(const char *ltrace_file); // latest instructions trace
 void init_mlog(const char *mlog_file);
 void init_flog(const char *flog_file);
 void init_elf_sym(const char *elf_file);
@@ -46,8 +46,8 @@ static void welcome() {
 
 void sdb_set_batch_mode();
 
-static char *log_file = NULL;
-static char *rlog_file = NULL;
+static char *itrace_file = NULL;
+static char *ltrace_file = NULL;
 static char *mlog_file = NULL;
 static char *flog_file = NULL;
 static char *elf_file = NULL;
@@ -82,8 +82,8 @@ static long load_img() {
 static int parse_args(int argc, char *argv[]) {
   const struct option table[] = {
     {"batch"    , no_argument      , NULL, 'b'},
-    {"log"      , required_argument, NULL, 'l'},
-    {"rlog"     , required_argument, NULL, 'r'},
+    {"itrace"   , required_argument, NULL, 'i'},
+    {"ltrace"   , required_argument, NULL, 'l'},
     {"mlog"     , required_argument, NULL, 'm'},
     {"flog"     , required_argument, NULL, 'f'},
     {"elf"      , required_argument, NULL, 'e'},
@@ -99,8 +99,8 @@ static int parse_args(int argc, char *argv[]) {
     switch (o) {
       case 'b': sdb_set_batch_mode(); break;
       case 'p': sscanf(optarg, "%d", &difftest_port); break;
-      case 'l': log_file = optarg; break;
-      case 'r': rlog_file = optarg; break;
+      case 'i': itrace_file = optarg; break;
+      case 'l': ltrace_file = optarg; break;
       case 'm': mlog_file = optarg; break;
       case 'f': flog_file = optarg; break;
       case 'e': elf_file = optarg; break;
@@ -111,8 +111,8 @@ static int parse_args(int argc, char *argv[]) {
       default:
         printf("Usage: %s [OPTION...] IMAGE [args]\n\n", argv[0]);
         printf("\t-b,--batch              run with batch mode\n");
-        printf("\t-l,--log=FILE           output log to FILE\n");
-        printf("\t-r,--rlog=FILE          output iringbuf log to FILE\n");
+        printf("\t-i,--itrace=FILE        output overall instructions trace to FILE\n");
+        printf("\t-r,--ltrace=FILE        output latest instructions trace to FILE\n");
         printf("\t-m,--mlog=FILE          output mtrace log to FILE\n");
         printf("\t-f,--flog=FILE          output ftrace log to FILE\n");
         printf("\t-e,--elf=FILE           read elf FILE\n");
@@ -136,12 +136,9 @@ void init_monitor(int argc, char *argv[]) {
   /* Set random seed. */
   init_rand();
 
-  /* Open the log file. */
-  init_log(log_file);
-
-  /* Open the iringbuf log file. */
-  IFDEF(CONFIG_RTRACE, init_rlog(rlog_file));
-  IFDEF(CONFIG_RTRACE, init_iringbuf());
+  /* Open the *trace file. */
+  init_itrace(itrace_file);
+  init_ltrace(ltrace_file);
   
   /* Open the mtrace log file. */
   IFDEF(CONFIG_MTRACE, init_mlog(mlog_file));

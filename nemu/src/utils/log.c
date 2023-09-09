@@ -18,32 +18,98 @@
 #include <cpu/decode.h>
 
 extern uint64_t g_nr_guest_inst;
-FILE *log_fp = NULL;
-FILE *rlog_fp = NULL;
+FILE *itrace_fp = NULL;
+FILE *ltrace_fp = NULL;
 FILE *mlog_fp = NULL;
 FILE *flog_fp = NULL;
 FILE *elf_fp = NULL;
 FILE *dlog_fp = NULL;
 FILE *elog_fp = NULL;
 
-void init_log(const char *log_file) {
-  log_fp = stdout;
-  if (log_file != NULL) {
-    FILE *fp = fopen(log_file, "w");
-    Assert(fp, "Can not open '%s'", log_file);
-    log_fp = fp;
+#ifdef CONFIG_ITRACE
+void init_itrace(const char *itrace_file) {
+  if (!itrace_file) {
+    Log("itrace_file is NULL\n");
+    return;
   }
-  Log("Log is written to %s", log_file ? log_file : "stdout");
+
+  FILE *fp = fopen(itrace_file, "w");
+  Assert(fp, "Can not open '%s'", itrace_file);
+  itrace_fp = fp;
+  Log("Overall instructions trace is written to %s", itrace_file);
+}
+#else
+void init_itrace(const char *itrace_file) { }
+#endif
+
+/* Instruction RingBuf Trace */
+typedef struct iringbuf {
+  int top;
+  char *log[16];
+} IRingBuf;
+
+static IRingBuf irbuf;
+
+void flush_iringbuf() {
+  for (int i = 0; i < 16; i++) {
+    char *p __attribute_maybe_unused__ = irbuf.log[i];
+    if (( i + 1 ) % 16 == irbuf.top) {
+      ltrace_write(" -----> %s\n", p);
+    } else {
+      ltrace_write("        %s\n", p);
+    }
+  }
 }
 
-void init_rlog(const char *rlog_file) {
-  if (rlog_file == NULL) return;
+void update_iringbuf(Decode *s) {
+  int top = irbuf.top; 
+  irbuf.top = (top + 1) % 16;
+  char *p = irbuf.log[top];
 
-  FILE *fp = fopen(rlog_file, "w");
-  Assert(fp, "Can not open '%s'", rlog_file);
-  rlog_fp = fp;
-  Log("RLog is written to %s", rlog_file ? rlog_file : "stdout");
+  p += snprintf(p, 128, FMT_WORD ":", s->pc);
+  int ilen = s->snpc - s->pc;
+  int i;
+  uint8_t *inst = (uint8_t *)&s->isa.inst.val;
+  for (i = ilen - 1; i >= 0; i --) {
+    p += snprintf(p, 4, " %02x", inst[i]);
+  }
+  int ilen_max = MUXDEF(CONFIG_ISA_x86, 8, 4);
+  int space_len = ilen_max - ilen;
+  if (space_len < 0) space_len = 0;
+  space_len = space_len * 3 + 1;
+  memset(p, ' ', space_len);
+  p += space_len;
+
+#ifdef CONFIG_LTRACE
+  void disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
+  disassemble(p, irbuf.log[top] + 128 - p,
+      MUXDEF(CONFIG_ISA_x86, s->snpc, s->pc), (uint8_t *)&s->isa.inst.val, ilen);
+#endif
 }
+
+#ifdef CONFIG_LTRACE
+static void init_iringbuf() {
+  irbuf.top = 0;
+  for (int i = 0; i < 16; i++) {
+    irbuf.log[i] = (char*)calloc(128, sizeof(char));
+  }
+}
+
+void init_ltrace(const char *ltrace_file) {
+  if (ltrace_file == NULL) {
+    Log("ltrace_file is NULL\n");
+    return;
+  }
+
+  FILE *fp = fopen(ltrace_file, "w");
+  Assert(fp, "Can not open '%s'", ltrace_file);
+  ltrace_fp = fp;
+  Log("Latest instructions trace is written to %s", ltrace_file);
+  init_iringbuf();
+}
+#else
+void init_ltrace(const char *rlog_file) { }
+#endif
 
 void init_mlog(const char *mlog_file) {
   if (mlog_file == NULL) return;
@@ -194,60 +260,6 @@ void ftrace_ret(vaddr_t pc, vaddr_t dnpc) {
 #endif
 }
 
-typedef struct iringbuf {
-  int top;
-  char *log[16];
-} IRingBuf;
-
-static IRingBuf irbuf __attribute__((unused));
-
-void init_iringbuf() {
-  irbuf.top = 0;
-  for (int i = 0; i < 16; i++) {
-    irbuf.log[i] = (char*)calloc(128, sizeof(char));
-  }
-}
-
-void iringbuf_trace() {
-  for (int i = 0; i < 16; i++) {
-    char *p __attribute_maybe_unused__ = irbuf.log[i];
-    if (( i + 1 ) % 16 == irbuf.top) {
-      rlog_write(" -----> %s\n", p);
-    } else {
-      rlog_write("        %s\n", p);
-    }
-  }
-}
-
-void iringbuf_itrace_add(Decode *s) {
-#ifdef CONFIG_ITRACE
-  int top = irbuf.top; 
-  irbuf.top = (top + 1) % 16;
-  char *p = irbuf.log[top];
-
-  p += snprintf(p, 128, FMT_WORD ":", s->pc);
-  int ilen = s->snpc - s->pc;
-  int i;
-  uint8_t *inst = (uint8_t *)&s->isa.inst.val;
-  for (i = ilen - 1; i >= 0; i --) {
-    p += snprintf(p, 4, " %02x", inst[i]);
-  }
-  int ilen_max = MUXDEF(CONFIG_ISA_x86, 8, 4);
-  int space_len = ilen_max - ilen;
-  if (space_len < 0) space_len = 0;
-  space_len = space_len * 3 + 1;
-  memset(p, ' ', space_len);
-  p += space_len;
-
-#ifndef CONFIG_ISA_loongarch32r
-  void disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
-  disassemble(p, irbuf.log[top] + 128 - p,
-      MUXDEF(CONFIG_ISA_x86, s->snpc, s->pc), (uint8_t *)&s->isa.inst.val, ilen);
-#else
-  p[0] = '\0'; // the upstream llvm does not support loongarch32r
-#endif
-#endif
-}
 
 void init_dlog(const char *dlog_file) {
   if (dlog_file == NULL) return;

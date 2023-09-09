@@ -143,12 +143,12 @@ config TRACE_END
 
 config ITRACE
   depends on TRACE && TARGET_NATIVE_ELF && ENGINE_INTERPRETER
-  bool "Enable instruction tracer"
+  bool "Enable overall instruction tracer"
   default y
 
-config RTRACE
-  depends on TRACE
-  bool "Enable iringbuf tracer"
+config LTRACE
+  depends on TRACE && TARGET_NATIVE_ELF && ENGINE_INTERPRETER
+  bool "Enable latest instruction tracer"
   default n
 
 config MTRACE

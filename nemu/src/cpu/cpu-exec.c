@@ -31,15 +31,15 @@ static uint64_t g_timer = 0; // unit: us
 static bool g_print_step = false;
 
 void device_update();
-void iringbuf_itrace_add(Decode *s);
-void iringbuf_trace();
+void flush_iringbuf();
+void update_iringbuf(Decode *s);
 
 extern bool scan_wp_pool(char *inst);
 
 static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
-  IFDEF(CONFIG_RTRACE, iringbuf_itrace_add(&s));
+  IFDEF(CONFIG_LTRACE, update_iringbuf(_this));
 #ifdef CONFIG_ITRACE_COND
-  if (ITRACE_COND) { log_write("%s\n", _this->logbuf); }
+  if (ITRACE_COND) { itrace_write("%s\n", _this->logbuf); }
 #endif
   if (g_print_step) { IFDEF(CONFIG_ITRACE, puts(_this->logbuf)); }
   IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
@@ -92,6 +92,7 @@ static void execute(uint64_t n) {
 }
 
 static void statistic() {
+  IFDEF(CONFIG_LTRACE, flush_iringbuf());
   IFNDEF(CONFIG_TARGET_AM, setlocale(LC_NUMERIC, ""));
 #define NUMBERIC_FMT MUXDEF(CONFIG_TARGET_AM, "%", "%'") PRIu64
   Log("host time spent = " NUMBERIC_FMT " us", g_timer);

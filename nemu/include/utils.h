@@ -56,23 +56,24 @@ uint64_t get_time();
 
 #define ANSI_FMT(str, fmt) fmt str ANSI_NONE
 
-#define log_write(...) IFDEF(CONFIG_TARGET_NATIVE_ELF, \
+#define itrace_write(...) IFDEF(CONFIG_TARGET_NATIVE_ELF, \
   do { \
-    extern FILE* log_fp; \
+    extern FILE* itrace_fp; \
     extern bool log_enable(); \
     if (log_enable()) { \
-      fprintf(log_fp, __VA_ARGS__); \
-      fflush(log_fp); \
+      if (!itrace_fp) break; \
+      fprintf(itrace_fp, __VA_ARGS__); \
+      fflush(itrace_fp); \
     } \
   } while (0) \
 )
 
-#define rlog_write(...) IFDEF(CONFIG_TARGET_NATIVE_ELF, \
+#define ltrace_write(...) IFDEF(CONFIG_TARGET_NATIVE_ELF, \
   do { \
-    extern FILE* rlog_fp; \
-    if (!rlog_fp) break; \
-    fprintf(rlog_fp, __VA_ARGS__); \
-    fflush(rlog_fp); \
+    extern FILE* ltrace_fp; \
+    if (!ltrace_fp) break; \
+    fprintf(ltrace_fp, __VA_ARGS__); \
+    fflush(ltrace_fp); \
   } while (0) \
 )
 
@@ -115,7 +116,7 @@ uint64_t get_time();
 #define _Log(...) \
   do { \
     printf(__VA_ARGS__); \
-    log_write(__VA_ARGS__); \
+    itrace_write(__VA_ARGS__); \
   } while (0)
 
 // ----------- Color OUTPUT -----------

@@ -12,8 +12,8 @@ LDFLAGS   += -T $(AM_HOME)/scripts/linker.ld \
              --defsym=_pmem_start=0x80000000 --defsym=_entry_offset=0x0
 LDFLAGS   += --gc-sections -e _start
 NEMUFLAGS += -b \
-          --log=$(NEMU_HOME)/build/nemu-log.txt \
-          --rlog=$(NEMU_HOME)/build/nemu-rlog.txt \
+          --itrace=$(NEMU_HOME)/build/nemu-itrace.txt \
+          --ltrace=$(NEMU_HOME)/build/nemu-ltrace.txt \
           --mlog=$(NEMU_HOME)/build/nemu-mlog.txt \
           --flog=$(NEMU_HOME)/build/nemu-flog.txt \
           --dlog=$(NEMU_HOME)/build/nemu-dlog.txt \

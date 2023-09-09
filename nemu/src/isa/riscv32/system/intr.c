@@ -23,7 +23,7 @@ enum {
   SYS_unlink, SYS_wait,  SYS_times,  SYS_gettimeofday
 };
 
-static char *syscall_names[] = {
+static char *syscall_names[] __attribute__((unused)) = {
   "SYS_exit", "SYS_yield", "SYS_open",  "SYS_read", 
   "SYS_write", "SYS_kill",  "SYS_getpid", "SYS_close", 
   "SYS_lseek", "SYS_brk", "SYS_fstat", "SYS_time",  
