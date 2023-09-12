@@ -104,12 +104,12 @@ uint64_t get_time();
   } while (0) \
 )
 
-#define elog_write(...) IFDEF(CONFIG_TARGET_NATIVE_ELF, \
+#define etrace_write(...) IFDEF(CONFIG_TARGET_NATIVE_ELF, \
   do { \
-    extern FILE* elog_fp; \
-    if (!elog_fp) break; \
-    fprintf(elog_fp, __VA_ARGS__); \
-    fflush(elog_fp); \
+    extern FILE* etrace_fp; \
+    if (!etrace_fp) break; \
+    fprintf(etrace_fp, __VA_ARGS__); \
+    fflush(etrace_fp); \
   } while (0) \
 )
 

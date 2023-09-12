@@ -17,7 +17,7 @@ NEMUFLAGS += -b \
           --mtrace=$(NEMU_HOME)/build/nemu-mtrace.txt \
           --flog=$(NEMU_HOME)/build/nemu-flog.txt \
           --dtrace=$(NEMU_HOME)/build/nemu-dtrace.txt \
-          --elog=$(NEMU_HOME)/build/nemu-elog.txt \
+          --etrace=$(NEMU_HOME)/build/nemu-etrace.txt \
           --elf=$(IMAGE).elf
 
 

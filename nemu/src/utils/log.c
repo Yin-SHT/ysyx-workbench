@@ -24,7 +24,7 @@ FILE *mtrace_fp = NULL;
 FILE *flog_fp = NULL;
 FILE *elf_fp = NULL;
 FILE *dtrace_fp = NULL;
-FILE *elog_fp = NULL;
+FILE *etrace_fp = NULL;
 
 #ifdef CONFIG_ITRACE
 void init_itrace(const char *itrace_file) {
@@ -283,14 +283,21 @@ void init_dtrace(const char *dtrace_file) {
 void init_dtrace(const char *dtrace_file) { }
 #endif
 
-void init_elog(const char *elog_file) {
-  if (elog_file == NULL) return;
+#ifdef CONFIG_ETRACE
+void init_etrace(const char *etrace_file) {
+  if (etrace_file == NULL) {
+    printf("etrace_file is NULL\n");
+    return;
+  }
   
-  FILE *fp = fopen(elog_file, "w");
-  Assert(fp, "Can not open '%s'", elog_file);
-  elog_fp = fp;
-  Log("dlog is written to %s", elog_file ? elog_file : "stdout");
+  FILE *fp = fopen(etrace_file, "w");
+  Assert(fp, "Can not open '%s'", etrace_file);
+  etrace_fp = fp;
+  Log("expection access trace is written to %s", etrace_file ? etrace_file : "stdout");
 }
+#else
+void init_etrace(const char *etrace_file) { }
+#endif
 
 bool log_enable() {
   return MUXDEF(CONFIG_TRACE, (g_nr_guest_inst >= CONFIG_TRACE_START) &&

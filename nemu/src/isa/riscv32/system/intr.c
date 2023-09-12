@@ -60,27 +60,27 @@ void etrace_call(word_t NO) {
     int syscall_num = MUXDEF(CONFIG_RVE, cpu.gpr[15], cpu.gpr[17]);
     assert((syscall_num == -1) || (syscall_num >= 0 && syscall_num < (NR_SYSCALL_NAMES)));
     
-    elog_write("%#08x: ", cpu.pc);
+    etrace_write("%#08x: ", cpu.pc);
     syscall_count++;
     for (int i = 0; i < syscall_count; i++) {
-      elog_write("  ");
+      etrace_write("  ");
     }
 
     if (syscall_num == -1) {
-      elog_write("\t%s\n", "SYS_yield");
+      etrace_write("\t%s\n", "YIELD");
     } else {
-      elog_write("\t%s\n", syscall_names[syscall_num]);
+      etrace_write("\t%s\n", syscall_names[syscall_num]);
     }
   } else {
     panic("Don't support NO\n");
   }
 }
 void etrace_ret() {
-  elog_write("%#08x: ", cpu.pc);
+  etrace_write("%#08x: ", cpu.pc);
   for (int i = 0; i < syscall_count; i++) {
-    elog_write("  ");
+    etrace_write("  ");
   }
-  elog_write("\tmret\n");
+  etrace_write("\tmret\n");
   syscall_count--;
   return;
 }

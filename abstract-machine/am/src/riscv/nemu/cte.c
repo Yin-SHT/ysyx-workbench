@@ -17,7 +17,7 @@ Context* __am_irq_handle(Context *c) {
       // 11: Environment call from M-mode
       case 11: {
         if (syscall_num >= 0) { ev.event = EVENT_SYSCALL; c->mepc += 4; } 
-        else if (syscall_num == -1) { ev.event = EVENT_SYSCALL; c->mepc += 4; } 
+        else if (syscall_num == -1) { ev.event = EVENT_YIELD; c->mepc += 4; } 
         else { ev.event = EVENT_ERROR; }
         break;
       }

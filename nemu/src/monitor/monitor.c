@@ -23,7 +23,7 @@ void init_mtrace(const char *mtrace_file); // memory access trace
 void init_flog(const char *flog_file);
 void init_elf_sym(const char *elf_file);
 void init_dtrace(const char *dtrace_file); // device access trace
-void init_elog(const char *elog_file);
+void init_etrace(const char *etrace_file); // expection access trace
 void init_mem();
 void init_difftest(char *ref_so_file, long img_size, int port);
 void init_device();
@@ -52,7 +52,7 @@ static char *mtrace_file = NULL;
 static char *flog_file = NULL;
 static char *elf_file = NULL;
 static char *dtrace_file = NULL;
-static char *elog_file = NULL;
+static char *etrace_file = NULL;
 static char *diff_so_file = NULL;
 static char *img_file = NULL;
 static int difftest_port = 1234;
@@ -88,7 +88,7 @@ static int parse_args(int argc, char *argv[]) {
     {"flog"     , required_argument, NULL, 'f'},
     {"elf"      , required_argument, NULL, 'e'},
     {"dtrace"   , required_argument, NULL, 'v'},
-    {"elog"     , required_argument, NULL, 'x'},
+    {"etrace"   , required_argument, NULL, 'x'},
     {"diff"     , required_argument, NULL, 'd'},
     {"port"     , required_argument, NULL, 'p'},
     {"help"     , no_argument      , NULL, 'h'},
@@ -105,7 +105,7 @@ static int parse_args(int argc, char *argv[]) {
       case 'f': flog_file = optarg; break;
       case 'e': elf_file = optarg; break;
       case 'v': dtrace_file = optarg; break;
-      case 'x': elog_file = optarg; break;
+      case 'x': etrace_file = optarg; break;
       case 'd': diff_so_file = optarg; break;
       case 1: img_file = optarg; return 0;
       default:
@@ -117,7 +117,7 @@ static int parse_args(int argc, char *argv[]) {
         printf("\t-f,--flog=FILE          output ftrace log to FILE\n");
         printf("\t-e,--elf=FILE           read elf FILE\n");
         printf("\t-v,--dtrace=FILE        output device access trace to FILE\n");
-        printf("\t-x,--elog=FILE          output etrace log to FILE\n");
+        printf("\t-x,--etrace=FILE        output expection access trace to FILE\n");
         printf("\t-d,--diff=REF_SO        run DiffTest with reference REF_SO\n");
         printf("\t-p,--port=PORT          run DiffTest with port PORT\n");
         printf("\n");
@@ -141,13 +141,11 @@ void init_monitor(int argc, char *argv[]) {
   init_ltrace(ltrace_file);
   init_mtrace(mtrace_file);
   init_dtrace(dtrace_file);
+  init_etrace(etrace_file);
 
   /* Open the ftrace log file. */
   IFDEF(CONFIG_FTRACE, init_flog(flog_file));
   IFDEF(CONFIG_FTRACE, init_elf_sym(elf_file));
-
-  /* Open the etrace log file. */
-  IFDEF(CONFIG_ETRACE, init_elog(elog_file));
 
   /* Initialize memory. */
   init_mem();
