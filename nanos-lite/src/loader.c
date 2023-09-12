@@ -38,9 +38,13 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
   fs_lseek(fd, 0, SEEK_SET);
   fs_read(fd, ehdr, sizeof(Elf_Ehdr));
 
-  // Check elf format
+  // Check elf format and ARCH
   assert(*(uint32_t *)ehdr->e_ident == 0x464c457f);
+#if defined(__ISA_AM_NATIVE__)
+  assert(ehdr->e_machine == EM_X86_64);
+#elif defined(__riscv)
   assert(ehdr->e_machine == EM_RISCV);
+#endif
 
   // 2. Read Program header
   Elf_Phdr *phdr = malloc(ehdr->e_phnum * ehdr->e_phentsize);
