@@ -22,7 +22,7 @@ void do_syscall(Context *c) {
   switch (a[0]) {
     case SYS_gettimeofday: c->GPRx = sys_gettimeofday((struct timeval*)a[1]); break;
     case SYS_exit: halt(a[1]); break;
-    case SYS_yield: yield(); break;
+    case SYS_yield: printf("SYS_yield\n"); break;
     case SYS_open: c->GPRx = fs_open((const char*)a[1], a[2], a[3]); break;
     case SYS_write: c->GPRx = fs_write(a[1], (void*)a[2], a[3]); break;
     case SYS_read: c->GPRx = fs_read(a[1], (void*)a[2], a[3]); break;
