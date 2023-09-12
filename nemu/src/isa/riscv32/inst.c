@@ -22,8 +22,7 @@
 #define Mr vaddr_read
 #define Mw vaddr_write
 
-void ftrace_call(vaddr_t pc, vaddr_t dnpc);
-void ftrace_ret(vaddr_t pc, vaddr_t dnpc);
+void ftrace(vaddr_t pc, vaddr_t dnpc, char *op);
 
 enum {
   TYPE_I, TYPE_U, TYPE_S,
@@ -111,8 +110,8 @@ static int decode_exec(Decode *s) {
   INSTPAT("??????? ????? ????? 110 ????? 11000 11", bltu   , B, s->dnpc = src1 < src2 ? s->pc + imm : s->dnpc;);
   INSTPAT("??????? ????? ????? 111 ????? 11000 11", bgeu   , B, s->dnpc = src1 >= src2 ? s->pc + imm : s->dnpc);
 
-  INSTPAT("??????? ????? ????? ??? ????? 11011 11", jal    , J, s->dnpc = s->pc + imm, R(rd) = s->snpc; (rd == 0) ? 0 : ftrace_call(s->pc, s->dnpc));
-  INSTPAT("??????? ????? ????? 000 ????? 11001 11", jalr   , I, s->dnpc = ((src1 + imm) & (~1)), R(rd) = s->snpc; if (rd == 0 && rs1 == 1 && imm == 0) { ftrace_ret(s->pc, s->dnpc); } else if (rd != 0) ftrace_call(s->pc, s->dnpc));
+  INSTPAT("??????? ????? ????? ??? ????? 11011 11", jal    , J, s->dnpc = s->pc + imm, R(rd) = s->snpc; (rd == 0) ? 0 : ftrace(s->pc, s->dnpc, "call"));
+  INSTPAT("??????? ????? ????? 000 ????? 11001 11", jalr   , I, s->dnpc = ((src1 + imm) & (~1)), R(rd) = s->snpc; if (rd == 0 && rs1 == 1 && imm == 0) { ftrace(s->pc, s->dnpc, "ret"); } else if (rd != 0) ftrace(s->pc, s->dnpc, "call"));
 
   INSTPAT("??????? ????? ????? ??? ????? 01101 11", lui    , U, R(rd) = imm);
   INSTPAT("??????? ????? ????? ??? ????? 00101 11", auipc  , U, R(rd) = s->pc + imm);
@@ -128,9 +127,9 @@ static int decode_exec(Decode *s) {
   // MACHINE-MODE PRIVILEGED INSTRUCTIONS
   INSTPAT("??????? ????? ????? 001 ????? 11100 11", csrrw  , I, word_t t = read_csr(imm); write_csr(imm, src1); R(rd) = t);
   INSTPAT("??????? ????? ????? 010 ????? 11100 11", csrrs  , I, word_t t = read_csr(imm); write_csr(imm, t | src1) ; R(rd) = t);
-  INSTPAT("0011000 00010 00000 000 00000 11100 11", mret   , R, s->dnpc = read_csr(MEPC); cpu.mstatus |= (1 << 7); cpu.mstatus &= ~(0x1800); etrace_ret());
+  INSTPAT("0011000 00010 00000 000 00000 11100 11", mret   , R, s->dnpc = read_csr(MEPC); cpu.mstatus |= (1 << 7); cpu.mstatus &= ~(0x1800); etrace_ret(); ftrace(s->pc, cpu.mepc, "ret"));
 
-  INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall  , I, s->dnpc = isa_raise_intr(ECALL_FROM_M, s->pc); etrace_call(ECALL_FROM_M)); // 11: Environment call from M-mode
+  INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall  , I, s->dnpc = isa_raise_intr(ECALL_FROM_M, s->pc); etrace_call(ECALL_FROM_M); ftrace(s->pc, cpu.mtvec, "call")); // 11: Environment call from M-mode
   INSTPAT("0000000 00001 00000 000 00000 11100 11", ebreak , N, NEMUTRAP(s->pc, R(10))); // R(10) is $a0
 
   INSTPAT("??????? ????? ????? ??? ????? ????? ??", inv    , N, INV(s->pc));

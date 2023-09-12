@@ -20,8 +20,7 @@ void init_rand();
 void init_itrace(const char *itrace_file); // overall instructions trace
 void init_ltrace(const char *ltrace_file); // latest instructions trace
 void init_mtrace(const char *mtrace_file); // memory access trace
-void init_flog(const char *flog_file);
-void init_elf_sym(const char *elf_file);
+void init_ftrace(const char *ftrace_file, const char *master_file); // function call trace
 void init_dtrace(const char *dtrace_file); // device access trace
 void init_etrace(const char *etrace_file); // expection access trace
 void init_mem();
@@ -49,8 +48,8 @@ void sdb_set_batch_mode();
 static char *itrace_file = NULL;
 static char *ltrace_file = NULL;
 static char *mtrace_file = NULL;
-static char *flog_file = NULL;
-static char *elf_file = NULL;
+static char *ftrace_file = NULL;
+static char *master_file = NULL;
 static char *dtrace_file = NULL;
 static char *etrace_file = NULL;
 static char *diff_so_file = NULL;
@@ -85,8 +84,8 @@ static int parse_args(int argc, char *argv[]) {
     {"itrace"   , required_argument, NULL, 'i'},
     {"ltrace"   , required_argument, NULL, 'l'},
     {"mtrace"   , required_argument, NULL, 'm'},
-    {"flog"     , required_argument, NULL, 'f'},
-    {"elf"      , required_argument, NULL, 'e'},
+    {"ftrace"   , required_argument, NULL, 'f'},
+    {"master"   , required_argument, NULL, 'e'},
     {"dtrace"   , required_argument, NULL, 'v'},
     {"etrace"   , required_argument, NULL, 'x'},
     {"diff"     , required_argument, NULL, 'd'},
@@ -102,8 +101,8 @@ static int parse_args(int argc, char *argv[]) {
       case 'i': itrace_file = optarg; break;
       case 'l': ltrace_file = optarg; break;
       case 'm': mtrace_file = optarg; break;
-      case 'f': flog_file = optarg; break;
-      case 'e': elf_file = optarg; break;
+      case 'f': ftrace_file = optarg; break;
+      case 'e': master_file = optarg; break;
       case 'v': dtrace_file = optarg; break;
       case 'x': etrace_file = optarg; break;
       case 'd': diff_so_file = optarg; break;
@@ -114,8 +113,8 @@ static int parse_args(int argc, char *argv[]) {
         printf("\t-i,--itrace=FILE        output overall instructions trace to FILE\n");
         printf("\t-r,--ltrace=FILE        output latest instructions trace to FILE\n");
         printf("\t-m,--mtrace=FILE        output memory access trace to FILE\n");
-        printf("\t-f,--flog=FILE          output ftrace log to FILE\n");
-        printf("\t-e,--elf=FILE           read elf FILE\n");
+        printf("\t-f,--ftrace=FILE        output function access trace to FILE\n");
+        printf("\t-e,--master=FILE        read master elf FILE\n");
         printf("\t-v,--dtrace=FILE        output device access trace to FILE\n");
         printf("\t-x,--etrace=FILE        output expection access trace to FILE\n");
         printf("\t-d,--diff=REF_SO        run DiffTest with reference REF_SO\n");
@@ -142,10 +141,7 @@ void init_monitor(int argc, char *argv[]) {
   init_mtrace(mtrace_file);
   init_dtrace(dtrace_file);
   init_etrace(etrace_file);
-
-  /* Open the ftrace log file. */
-  IFDEF(CONFIG_FTRACE, init_flog(flog_file));
-  IFDEF(CONFIG_FTRACE, init_elf_sym(elf_file));
+  init_ftrace(ftrace_file, master_file);
 
   /* Initialize memory. */
   init_mem();

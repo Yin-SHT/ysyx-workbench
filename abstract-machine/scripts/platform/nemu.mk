@@ -15,10 +15,10 @@ NEMUFLAGS += -b \
           --itrace=$(NEMU_HOME)/build/nemu-itrace.txt \
           --ltrace=$(NEMU_HOME)/build/nemu-ltrace.txt \
           --mtrace=$(NEMU_HOME)/build/nemu-mtrace.txt \
-          --flog=$(NEMU_HOME)/build/nemu-flog.txt \
+          --ftrace=$(NEMU_HOME)/build/nemu-ftrace.txt \
           --dtrace=$(NEMU_HOME)/build/nemu-dtrace.txt \
           --etrace=$(NEMU_HOME)/build/nemu-etrace.txt \
-          --elf=$(IMAGE).elf
+          --master=$(IMAGE).elf
 
 
 CFLAGS += -DMAINARGS=\"$(mainargs)\"

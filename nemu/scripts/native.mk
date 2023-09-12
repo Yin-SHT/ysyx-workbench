@@ -25,7 +25,8 @@ $(BINARY): compile_git
 # Some convenient rules
 
 override ARGS ?= --itrace=$(BUILD_DIR)/nemu-itrace.txt \
-								 --ltrace=$(BUILD_DIR)/nemu-ltrace.txt 
+								 --ltrace=$(BUILD_DIR)/nemu-ltrace.txt \
+								 --ftrace=$(BUILD_DIR)/nemu-ftrace.txt 
 #	--rlog=$(BUILD_DIR)/nemu-rlog.txt --mlog=$(BUILD_DIR)/nemu-mlog.txt --flog=$(BUILD_DIR)/nemu-flog.txt \
 	--elf=$(CT_HOME)/build/quick-sort-riscv32-nemu.elf \
 	$(CT_HOME)/build/quick-sort-riscv32-nemu.bin

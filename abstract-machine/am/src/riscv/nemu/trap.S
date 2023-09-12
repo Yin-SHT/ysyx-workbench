@@ -39,6 +39,7 @@ f(30) f(31)
 
 .align 3
 .globl __am_asm_trap
+.type __am_asm_trap, @function
 __am_asm_trap:
   addi sp, sp, -CONTEXT_SIZE
 
