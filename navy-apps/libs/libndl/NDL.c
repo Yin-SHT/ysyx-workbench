@@ -4,6 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/time.h>
+#include <assert.h>
 
 static int evtdev = -1;
 static int fbdev = -1;
@@ -14,14 +15,17 @@ int open(const char *path, int flags, ...);
 
 uint32_t NDL_GetTicks() {
   struct timeval tv;
-  gettimeofday(&tv, NULL);
+  assert(gettimeofday(&tv, NULL) != -1);
   /* return system time as the number of microsecond */
   return (tv.tv_sec * 1000000 + tv.tv_usec) / 1000;
 }
 
 int NDL_PollEvent(char *buf, int len) {
   int fd = open("/dev/events", 0);
-  return read(fd, buf, len);
+  assert(fd != -1);
+  int ret = read(fd, buf, len);
+  assert(ret != -1);
+  return ret;
 }
 
 void NDL_OpenCanvas(int *w, int *h) {
@@ -41,35 +45,29 @@ void NDL_OpenCanvas(int *w, int *h) {
       if (strcmp(buf, "mmap ok") == 0) break;
     }
     close(fbctl);
-  } else {
-    printf("canvas_W: %d canvas_H: %d\n", *w, *h);
-    if (*w > screen_w || *w == 0) {
-      *w = screen_w;
-    }
-    if (*h > screen_h || *h == 0) {
-      *h = screen_h;
-    }
-    canvas_w = *w;
-    canvas_h = *h;
-    printf("CANVAS_W: %d CANVAS_H: %d\n", canvas_w, canvas_h);
+  } 
+
+  printf("canvas_w: %d canvas_h: %d\n", *w, *h);
+  if (*w > screen_w || *w == 0) {
+    *w = screen_w;
   }
+  if (*h > screen_h || *h == 0) {
+    *h = screen_h;
+  }
+  canvas_w = *w;
+  canvas_h = *h;
+  printf("CANVAS_W: %d CANVAS_H: %d\n", canvas_w, canvas_h);
 }
 
 void NDL_DrawRect(uint32_t *pixels, int x, int y, int w, int h) {
   int fd = open("/dev/fb", 0);
-  int rect_fd = open("/proc/rect", 0);
   /* Upper left of canvas is (delta_x, delta_y) */
-  if (!canvas_w) {
-    canvas_w = screen_w;
-  }
-  if (!canvas_h) {
-    canvas_h = screen_h;
-  }
   int delta_x = (screen_w - canvas_w) / 2;
   int delta_y = (screen_h - canvas_h) / 2;
-  lseek(fd, (delta_x + delta_y * screen_w + x + y * canvas_w) * sizeof(uint32_t), SEEK_SET);
-  write(rect_fd, NULL, w);
-  write(fd, pixels, w * h * sizeof(uint32_t));
+  for (int i = 0; i < h; i++) {
+    lseek(fd, (delta_x + delta_y * screen_w + x + (y + i) * screen_w) * sizeof(uint32_t), SEEK_SET);
+    write(fd, pixels + i * w, w * sizeof(uint32_t));
+  }
 }
 
 void NDL_OpenAudio(int freq, int channels, int samples) {
@@ -94,7 +92,8 @@ int NDL_Init(uint32_t flags) {
   /* Get size of screen */
   char buf[128];
   int fd = open("/proc/dispinfo", 0);
-  read(fd, buf, sizeof(buf));
+  assert(fd != -1);
+  assert(read(fd, buf, sizeof(buf)) != -1);
   sscanf(buf, "WIDTH : %d HEIGHT : %d", &screen_w, &screen_h);
   printf("SCREEN_W: %d SCREEN_H: %d\n", screen_w, screen_h);
 

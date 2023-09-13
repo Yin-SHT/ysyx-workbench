@@ -34,7 +34,6 @@ static Finfo file_table[] __attribute__((used)) = {
   [FD_FB] = {"/dev/fb", 0, 0, invalid_read, fb_write, 0, REGULAR_FILE},
   [FD_DEV_EVENTS] = {"/dev/events", 0, 0, events_read, invalid_write, 0, DEVICE_FILE},
   [FD_PROC_DISPINFO] = {"/proc/dispinfo", 0, 0, dispinfo_read, invalid_write, 0, DEVICE_FILE},
-  [FD_PROC_RECT] = {"/proc/rect", 0, 0, dispinfo_read, rect_write, 0, DEVICE_FILE},
 #include "files.h"
 };
 
