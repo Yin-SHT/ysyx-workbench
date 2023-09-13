@@ -8,7 +8,7 @@ int main() {
   while (1) {
     while(1) {
       uint32_t usec = NDL_GetTicks();
-      if (usec / 500000 >= sec) {
+      if (usec / 500 >= sec) {
         break;
       }
     }

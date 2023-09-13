@@ -54,10 +54,12 @@ int fs_open(const char *pathname, int flags, int mode) {
     }
   }
   // No "pathname" file 
-  return -1;
+  panic("No %s\n", pathname);
 }
 
 size_t fs_read(int fd, void *buf, size_t len) {
+  assert(fd >= 0 && fd < NR_FILE);
+
   if (file_table[fd].type == REGULAR_FILE) {
     size_t remain_len = file_table[fd].size - file_table[fd].open_offset;
     len = len < remain_len ? len : remain_len;
@@ -66,28 +68,35 @@ size_t fs_read(int fd, void *buf, size_t len) {
   size_t r_len = file_table[fd].read(buf, file_table[fd].disk_offset + file_table[fd].open_offset, len);
 
   if (file_table[fd].type == REGULAR_FILE) {
-    file_table[fd].open_offset += len;
+    file_table[fd].open_offset += r_len;
+    assert(file_table[fd].open_offset <= file_table[fd].size);
   }
+
 
   return r_len;
 }
 
 size_t fs_write(int fd, const void *buf, size_t len) {
+  assert(fd >= 0 && fd < NR_FILE);
+
   if (file_table[fd].type == REGULAR_FILE) {
     size_t remain_len = file_table[fd].size - file_table[fd].open_offset;
     len = len < remain_len ? len : remain_len;
   }
 
-  size_t r_len = file_table[fd].write(buf, file_table[fd].disk_offset + file_table[fd].open_offset, len);
+  size_t w_len = file_table[fd].write(buf, file_table[fd].disk_offset + file_table[fd].open_offset, len);
 
   if (file_table[fd].type == REGULAR_FILE) {
-    file_table[fd].open_offset += len;
+    file_table[fd].open_offset += w_len;
+    assert(file_table[fd].open_offset <= file_table[fd].size);
   }
 
-  return r_len;
+  return w_len;
 }
 
 size_t fs_lseek(int fd, size_t offset, int whence) {
+  assert(fd >= 0 && fd < NR_FILE);
+  assert(file_table[fd].type == REGULAR_FILE);
 
   switch (whence) {
     case SEEK_SET: file_table[fd].open_offset = offset; break;
