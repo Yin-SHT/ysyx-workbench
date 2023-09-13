@@ -5,9 +5,11 @@
 int main() {
   int sec = 1;
   NDL_Init(0);
+
+  uint32_t boot_time = NDL_GetTicks();
   while (1) {
     while(1) {
-      uint32_t usec = NDL_GetTicks();
+      uint32_t usec = NDL_GetTicks() - boot_time;
       if (usec / 500 >= sec) {
         break;
       }

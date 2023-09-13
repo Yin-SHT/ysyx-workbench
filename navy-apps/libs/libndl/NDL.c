@@ -15,7 +15,8 @@ int open(const char *path, int flags, ...);
 uint32_t NDL_GetTicks() {
   struct timeval tv;
   gettimeofday(&tv, NULL);
-  return tv.tv_usec / 1000;
+  /* return system time as the number of microsecond */
+  return (tv.tv_sec * 1000000 + tv.tv_usec) / 1000;
 }
 
 int NDL_PollEvent(char *buf, int len) {
@@ -88,13 +89,15 @@ int NDL_QueryAudio() {
 int NDL_Init(uint32_t flags) {
   if (getenv("NWM_APP")) {
     evtdev = 3;
-  } else {
-    char buf[128];
-    int fd = open("/proc/dispinfo", 0);
-    read(fd, buf, sizeof(buf));
-    sscanf(buf, "WIDTH : %d HEIGHT : %d", &screen_w, &screen_h);
-    printf("SCREEN_W: %d SCREEN_H: %d\n", screen_w, screen_h);
   }
+
+  /* Get size of screen */
+  char buf[128];
+  int fd = open("/proc/dispinfo", 0);
+  read(fd, buf, sizeof(buf));
+  sscanf(buf, "WIDTH : %d HEIGHT : %d", &screen_w, &screen_h);
+  printf("SCREEN_W: %d SCREEN_H: %d\n", screen_w, screen_h);
+
   return 0;
 }
 
