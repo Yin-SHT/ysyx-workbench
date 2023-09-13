@@ -159,6 +159,7 @@ void init_etrace(const char *etrace_file) {
 void init_etrace(const char *etrace_file) { }
 #endif
 
+#ifdef CONFIG_FTRACE
 typedef struct syminfo {
   int idx;
   char name[128];
@@ -236,16 +237,7 @@ static void init_elf_sym(const char *elf_file, FunInfo *record) {
     }
   }
 }
-
-void func_sym_display() {
-//  printf("Num\tValue\t\tSize\tName\n");
-//  for (int i = 0; i < master_record.top; i++) {
-//    int idx = master_record.syminfos[i].idx;
-//    Elf32_Addr st_value = master_record.syminfos[i].st_value;
-//    Elf32_Word st_size = master_record.syminfos[i].st_size;
-//    printf("%d\t%08x\t%u\t%s\n", idx, st_value, st_size, master_record.syminfos[i].name);
-//  }
-}
+#endif
 
 #ifdef CONFIG_FTRACE
 static struct {

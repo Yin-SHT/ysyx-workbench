@@ -66,12 +66,6 @@ static int cmd_info(char *args) {
     isa_reg_display();
   } else if (!strcmp(args, "w")) {
     wp_display();
-  } else if (!strcmp(args, "e")) {
-#ifdef CONFIG_FTRACE
-    func_sym_display();
-#else
-    printf("UNSUPPORTED OPTION, TRY AGAIN!\n");
-#endif
   } else {
     RED_PRINT("UNSUPPORTED OPTION, TRY AGAIN!\n");
   }
