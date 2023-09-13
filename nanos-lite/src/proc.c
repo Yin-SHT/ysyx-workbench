@@ -26,7 +26,7 @@ void init_proc() {
 
   // load program here
   void naive_uload(PCB *pcb, const char *filename);
-  naive_uload(NULL, "/bin/dummy");
+  naive_uload(NULL, "/bin/hello");
 
 }
 
