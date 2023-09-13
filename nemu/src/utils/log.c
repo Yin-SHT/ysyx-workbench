@@ -332,13 +332,10 @@ void ftrace(vaddr_t pc, vaddr_t dnpc, char *op) {
 
   /* Try slave elf file */
   if (slave_find == false) {
-    for (int i = 0; i < slave_files.top; i++) {
-      slave_record.top = 0;
-      init_elf_sym(slave_files.files[i], &slave_record);
-      if (find_symbol(&slave_record, pc, dnpc, op)) {
-        slave_find = true;
-        return;
-      }
+    init_elf_sym("/home/yin/Code/system/ysyx-workbench/navy-apps/fsimg/bin/nslider", &slave_record);
+    if (find_symbol(&slave_record, pc, dnpc, op)) {
+      slave_find = true;
+      return;
     }
   } else if (slave_find == true) {
     if (find_symbol(&slave_record, pc, dnpc, op)) return;
