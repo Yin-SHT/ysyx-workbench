@@ -3,9 +3,13 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <unistd.h>
 
 void __am_gpu_init() {
+  int w = 0, h = 0;
+
   NDL_Init(0);
+  NDL_OpenCanvas(&w, &h);
 }
 
 void __am_gpu_config(AM_GPU_CONFIG_T *cfg) {
@@ -17,10 +21,10 @@ void __am_gpu_config(AM_GPU_CONFIG_T *cfg) {
   int fd = open("/proc/dispinfo", 0);
   int screen_w = 0;
   int screen_h = 0;
+  read(fd, buf, sizeof(buf));
   sscanf(buf, "WIDTH : %d HEIGHT : %d", &screen_w, &screen_h);
   cfg->width = screen_w;
   cfg->height = screen_h;
-  printf("W: %d\t H: %d\n", screen_w, screen_h);
 }
 
 void __am_gpu_fbdraw(AM_GPU_FBDRAW_T *ctl) {

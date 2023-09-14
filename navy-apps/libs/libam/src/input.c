@@ -45,5 +45,9 @@ static void process_event(char *buf, AM_INPUT_KEYBRD_T *kbd) {
 void __am_input_keybrd(AM_INPUT_KEYBRD_T *kbd) {
   char buf[64] = {0};
   int nr_r = NDL_PollEvent(buf, 64);
-  if (nr_r == 0) kbd->keycode = 0;
+  if (nr_r == 0) {
+    kbd->keycode = 0;
+  } else {
+    process_event(buf, kbd);
+  }
 }

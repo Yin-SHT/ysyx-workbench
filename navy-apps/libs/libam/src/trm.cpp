@@ -1,4 +1,6 @@
 #include <am.h>
+#include <stdio.h>
+#include <unistd.h>
 
 Area heap;
 
@@ -14,9 +16,16 @@ Area heap;
 
 static inline void outb(uintptr_t addr, uint8_t  data) { *(volatile uint8_t  *)addr = data; }
 
+#if defined(__ISA_NATIVE__)
 void putch(char ch) {
-  outb(SERIAL_PORT, ch);
+  putchar(ch);
 }
+#else
+void putch(char ch) {
+  char str[2] = {ch, 0};
+  write(1, str, 1);
+}
+#endif
 
 void halt(int code) {
   nemu_trap(code);
