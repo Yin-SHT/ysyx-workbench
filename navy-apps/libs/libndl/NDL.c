@@ -10,14 +10,26 @@ static int evtdev = -1;
 static int fbdev = -1;
 static int screen_w = 0, screen_h = 0;
 static int canvas_w = 0, canvas_h = 0;
+static struct timeval boot_time = {};
 
 int open(const char *path, int flags, ...);
 
 uint32_t NDL_GetTicks() {
   struct timeval tv;
   assert(gettimeofday(&tv, NULL) != -1);
+
+#if defined(__ISA_NATIVE__)
+  struct timeval now;
+  gettimeofday(&now, NULL);
+  long seconds = now.tv_sec - boot_time.tv_sec;
+  long useconds = now.tv_usec - boot_time.tv_usec;
+  tv.tv_usec = seconds * 1000000 + useconds;
+#endif
+
   /* return system time as the number of microsecond */
-  return (tv.tv_sec * 1000000 + tv.tv_usec) / 1000;
+  // 1. libos, libc, nanos-lite, linux: uptime->us = seconds * 1000000 + (useconds + 500);
+  // 1. libos, libc, nanos-lite, nemu: us = now.tv_sec * 1000000 + now.tv_usec - boot_time;
+  return tv.tv_usec / 1000;
 }
 
 int NDL_PollEvent(char *buf, int len) {
@@ -88,6 +100,9 @@ int NDL_Init(uint32_t flags) {
   if (getenv("NWM_APP")) {
     evtdev = 3;
   }
+
+  /* Get boot_time of system */
+  gettimeofday(&boot_time, NULL);
 
   /* Get size of screen */
   char buf[128];
