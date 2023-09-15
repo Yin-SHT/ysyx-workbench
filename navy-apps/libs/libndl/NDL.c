@@ -5,14 +5,13 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <assert.h>
+#include <fcntl.h>
 
 static int evtdev = -1;
 static int fbdev = -1;
 static int screen_w = 0, screen_h = 0;
 static int canvas_w = 0, canvas_h = 0;
 static struct timeval boot_time = {};
-
-int open(const char *path, int flags, ...);
 
 uint32_t NDL_GetTicks() {
   struct timeval tv;
@@ -83,17 +82,27 @@ void NDL_DrawRect(uint32_t *pixels, int x, int y, int w, int h) {
 }
 
 void NDL_OpenAudio(int freq, int channels, int samples) {
+  int cfg[3] = {freq, channels, samples};
+  int fd = open("/dev/sbctl", O_WRONLY);
+  write(fd, cfg, 12);
 }
 
 void NDL_CloseAudio() {
 }
 
 int NDL_PlayAudio(void *buf, int len) {
-  return 0;
+  int fd = open("/dev/sb", O_WRONLY);
+  while (NDL_QueryAudio() < len);
+  return write(fd, buf, len);
 }
 
 int NDL_QueryAudio() {
-  return 0;
+  char buf[16] = {0};
+  int fd = open("/dev/sbctl", O_RDONLY);
+  read(fd, buf, 16);
+  int avai = 0;
+  sscanf(buf, " %d ", &avai);
+  return avai;
 }
 
 int NDL_Init(uint32_t flags) {
