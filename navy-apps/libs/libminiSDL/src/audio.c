@@ -39,15 +39,15 @@ void CallbackHelper(void) {
 }
 
 int SDL_OpenAudio(SDL_AudioSpec *desired, SDL_AudioSpec *obtained) {
-  NDL_OpenAudio(desired->freq, desired->channels, desired->samples);
+//  NDL_OpenAudio(desired->freq, desired->channels, desired->samples);
 
-  /* Register callback function */
-  callback = desired->callback;
+//  /* Register callback function */
+//  callback = desired->callback;
 
-  /* perios: x micro seconds */
-  period = desired->samples / (desired->freq / 1000);
-  printf("freq: %d samples: %d\n", desired->freq, desired->samples);
-  printf("period: %d\n", period);
+//  /* perios: x micro seconds */
+//  period = desired->samples / (desired->freq / 1000);
+//  printf("freq: %d samples: %d\n", desired->freq, desired->samples);
+//  printf("period: %d\n", period);
   return 0;
 }
 
@@ -55,13 +55,13 @@ void SDL_CloseAudio() {
 }
 
 void SDL_PauseAudio(int pause_on) {
-  if (pause_on == 0) {
-    for (int i = 0; i < 1024; i++) {
-      stream[i] = 0;
-    }
-  } else {
-    CallbackHelper();
-  }
+//  if (pause_on == 0) {
+//    for (int i = 0; i < 1024; i++) {
+//      stream[i] = 0;
+//    }
+//  } else {
+//    CallbackHelper();
+//  }
 }
 
 void SDL_MixAudio(uint8_t *dst, uint8_t *src, uint32_t len, int volume) {
