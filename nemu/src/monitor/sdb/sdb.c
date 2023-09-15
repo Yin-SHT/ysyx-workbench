@@ -20,6 +20,7 @@
 #include "sdb.h"
 #include "utils.h"  // for nemu_state
 #include "memory/paddr.h" // for paddr_read()
+#include <difftest-def.h> // for difftest
 
 static int is_batch_mode = false;
 
@@ -189,12 +190,35 @@ static int cmd_shell(char *args) {
   return 0;
 }
 
+#ifdef CONFIG_DIFFTEST
 extern bool diff_detach;
 static int cmd_detach(char *args) {
   diff_detach = true;
   Log("Differential testing: %s", ANSI_FMT("OFF", ANSI_FG_RED));
   return 0;
 }
+#else
+static int cmd_detach(char *args) { return 0; }
+#endif
+
+#ifdef CONFIG_DIFFTEST
+extern void (*ref_difftest_memcpy)(paddr_t addr, void *buf, size_t n, bool direction);
+extern void (*ref_difftest_regcpy)(void *dut, bool direction);
+static int cmd_attach(char *args) {
+  diff_detach = false;
+
+  /* synchronize dut and ref */
+  Log("Synchronize DUT and REF, it will cost tens of seconds");
+
+  ref_difftest_memcpy(RESET_VECTOR, guest_to_host(RESET_VECTOR), CONFIG_MSIZE, DIFFTEST_TO_REF);
+  ref_difftest_regcpy(&cpu, DIFFTEST_TO_REF);
+
+  Log("Differential testing: %s", ANSI_FMT("ON", ANSI_FG_GREEN));
+  return 0;
+}
+#else
+static int cmd_attach(char *args) { return 0; }
+#endif
 
 static int cmd_q(char *args) {
   nemu_state.state = NEMU_QUIT;
@@ -220,6 +244,7 @@ static struct {
   { "texpr", "Test expr", cmd_texpr },
   { "shell", "Exe shell command", cmd_shell },
   { "detach", "detach difftest", cmd_detach },
+  { "attach", "attach difftest", cmd_attach },
 
   /* TODO: Add more commands */
 
