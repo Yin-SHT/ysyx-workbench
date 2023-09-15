@@ -189,6 +189,13 @@ static int cmd_shell(char *args) {
   return 0;
 }
 
+extern bool diff_detach;
+static int cmd_detach(char *args) {
+  diff_detach = true;
+  Log("Differential testing: %s", ANSI_FMT("OFF", ANSI_FG_RED));
+  return 0;
+}
+
 static int cmd_q(char *args) {
   nemu_state.state = NEMU_QUIT;
   return -1;
@@ -212,6 +219,7 @@ static struct {
   { "d", "Delete watchpoint", cmd_d },
   { "texpr", "Test expr", cmd_texpr },
   { "shell", "Exe shell command", cmd_shell },
+  { "detach", "detach difftest", cmd_detach },
 
   /* TODO: Add more commands */
 
