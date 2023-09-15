@@ -23,11 +23,39 @@ static void sh_prompt() {
 }
 
 static void sh_handle_cmd(const char *cmd) {
+  int i = 0;
+  const char *p = cmd;
+  char command[64] = {0};
+
+  /* Process command */
+  while (*p != '\n') {
+    command[i] = *p;
+    i++;
+    p++;
+  }
+  command[i] = 0;
+
+  /* Examine exit command */
+  if (!strcmp(command, "exit") || !strcmp(command, "e")) {
+#ifdef __ISA_NATIVE__
+    /* 0 means that exit  */
+    exit(0);
+#else
+    /* n means that exit entirly */
+    exit('n');
+#endif
+  }
+
+  /* Execute command */
+  execvp(command, NULL);
+  sh_printf("exec %s failed\n", command);
 }
 
 void builtin_sh_run() {
   sh_banner();
   sh_prompt();
+
+  setenv("PATH", "/bin/", 1);
 
   while (1) {
     SDL_Event ev;
