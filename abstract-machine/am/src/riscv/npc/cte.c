@@ -5,10 +5,22 @@
 static Context* (*user_handler)(Event, Context*) = NULL;
 
 Context* __am_irq_handle(Context *c) {
+#ifdef __riscv_e
+  int syscall_num = c->gpr[15];   // x15/a5
+#else
+  int syscall_num = c->gpr[17];   // x17/a7
+#endif
+
   if (user_handler) {
     Event ev = {0};
     switch (c->mcause) {
-      case -1: ev.event = EVENT_YIELD; break;
+      // 11: Environment call from M-mode
+      case 11: {
+        if (syscall_num >= 0) { ev.event = EVENT_SYSCALL; c->mepc += 4; } 
+        else if (syscall_num == -1) { ev.event = EVENT_YIELD; c->mepc += 4; } 
+        else { ev.event = EVENT_ERROR; }
+        break;
+      }
       default: ev.event = EVENT_ERROR; break;
     }
 

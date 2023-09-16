@@ -85,6 +85,11 @@
 `define ALU_OP_ECALL    8'b0001_0111
 `define ALU_OP_CSRRS    8'b0001_1000
 `define ALU_OP_MRET     8'b0001_1001
+`define ALU_OP_REMU     8'b0001_1011
+`define ALU_OP_DIVU     8'b0001_1100
+`define ALU_OP_MUL      8'b0001_1101
+`define ALU_OP_DIV      8'b0001_1110
+`define ALU_OP_REM      8'b0001_1111
 
 // -------------------------------------------------
 // TRAN_OP
@@ -247,3 +252,24 @@
 `define OPCODE_ECALL        7'b111_0011
 `define FUNCT3_ECALL        3'b000
 `define FUNCT12_ECALL       12'b0000_0000_0000
+
+/* RV32M Multiply Extension */
+`define OPCODE_MUL         7'b011_0011
+`define FUNCT3_MUL         3'b000
+`define FUNCT7_MUL         7'b000_0001
+
+`define OPCODE_DIV         7'b011_0011
+`define FUNCT3_DIV         3'b100
+`define FUNCT7_DIV         7'b000_0001
+
+`define OPCODE_DIVU        7'b011_0011
+`define FUNCT3_DIVU        3'b101
+`define FUNCT7_DIVU        7'b000_0001
+
+`define OPCODE_REM         7'b011_0011
+`define FUNCT3_REM         3'b110
+`define FUNCT7_REM         7'b000_0001
+
+`define OPCODE_REMU        7'b011_0011
+`define FUNCT3_REMU        3'b111
+`define FUNCT7_REMU        7'b000_0001

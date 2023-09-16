@@ -138,6 +138,12 @@ module inst_decode (
   wire ebreak     = ( opcode == `OPCODE_EBREAK ) & ( funct3 == `FUNCT3_EBREAK ) & ( funct12 == `FUNCT12_EBREAK );
   wire ecall      = ( opcode == `OPCODE_ECALL  ) & ( funct3 == `FUNCT3_ECALL  ) & ( funct12 == `FUNCT12_ECALL  );
 
+  wire inst_mul   = ( opcode == `OPCODE_MUL   ) & ( funct3 == `FUNCT3_MUL  ) & ( funct7 == `FUNCT7_MUL  );
+  wire inst_div   = ( opcode == `OPCODE_DIV   ) & ( funct3 == `FUNCT3_DIV  ) & ( funct7 == `FUNCT7_DIV  );
+  wire inst_divu  = ( opcode == `OPCODE_DIVU  ) & ( funct3 == `FUNCT3_DIVU ) & ( funct7 == `FUNCT7_DIVU );
+  wire inst_rem   = ( opcode == `OPCODE_REM   ) & ( funct3 == `FUNCT3_REM  ) & ( funct7 == `FUNCT7_REM  );
+  wire inst_remu  = ( opcode == `OPCODE_REMU  ) & ( funct3 == `FUNCT3_REMU ) & ( funct7 == `FUNCT7_REMU );
+
   // Check Unknown Instruction
   wire unknown    = !(
                       inst_add   | inst_sub   | 
@@ -151,7 +157,8 @@ module inst_decode (
                       inst_jal   | inst_jalr  |
                       inst_lui   | inst_auipc |
                       inst_csrrw | inst_csrrs | inst_mret |
-                      ebreak     | ecall
+                      ebreak     | ecall      |
+                      inst_mul   | inst_div   | inst_divu | inst_rem  | inst_remu 
                      );
   // Parser Imm
   wire [`REG_DATA_BUS] imm =  ( inst_addi | inst_xori | inst_ori  | inst_andi  | 
@@ -177,7 +184,8 @@ module inst_decode (
                       inst_beq  | inst_bne  | inst_blt  | inst_bge   | inst_bltu  | inst_bgeu |
                       inst_jalr |
                       inst_csrrw| inst_csrrs|
-                      ecall
+                      ecall     |
+                      inst_mul  | inst_div  | inst_divu  | inst_rem  | inst_remu
                     );
 
   assign rena2_o  = ( rst == `RST_DISABLE ) & 
@@ -186,7 +194,8 @@ module inst_decode (
                       inst_xor  | inst_or   | inst_and  |
                       inst_sll  | inst_slt  | inst_srl  | inst_sra   | inst_sltu  |
                       inst_sb   | inst_sh   | inst_sw   |
-                      inst_beq  | inst_bne  | inst_blt  | inst_bge   | inst_bltu  | inst_bgeu 
+                      inst_beq  | inst_bne  | inst_blt  | inst_bge   | inst_bltu  | inst_bgeu |
+                      inst_mul  | inst_div  | inst_divu | inst_rem   | inst_remu
                     );
 
   assign wena_o   = ( rst == `RST_DISABLE ) & 
@@ -199,7 +208,8 @@ module inst_decode (
                       inst_lb   | inst_lh    | inst_lw   | inst_lbu   | inst_lhu   |
                       inst_jal  | inst_jalr  |
                       inst_lui  | inst_auipc |
-                      inst_csrrw| inst_csrrs 
+                      inst_csrrw| inst_csrrs |
+                      inst_mul  | inst_div   | inst_divu  | inst_rem  | inst_remu
                     );
 
   assign raddr1_o = ( rena1_o == `READ_DISABLE  ) ? `ZERO_REG :
@@ -250,7 +260,12 @@ module inst_decode (
                       ( inst_auipc         ) ? `ALU_OP_ADD : 
                       ( inst_csrrw         ) ? `ALU_OP_CSRRW :
                       ( inst_csrrs         ) ? `ALU_OP_CSRRS :
-                      ( ecall              ) ? `ALU_OP_ECALL : `ALU_OP_NOP;
+                      ( ecall              ) ? `ALU_OP_ECALL : 
+                      ( inst_mul           ) ? `ALU_OP_MUL   : 
+                      ( inst_div           ) ? `ALU_OP_DIV   : 
+                      ( inst_divu          ) ? `ALU_OP_DIVU  : 
+                      ( inst_rem           ) ? `ALU_OP_REM   : 
+                      ( inst_remu          ) ? `ALU_OP_REMU  : `ALU_OP_NOP;
 
   // *** operand* To Alu/Tran
   assign operand1_o = ( rst == `RST_ENABLE ) ? `ZERO_WORD  :
@@ -263,7 +278,8 @@ module inst_decode (
                         inst_lb   | inst_lh   | inst_lw   | inst_lbu   | inst_lhu   |
                         inst_sb   | inst_sh   | inst_sw   |
                         inst_beq  | inst_bne  | inst_blt  | inst_bge   | inst_bltu  | inst_bgeu |
-                        inst_jalr 
+                        inst_jalr |
+                        inst_mul  | inst_div  | inst_divu | inst_rem   | inst_remu
                       )              ? data1_i    :
                       ( inst_auipc ) ? pc_i       :
                       ( inst_csrrw ) ? csr_data_i :
@@ -276,7 +292,8 @@ module inst_decode (
                         inst_add  | inst_sub  |  
                         inst_xor  | inst_or   | inst_and  |
                         inst_sll  | inst_slt  | inst_srl  | inst_sra   | inst_sltu  |
-                        inst_beq  | inst_bne  | inst_blt  | inst_bge   | inst_bltu  | inst_bgeu 
+                        inst_beq  | inst_bne  | inst_blt  | inst_bge   | inst_bltu  | inst_bgeu |
+                        inst_mul  | inst_div  | inst_divu | inst_rem   | inst_remu
                       )              ? data2_i :
                       (
                         inst_addi | inst_xori | inst_ori  | inst_andi  | 
@@ -319,7 +336,7 @@ module inst_decode (
 
   // Signal To CSRs
   assign csr_cause_o = ( rst == `RST_ENABLE        ) ? `ZERO_WORD     :
-                       ( ecall                     ) ? data1_i        : `ZERO_WORD;
+                       ( ecall                     ) ? 11        : `ZERO_WORD;
 
   assign csr_wdata_o = ( rst == `RST_ENABLE        ) ? `ZERO_WORD     :
                        ( inst_csrrw                ) ? data1_i        : 
