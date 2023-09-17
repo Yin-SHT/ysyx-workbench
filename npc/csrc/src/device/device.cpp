@@ -34,7 +34,7 @@ void device_update() {
       case SDL_KEYUP: {
         uint8_t k = event.key.keysym.scancode;
         bool is_keydown = (event.key.type == SDL_KEYDOWN);
-        send_key(k, is_keydown);
+        for (int i = 0; i < 3; i++) send_key(k, is_keydown);
         break;
       }
 #endif
