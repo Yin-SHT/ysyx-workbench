@@ -56,6 +56,8 @@ module execute (
         `ALU_OP_CSRRW : alu_result = operand1_i;
         `ALU_OP_CSRRS : alu_result = operand1_i;
         `ALU_OP_MUL   : alu_result = operand1_i * operand2_i;
+        `ALU_OP_MULH  : alu_result = ($signed(($signed(operand1_i) * $signed(operand2_i)))) >> 32;
+        `ALU_OP_MULHU : alu_result = (operand1_i * operand2_i) >> 32;
         `ALU_OP_DIV   : alu_result = $signed(operand1_i) / $signed(operand2_i);
         `ALU_OP_DIVU  : alu_result = operand1_i / operand2_i;
         `ALU_OP_REM   : alu_result = $signed(operand1_i) % $signed(operand2_i);

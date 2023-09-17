@@ -90,6 +90,8 @@
 `define ALU_OP_MUL      8'b0001_1101
 `define ALU_OP_DIV      8'b0001_1110
 `define ALU_OP_REM      8'b0001_1111
+`define ALU_OP_MULH     8'b0010_0000
+`define ALU_OP_MULHU    8'b0010_0001
 
 // -------------------------------------------------
 // TRAN_OP
@@ -257,6 +259,14 @@
 `define OPCODE_MUL         7'b011_0011
 `define FUNCT3_MUL         3'b000
 `define FUNCT7_MUL         7'b000_0001
+
+`define OPCODE_MULH        7'b011_0011
+`define FUNCT3_MULH        3'b001
+`define FUNCT7_MULH        7'b000_0001
+
+`define OPCODE_MULHU       7'b011_0011
+`define FUNCT3_MULHU       3'b010
+`define FUNCT7_MULHU       7'b000_0001
 
 `define OPCODE_DIV         7'b011_0011
 `define FUNCT3_DIV         3'b100

@@ -34,6 +34,7 @@ void device_update() {
       case SDL_KEYUP: {
         uint8_t k = event.key.keysym.scancode;
         bool is_keydown = (event.key.type == SDL_KEYDOWN);
+        /* sending the same code three times repeatedly for verilator sim bug */
         for (int i = 0; i < 3; i++) send_key(k, is_keydown);
         break;
       }
