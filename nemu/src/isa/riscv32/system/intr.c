@@ -89,11 +89,18 @@ void etrace_call(word_t NO) { }
 void etrace_ret() { }
 #endif
 
-word_t isa_raise_intr(word_t NO, vaddr_t epc) {
-  /* Set the initial CSRs. */
-  /* To put it plainly, I don't know why do this! */
-  cpu.mstatus = MUXDEF(CONFIG_ISA64, 0xa00001800, 0x1800);
+void trap_in() {
+}
 
+void trap_out() {
+  cpu.mstatus = MUXDEF(CONFIG_ISA64, 0xa00001800, 0x1800);
+#ifdef CONFIG_DIFFTEST
+  void difftest_skip_ref();
+  difftest_skip_ref();
+#endif
+}
+
+word_t isa_raise_intr(word_t NO, vaddr_t epc) {
   cpu.mcause = NO;
   cpu.mepc = epc;
   return cpu.mtvec;
