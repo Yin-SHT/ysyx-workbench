@@ -60,6 +60,7 @@ __am_asm_trap:
 
   mv a0, sp
   jal __am_irq_handle
+  lw sp, 40(sp)
 
   LOAD t1, OFFSET_STATUS(sp)
   LOAD t2, OFFSET_EPC(sp)
@@ -68,5 +69,5 @@ __am_asm_trap:
 
   MAP(REGS, POP)
 
-  addi sp, sp, CONTEXT_SIZE
+//  addi sp, sp, CONTEXT_SIZE
   mret

@@ -1,11 +1,13 @@
 #include <common.h>
+#include <proc.h>
 
 void do_syscall(Context *c);
+Context* schedule(Context *prev);
 
 static Context* do_event(Event e, Context* c) {
   switch (e.event) {
     case EVENT_SYSCALL: do_syscall(c); break;
-    case EVENT_YIELD: printf("Yield event: %d\n", e.event); break;
+    case EVENT_YIELD: c->GPRx = (uintptr_t)schedule(current->cp); break;
     default: panic("Unhandled event ID = %d", e.event);
   }
 
