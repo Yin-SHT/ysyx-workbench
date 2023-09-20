@@ -43,7 +43,6 @@ f(30) f(31)
 __am_asm_trap:
   addi sp, sp, -CONTEXT_SIZE
 
-  sw	sp, 8(sp)
   MAP(REGS, PUSH)
 
   csrr t0, mcause

@@ -10,7 +10,7 @@ static Context* do_event(Event e, Context* c) {
   switch (e.event) {
     case EVENT_SYSCALL: do_syscall(c); break;
     case EVENT_IRQ_TIMER: printf("timer\n"); break;
-    case EVENT_YIELD: c->GPRx = (uintptr_t)schedule((Context *)c->gpr[2]); break;
+    case EVENT_YIELD: c->GPRx = (uintptr_t)schedule(c); break;
     default: panic("Unhandled event ID = %d", e.event);
   }
 
