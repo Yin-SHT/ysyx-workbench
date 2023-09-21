@@ -15,6 +15,40 @@ void context_kload(PCB *pcb, void (*entry)(void *), void *arg) {
   pcb->cp = kcontext(kstack, entry, arg);
 }
 
+static void args_init(PCB *pcb, char *const argv[], char *const envp[]) {
+  int nr_argv = 0;
+  char **p = argv;
+  while (*p) {
+    nr_argv ++;
+    p ++;
+  }
+
+  int nr_envp = 0;
+  p = envp;
+  while (*p) {
+    nr_envp ++;
+    p ++;
+  }
+
+  char *str_st = (char *)((uint8_t *)heap.end - 1024);
+  uintptr_t *_argv = (uintptr_t *)((uint8_t *)heap.end - 2048);
+  uintptr_t *_envp = _argv + nr_argv + 1;
+
+  for (int i = 0; i < nr_argv; i++) {
+    strcpy(str_st, argv[i]);
+    *(_argv + i) = (uintptr_t)str_st;
+    str_st += strlen(argv[i]) + 1;
+  }
+
+  for (int i = 0; i < nr_envp; i++) {
+    strcpy(str_st, envp[i]);
+    *(_envp + i) = (uintptr_t)str_st;
+    str_st += strlen(envp[i]) + 1;
+  }
+
+  pcb->cp->GPRx = _argv;
+}
+
 void context_uload(PCB *pcb, const char *filename) {
   Area kstack = {.start = pcb->stack, .end = pcb->stack + STACK_SIZE};
   
