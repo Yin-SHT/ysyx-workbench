@@ -112,8 +112,8 @@ int fs_close(int fd) {
 }
 
 void init_fs() {
-//  int w = io_read(AM_GPU_CONFIG).width;
-//  int h = io_read(AM_GPU_CONFIG).height;
-//  file_table[FD_FB].size = w * h * sizeof(uint32_t);
-//  Log("Initializing file system: /dev/fb has %d bytes", file_table[FD_FB].size);
+  int w = io_read(AM_GPU_CONFIG).width;
+  int h = io_read(AM_GPU_CONFIG).height;
+  file_table[FD_FB].size = w * h * sizeof(uint32_t);
+  Log("Initializing file system: /dev/fb has %d bytes", file_table[FD_FB].size);
 }

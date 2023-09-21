@@ -60,8 +60,11 @@ __am_asm_trap:
 
   mv a0, sp
   jal __am_irq_handle
+  lw t1, 68(sp)
+  bgez t1, normal
   lw sp, 40(sp)
 
+normal:
   LOAD t1, OFFSET_STATUS(sp)
   LOAD t2, OFFSET_EPC(sp)
   csrw mstatus, t1
