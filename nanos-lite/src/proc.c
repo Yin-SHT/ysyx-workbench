@@ -17,15 +17,15 @@ void context_kload(PCB *pcb, void (*entry)(void *), void *arg) {
 
 static void args_init(PCB *pcb, char *const argv[], char *const envp[]) {
   int nr_argv = 0;
-  char **p = argv;
-  while (*p) {
+  char  * const*p = argv;
+  while (p && *p) {
     nr_argv ++;
     p ++;
   }
 
   int nr_envp = 0;
   p = envp;
-  while (*p) {
+  while (p && *p) {
     nr_envp ++;
     p ++;
   }
@@ -39,23 +39,27 @@ static void args_init(PCB *pcb, char *const argv[], char *const envp[]) {
     *(_argv + i) = (uintptr_t)str_st;
     str_st += strlen(argv[i]) + 1;
   }
+  _argv[nr_argv] = 0;
 
   for (int i = 0; i < nr_envp; i++) {
     strcpy(str_st, envp[i]);
     *(_envp + i) = (uintptr_t)str_st;
     str_st += strlen(envp[i]) + 1;
   }
+  _envp[nr_envp] = 0;
 
-  pcb->cp->GPRx = _argv;
+  pcb->cp->GPRx = (uintptr_t)(_argv -1);
+  *(_argv - 1) = nr_argv;
 }
 
-void context_uload(PCB *pcb, const char *filename) {
+void context_uload(PCB *pcb, const char *filename, char *const argv[], char *const envp[]) {
   Area kstack = {.start = pcb->stack, .end = pcb->stack + STACK_SIZE};
   
   uintptr_t loader(PCB *pcb, const char *filename);
   void *entry = (void *)loader(NULL, filename);
   pcb->cp = ucontext(NULL, kstack, entry);
-  pcb->cp->GPRx = (uintptr_t)heap.end;
+//  pcb->cp->GPRx = (uintptr_t)heap.end;
+  args_init(pcb, argv, envp);
 }
 
 void hello_fun(void *arg) {
@@ -68,8 +72,11 @@ void hello_fun(void *arg) {
 }
 
 void init_proc() {
+  char *argv[] = {"yin", "hao", "fei", 0};
+  char *envp[] = {"yin=hao", "hao=fei", "fei=liu", 0};
+
   context_kload(&pcb[0], hello_fun, "first");
-  context_uload(&pcb[1], "/bin/pal");
+  context_uload(&pcb[1], "/bin/pal", argv, envp);
   switch_boot_pcb();
 
   Log("Initializing processes...");
