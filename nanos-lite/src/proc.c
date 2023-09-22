@@ -73,14 +73,16 @@ void context_uload(PCB *pcb, const char *filename, char *const argv[], char *con
 void hello_fun(void *arg) {
   int j = 1;
   while (1) {
-    Log("Hello World from Nanos-lite with arg '%s' for the %dth time!", (char *)arg, j);
+    if (j % 50000 == 0) {
+      Log("Hello World from Nanos-lite with arg '%s' for the %dth time!", (char *)arg, j);
+    }
     j ++;
     yield();
   }
 }
 
 void init_proc() {
-  char *argv[] = {"/bin/exec-test", NULL};
+  char *argv[] = {"/bin/menu", NULL};
   char *envp[] = {"env", NULL};
 
   context_kload(&pcb[0], hello_fun, "first");
