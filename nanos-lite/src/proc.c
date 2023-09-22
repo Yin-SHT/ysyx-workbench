@@ -20,9 +20,9 @@ void context_kload(PCB *pcb, void (*entry)(void *), void *arg) {
   pcb->cp = kcontext(kstack, entry, arg);
 }
 
-static void args_init(PCB *pcb, const char *filename, char *const argv[], char *const envp[]) {
+static void args_init(PCB *pcb, char *const argv[], char *const envp[]) {
   int nr_argv = 0;
-  char  * const*p = argv;
+  char  * const *p = argv;
   while (p && *p) {
     nr_argv ++;
     p ++;
@@ -40,15 +40,10 @@ static void args_init(PCB *pcb, const char *filename, char *const argv[], char *
   uintptr_t *_argv = (uintptr_t *)((uint8_t *)ustack - 2048);
   uintptr_t *_envp = _argv + nr_argv + 1;
 
-  /* Write filename */
-  strcpy(str_st, filename);
-  *(_argv + 0) = (uintptr_t)str_st;
-  str_st += strlen(filename) + 1;
-
   /* Write regular args */
   for (int i = 0; i < nr_argv; i++) {
     strcpy(str_st, argv[i]);
-    *(_argv + 1 + i) = (uintptr_t)str_st;
+    *(_argv + i) = (uintptr_t)str_st;
     str_st += strlen(argv[i]) + 1;
   }
   _argv[nr_argv] = 0;
@@ -61,8 +56,8 @@ static void args_init(PCB *pcb, const char *filename, char *const argv[], char *
   }
   _envp[nr_envp] = 0;
 
-  pcb->cp->GPRx = (uintptr_t)(_argv -1);
-  *(_argv - 1) = nr_argv + 1;
+  pcb->cp->GPRx = (uintptr_t)(_argv - 1);
+  *(_argv - 1) = nr_argv;
 }
 
 void context_uload(PCB *pcb, const char *filename, char *const argv[], char *const envp[]) {
@@ -72,7 +67,7 @@ void context_uload(PCB *pcb, const char *filename, char *const argv[], char *con
   void *entry = (void *)loader(NULL, filename);
   pcb->cp = ucontext(NULL, kstack, entry);
 //  pcb->cp->GPRx = (uintptr_t)heap.end;
-  args_init(pcb, filename, argv, envp);
+  args_init(pcb, argv, envp);
 }
 
 void hello_fun(void *arg) {
@@ -85,11 +80,11 @@ void hello_fun(void *arg) {
 }
 
 void init_proc() {
-  char *argv[] = {"0", 0};
-  char *envp[] = {"env", 0};
+  char *argv[] = {"/bin/exec-test", NULL};
+  char *envp[] = {"env", NULL};
 
   context_kload(&pcb[0], hello_fun, "first");
-  context_uload(&pcb[1], "/bin/exec-test", argv, envp);
+  context_uload(&pcb[1], argv[0], argv, envp);
   switch_boot_pcb();
 
   Log("Initializing processes...");
