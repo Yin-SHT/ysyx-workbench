@@ -60,7 +60,7 @@ void _exit(int status) {
   if (status == 'n') {
     _syscall_(SYS_exit, 0, 0, 0);
   } 
-  _syscall_(SYS_execve, "/bin/nterm", NULL, NULL);
+  _syscall_(SYS_execve, (intptr_t)("/bin/nterm"), 0, 0);
 
   while (1);
 }
@@ -104,7 +104,7 @@ int _gettimeofday(struct timeval *tv, struct timezone *tz) {
 }
 
 int _execve(const char *fname, char * const argv[], char *const envp[]) {
-  return _syscall_(SYS_execve, fname, argv, envp);
+  return _syscall_(SYS_execve, (intptr_t)fname, (intptr_t)argv, (intptr_t)envp);
 }
 
 // Syscalls below are not used in Nanos-lite.

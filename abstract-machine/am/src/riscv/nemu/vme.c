@@ -70,12 +70,14 @@ void map(AddrSpace *as, void *va, void *pa, int prot) {
 }
 
 Context *ucontext(AddrSpace *as, Area kstack, void *entry) {
-  Context kct = {};
-  kct.mstatus = 0x1800;
-  kct.mepc = (uintptr_t)entry;
+  Context context = {};
 
-  Context *bottom = (Context *)kstack.end - 1;
-  *bottom = kct;
+  /* Initial state of a process to be executed */  
+  context.mepc = (uintptr_t)entry;
+  context.mstatus = 0x1800;
 
-  return bottom;
+  Context *cp = (Context *)kstack.end - 1;
+  *cp = context;
+
+  return cp;
 }

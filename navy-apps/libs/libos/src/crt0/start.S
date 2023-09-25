@@ -30,6 +30,8 @@ _start:
 
 #elif defined(__riscv)
   mv s0, zero
+  // navy and nanos have made an agreement that 
+  // a0 saves the stack base address
   mv sp, a0
   jal call_main
 

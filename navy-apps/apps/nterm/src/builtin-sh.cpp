@@ -23,32 +23,42 @@ static void sh_prompt() {
 }
 
 static void sh_handle_cmd(const char *cmd) {
-  int i = 0;
-  const char *p = cmd;
-  char command[64] = {0};
+  int nr_argv = 0;
+  char *argv[8] = {};
 
   /* Process command */
-  while (*p != '\n') {
-    command[i] = *p;
-    i++;
-    p++;
+  char str[64] = {};
+  strcpy(str, cmd);
+  for (int i = 0; i < 64; i++) {
+    if (str[i] == '\n') str[i] = ' ';
   }
-  command[i] = 0;
 
-  /* Examine exit command */
-  if (!strcmp(command, "exit") || !strcmp(command, "e")) {
-#ifdef __ISA_NATIVE__
+  /* Partition command */
+  char *token = NULL;
+  const char s[2] = " ";
+   
+  token = strtok(str, s);
+  while(token != NULL) {
+    argv[nr_argv ++] = token;
+    token = strtok(NULL, s);
+  }
+
+  if (nr_argv >= 1) {
+    /* Examine exit command */
+    if (!strcmp(argv[0], "exit") || !strcmp(argv[0], "e")) {
+  #ifdef __ISA_NATIVE__
     /* 0 means that exit  */
     exit(0);
-#else
+  #else
     /* n means that exit entirly */
     exit('n');
-#endif
-  }
+  #endif
+    }
 
-  /* Execute command */
-  execvp(command, NULL);
-  sh_printf("exec %s failed\n", command);
+    /* Execute command */
+    execvp(argv[0], argv);
+    sh_printf("exec %s failed\n", argv[0]);
+  }
 }
 
 void builtin_sh_run() {
