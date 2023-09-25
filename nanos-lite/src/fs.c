@@ -53,7 +53,8 @@ int fs_open(const char *pathname, int flags, int mode) {
     }
   }
   // No "pathname" file 
-  panic("No %s\n", pathname);
+  printf("No %s\n", pathname);
+  return -1;
 }
 
 size_t fs_read(int fd, void *buf, size_t len) {
