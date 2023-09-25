@@ -39,6 +39,10 @@ static void restart() {
 #else
   cpu.mstatus = 0x1800;
 #endif
+  cpu.mcause = 0;
+  cpu.mtvec = 0;
+  cpu.mepc = 0;
+  cpu.satp = 0;
 }
 
 void init_isa() {

@@ -11,6 +11,9 @@ static Area segments[] = {      // Kernel memory mappings
   NEMU_PADDR_SPACE
 };
 
+#define PPN(pte) (((uintptr_t)pte) >> 10)
+#define VPN_1(va) (((uintptr_t)va) >> 22)
+#define VPN_2(va) ((((uintptr_t)va) << 10) >> 22)
 #define USER_SPACE RANGE(0x40000000, 0x80000000)
 
 static inline void set_satp(void *pdir) {
@@ -67,6 +70,28 @@ void __am_switch(Context *c) {
 }
 
 void map(AddrSpace *as, void *va, void *pa, int prot) {
+  /* Get first level page table entry */
+  PTE *pt1_base = (PTE *)(as->ptr);         
+  PTE pte_1 = pt1_base[VPN_1(va)];    
+
+  if (!(pte_1 & 0x1)) {
+    PTE *pt2_base = pgalloc_usr(PGSIZE);
+
+    pte_1 = 0 | (((uintptr_t)pt2_base >> 12) << 10) | 0x1;
+    pt1_base[VPN_1(va)] = pte_1; 
+  }
+
+  PTE *pt2_base = (PTE *)(PPN(pte_1) << 12);       
+  PTE pte_2 = pt2_base[VPN_2(va)];               
+
+  if (!(pte_2 & 0x1)) {
+    /* Second page table entry invalid */
+    PTE new_pte_2 = 0 | (((PTE)pa >> 12) << 10) | 0x1; 
+    pt2_base[VPN_2(va)] = new_pte_2;
+  } else {
+    /* Second page table entry valid */
+    assert(pte_2 == (0 | (((PTE)pa >> 12) << 10) | 0x1));
+  }
 }
 
 Context *ucontext(AddrSpace *as, Area kstack, void *entry) {

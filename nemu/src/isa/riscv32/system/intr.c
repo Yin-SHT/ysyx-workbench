@@ -39,6 +39,7 @@ word_t read_csr(word_t imm) {
     case MCAUSE: return cpu.mcause;
     case MTVEC: return cpu.mtvec;
     case MEPC: return cpu.mepc;
+    case SATP: return cpu.satp;
     default: panic("CSRs[%d] is not immplement\n", imm);
   }
 }
@@ -49,6 +50,7 @@ void write_csr(word_t imm, word_t val) {
     case MCAUSE: cpu.mcause = val; break;
     case MTVEC: cpu.mtvec = val; break;
     case MEPC: cpu.mepc = val; break;
+    case SATP: cpu.satp = val; break;
     default: panic("CSRs[%d] is not immplement\n", imm);
   }
 }
