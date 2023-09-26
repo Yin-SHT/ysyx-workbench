@@ -25,6 +25,7 @@ paddr_t addr_translate(vaddr_t vaddr) {
   /* 1. Access first level page table */
   uint32_t pt1_base = (uint32_t)(cpu.satp << 12);
   uint32_t pte_1 = paddr_read(pt1_base + VPN_1(vaddr) * 4, 4);
+  printf("%x\n", pte_1);
   assert(pte_1 & 0x1);
 
   /* 2. Access second level page table */
@@ -33,7 +34,6 @@ paddr_t addr_translate(vaddr_t vaddr) {
 
   /* 3. Get mapped physical address */
   paddr_t paddr = (PPN(pte_2) << 12) | (vaddr & 0xfff);
-  assert(paddr == vaddr);
   return paddr;
 }
 

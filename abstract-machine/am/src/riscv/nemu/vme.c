@@ -77,7 +77,7 @@ void map(AddrSpace *as, void *va, void *pa, int prot) {
   if (!(pte_1 & 0x1)) {
     PTE *pt2_base = pgalloc_usr(PGSIZE);
 
-    pte_1 = 0 | (((uintptr_t)pt2_base >> 12) << 10) | 0x1;
+    pte_1 = 0 | (((uintptr_t)pt2_base >> 12) << 10) | prot | 0x1;
     pt1_base[VPN_1(va)] = pte_1; 
   }
 
@@ -86,11 +86,11 @@ void map(AddrSpace *as, void *va, void *pa, int prot) {
 
   if (!(pte_2 & 0x1)) {
     /* Second page table entry invalid */
-    PTE new_pte_2 = 0 | (((PTE)pa >> 12) << 10) | 0x1; 
+    PTE new_pte_2 = 0 | (((PTE)pa >> 12) << 10) | prot | 0x1; 
     pt2_base[VPN_2(va)] = new_pte_2;
   } else {
     /* Second page table entry valid */
-    assert(pte_2 == (0 | (((PTE)pa >> 12) << 10) | 0x1));
+    assert((((PTE)pte_2 >> 10) << 10) == (0 | (((PTE)pa >> 12) << 10)));
   }
 }
 
@@ -100,6 +100,7 @@ Context *ucontext(AddrSpace *as, Area kstack, void *entry) {
   /* Initial state of a process to be executed */  
   context.mepc = (uintptr_t)entry;
   context.mstatus = 0x1800;
+  context.pdir = as->ptr;
 
   Context *cp = (Context *)kstack.end - 1;
   *cp = context;

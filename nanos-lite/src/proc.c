@@ -17,9 +17,13 @@ void switch_boot_pcb() {
   current = &pcb_boot;
 }
 
-static uintptr_t args_init(char *const argv[], char *const envp[]) {
+static uintptr_t args_init(PCB *pcb, char *const argv[], char *const envp[]) {
   /* Create a new stack of 32kb */
-  void *ustack = new_page(8);
+  for (int i = 0; i < 8; i++) {
+    void *pa = pg_alloc(PGSIZE);
+    map(&(pcb->as), (void *)((uintptr_t)(pcb->as.area.end) - (8 - i) * PGSIZE), pa, 0xE);
+  }
+  void *ustack = pcb->as.area.end;
   char *str_st = (char *)((uintptr_t)ustack - 512);
 
   /* Write process arguments */
@@ -51,16 +55,18 @@ static uintptr_t args_init(char *const argv[], char *const envp[]) {
 }
 
 void context_uload(PCB *pcb, const char *filename, char *const argv[], char *const envp[]) {
+  /* Create AddrSpace ans stack */
+  protect(&(pcb->as));
   Area kstack = {.start = pcb->stack, .end = pcb->stack + STACK_SIZE};
 
   /* Get user process entry */
   void *entry = (void *)loader(pcb, filename);
 
   /* Create user process context */
-  pcb->cp = ucontext(NULL, kstack, entry);
+  pcb->cp = ucontext(&(pcb->as), kstack, entry);
 
   /* Set user stack base address */
-  pcb->cp->GPRx = args_init(argv, envp);
+  pcb->cp->GPRx = args_init(pcb, argv, envp);
 }
 
 void context_kload(PCB *pcb, void (*entry)(void *), void *arg) {
@@ -82,7 +88,7 @@ void hello_fun(void *arg) {
 }
 
 void init_proc() {
-  char *argv[] = {"/bin/nterm", NULL};
+  char *argv[] = {"/bin/dummy", NULL};
   char *envp[] = {NULL};
 
   context_kload(&pcb[0], hello_fun, "first");
@@ -93,7 +99,7 @@ void init_proc() {
 
   // load program here
 //  void naive_uload(PCB *pcb, const char *filename);
-//  naive_uload(NULL, "/bin/nterm");
+//  naive_uload(&pcb[1], "/bin/dummy");
 
 }
 
@@ -102,7 +108,8 @@ Context* schedule(Context *prev) {
   current->cp = prev;
 
   // schedule the next process
-  current = (current == &pcb[0] ? &pcb[1] : &pcb[0]);
+//  current = (current == &pcb[0] ? &pcb[1] : &pcb[0]);
+  current = &pcb[1];
 
   // then return the new context
   return current->cp;

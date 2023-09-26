@@ -117,7 +117,7 @@ void map(AddrSpace *as, void *va, void *pa, int prot) {
     // enforce the map immediately
     __am_pmem_map(pp->va, pp->pa, pp->prot);
     pp->is_mapped = true;
-  }
+  } 
 }
 
 Context* ucontext(AddrSpace *as, Area kstack, void *entry) {

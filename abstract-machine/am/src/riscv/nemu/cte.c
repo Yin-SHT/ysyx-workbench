@@ -3,8 +3,12 @@
 #include <klib.h>
 
 static Context* (*user_handler)(Event, Context*) = NULL;
+void __am_switch(Context *c);
+void __am_get_cur_as(Context *c);
 
 Context* __am_irq_handle(Context *c) {
+  __am_get_cur_as(c);
+
 #ifdef __riscv_e
   int syscall_num = c->gpr[15];   // x15/a5
 #else
@@ -28,6 +32,7 @@ Context* __am_irq_handle(Context *c) {
     assert(c != NULL);
   }
 
+  __am_switch(c);
   return c;
 }
 

@@ -8,7 +8,7 @@ void* new_page(size_t nr_page) {
 }
 
 #ifdef HAS_VME
-static void* pg_alloc(int n) {
+void* pg_alloc(int n) {
   uint8_t *a = (uint8_t *)new_page(n / PGSIZE) - n;
   /* set all pages to zero */
   for (int i = 0; i < n; i++) a[i] = 0;
