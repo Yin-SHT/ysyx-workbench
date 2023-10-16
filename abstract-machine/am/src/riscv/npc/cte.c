@@ -44,7 +44,17 @@ bool cte_init(Context*(*handler)(Event, Context*)) {
 }
 
 Context *kcontext(Area kstack, void (*entry)(void *), void *arg) {
-  return NULL;
+  Context context = {};
+
+  /* Initial state of a process to be executed */  
+  context.GPR2 = (uintptr_t)arg;  // a0-a7 save args
+  context.mepc = (uintptr_t)entry;
+  context.mstatus = 0x1800;
+
+  Context *cp = (Context *)kstack.end - 1;
+  *cp = context;
+
+  return cp;
 }
 
 void yield() {
