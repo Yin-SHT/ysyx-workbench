@@ -1,22 +1,24 @@
 `include "../defines.v"
 
 module isram (
-  input   clk,
-  input   rst,
+  input                         clk,
+  input                         rst,
 
   /* Address Read Channel */
-  input   arvalid_i,
-  output  arready_o,
+  input   [`INST_ADDR_BUS]      araddr_i,
+
+  input                         arvalid_i,
+  output                        arready_o,
 
   /* Data Read Channel */
-  output  rvalid_o,
-  input   rready_i,
+  output  reg [`INST_DATA_BUS]  rdata_o,
+  output  reg [`INST_DATA_BUS]  rresp_o,
 
-  input  [`INST_ADDR_BUS]     pc_i,
-  output reg [`INST_DATA_BUS] rdata_o
+  input                         rready_i,
+  output                        rvalid_o
 );
 
-  import "DPI-C" function int paddr_read(input int raddr, input int len);
+  import "DPI-C" function int paddr_read(input int raddr, output int rresp_o);
 
   parameter idle        = 2'b00;
   parameter read        = 2'b01;
@@ -34,10 +36,11 @@ module isram (
 
   always @( posedge clk or negedge rst ) begin
     if ( rst == `RST_ENABLE ) begin
-      rdata_o <= 32'h0;
+      rdata_o   <= 32'h0000_0000;
     end else begin
+      rdata_o <= rdata_o;
       if ( arvalid_i && arready_o ) begin
-        rdata_o <= paddr_read( pc_i, 4 );
+        rdata_o <= paddr_read( araddr_i, rresp_o );
       end else begin
         rdata_o <= rdata_o;
       end
@@ -82,10 +85,10 @@ module isram (
     if ( rst == `RST_ENABLE ) begin
       rc_cnt <= 4'h0;
     end else begin
-      if ( arvalid_i && cur_state == read ) begin
+      if ( arvalid_i && cur_state == idle ) begin
         rc_cnt <= rc_cnt + 1;
       end else begin
-          rc_cnt <= 4'b0;
+        rc_cnt <= 4'b0;
       end
     end
   end

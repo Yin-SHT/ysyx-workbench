@@ -1,4 +1,4 @@
-`include "../defines.v"
+`include "defines.v"
 
 module exu_reg (
   input clk,

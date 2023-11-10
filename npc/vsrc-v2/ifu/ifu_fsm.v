@@ -4,9 +4,6 @@ module ifu_fsm (
   input    clk,
   input    rst,
 
-  /* BPU */
-  input    branch_en_i,
-
   /* WBU */
   input    valid_pre_i,
   output   ready_pre_o,
@@ -21,9 +18,10 @@ module ifu_fsm (
 
   /* Data Read Channel */
   input    rvalid_i,
+  input    [`INST_DATA_BUS] rresp_i,
   output   rready_o,
 
-  output   we
+  output   we_o
 );
 
   parameter idle         = 2'b00;
@@ -37,11 +35,11 @@ module ifu_fsm (
   //-----------------------------------------------------------------
   // Outputs 
   //-----------------------------------------------------------------
-  assign we           = ( ( valid_pre_i || branch_en_i ) && ready_pre_o );
-  assign ready_pre_o  = ( cur_state == idle          );
-  assign valid_post_o = ( cur_state == wait_ready    );
-  assign arvalid_o    = ( cur_state == wait_arready  );
-  assign rready_o     = ( cur_state == wait_rvalid   );
+  assign we_o         = ( ready_pre_o && valid_pre_i   );
+  assign ready_pre_o  = ( cur_state   == idle          );
+  assign valid_post_o = ( cur_state   == wait_ready    );
+  assign arvalid_o    = ( cur_state   == wait_arready  );
+  assign rready_o     = ( cur_state   == wait_rvalid   );
 
 
   //-----------------------------------------------------------------
@@ -65,10 +63,10 @@ module ifu_fsm (
     end else begin
         next_state = cur_state;
         case ( cur_state )
-            idle:         if ( valid_pre_i || branch_en_i ) next_state = wait_arready;
-            wait_arready: if ( arready_i                  ) next_state = wait_rvalid;
-            wait_rvalid:  if ( rvalid_i                   ) next_state = wait_ready;
-            wait_ready:   if ( ready_post_i               ) next_state = idle;
+            idle:         if ( valid_pre_i  ) next_state = wait_arready;
+            wait_arready: if ( arready_i    ) next_state = wait_rvalid;
+            wait_rvalid:  if ( rvalid_i     ) next_state = wait_ready;
+            wait_ready:   if ( ready_post_i ) next_state = idle;
           default: next_state <= cur_state;
         endcase
     end

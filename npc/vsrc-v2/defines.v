@@ -1,6 +1,8 @@
 // -------------------------------------------------
 // GLOBAL
 // -------------------------------------------------
+`define RST_PC             32'h8000_0000
+
 `define RST_ENABLE         1'b0
 `define RST_DISABLE        1'b1
 
@@ -13,16 +15,20 @@
 `define BRANCH_ENABLE      1'b1
 `define BRANCH_DISABLE     1'b0
 
-`define INST_ADDR_BUS      31:0
-`define INST_DATA_BUS      31:0
+`define INST_ADDR_BUS      31 : 0
+`define INST_DATA_BUS      31 : 0
 
-`define REG_ADDR_BUS       4:0
-`define REG_DATA_BUS       31:0
+`define MEM_ADDR_BUS       31 : 0
+`define MEM_DATA_BUS       31 : 0
+`define MEM_MASK_BUS       7  : 0
 
-`define ALU_OP_BUS         7:0
-`define LSU_OP_BUS         7:0
-`define BPU_OP_BUS         7:0
-`define INST_TYPE_BUS      7:0
+`define REG_ADDR_BUS       4  : 0
+`define REG_DATA_BUS       31 : 0
+
+`define ALU_OP_BUS         7  : 0
+`define LSU_OP_BUS         7  : 0
+`define BPU_OP_BUS         7  : 0
+`define INST_TYPE_BUS      7  : 0
 
 // -------------------------------------------------
 // Register File

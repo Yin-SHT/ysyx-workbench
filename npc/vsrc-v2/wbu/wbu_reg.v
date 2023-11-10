@@ -1,6 +1,6 @@
-`include "../defines.v"
+`include "defines.v"
 
-module wb_reg (
+module wbu_reg (
   input   clk,
   input   rst,
   input   we,

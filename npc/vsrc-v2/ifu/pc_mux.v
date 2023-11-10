@@ -3,16 +3,15 @@
 module pc_mux (
   input rst,
 
-  input                   be, 
-  input [`INST_ADDR_BUS]  pc_i,
+  input                   branch_en_i, 
+  input [`INST_ADDR_BUS]  araddr_i,
   input [`INST_ADDR_BUS]  dnpc_i,
 
-  output [`INST_ADDR_BUS]  next_pc
+  output [`INST_ADDR_BUS]  next_pc_o
 );
 
-
-  assign next_pc = ( rst == `RST_ENABLE    )  ?  32'h8000_0000 :
-                   ( be  == `BRANCH_ENABLE )  ?  dnpc_i        : 
-                                                 pc_i + 4      ;
+  assign next_pc_o  = ( rst          == `RST_ENABLE    )  ?  `RST_PC       :
+                      ( branch_en_i  == `BRANCH_ENABLE )  ?   dnpc_i       :     // dynamic next pc
+                                                              araddr_i + 4 ;     // static  next pc
 
 endmodule
