@@ -1,11 +1,11 @@
-`include "defines.v"
+`include "../defines.v"
 
 module exu_reg (
   input clk,
   input rst,
 
   /* EXU controller */
-  input                         we,       // write enable 
+  input                         we_i,        // write enable 
 
   input  [`INST_TYPE_BUS]       inst_type_i,
   input  [`ALU_OP_BUS]          alu_op_i,
@@ -53,7 +53,7 @@ module exu_reg (
       imm_o       <= imm_o;
       rdata1_o    <= rdata1_o;
       rdata2_o    <= rdata2_o;
-      if ( we == `WRITE_ENABLE ) begin
+      if ( we_i == `WRITE_ENABLE ) begin
           inst_type_o <= inst_type_i;
           alu_op_o    <= alu_op_i;
           lsu_op_o    <= lsu_op_i;

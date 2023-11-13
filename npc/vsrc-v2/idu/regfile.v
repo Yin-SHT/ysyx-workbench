@@ -43,14 +43,12 @@ module regfile(
   /* READ */
   assign rdata1_o = ( 
                       ( rst      == `RST_ENABLE   ) || 
-                      ( rena1_i  == `READ_DISABLE ) || 
-                      ( raddr1_i == `ZERO_REG     ) 
+                      ( rena1_i  == `READ_DISABLE ) 
                     ) ? 32'h0000_0000 : regs[raddr1_i]; 
 
   assign rdata2_o = ( 
                       ( rst      == `RST_ENABLE   ) || 
-                      ( rena2_i  == `READ_DISABLE ) || 
-                      ( raddr2_i == `ZERO_REG     ) 
+                      ( rena2_i  == `READ_DISABLE )
                     ) ? 32'h0000_0000 : regs[raddr2_i]; 
 
 endmodule

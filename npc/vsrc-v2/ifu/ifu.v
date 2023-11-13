@@ -44,7 +44,6 @@ module ifu (
   ifu_fsm u_ifu_fsm (
     .clk ( clk ),
     .rst ( rst ),
-    .branch_en_i ( branch_en_i ),
     .valid_pre_i ( valid_pre_i ),
     .ready_pre_o ( ready_pre_o ),
     .valid_post_o ( valid_post_o ),

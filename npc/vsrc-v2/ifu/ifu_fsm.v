@@ -67,7 +67,7 @@ module ifu_fsm (
             wait_arready: if ( arready_i    ) next_state = wait_rvalid;
             wait_rvalid:  if ( rvalid_i     ) next_state = wait_ready;
             wait_ready:   if ( ready_post_i ) next_state = idle;
-          default: next_state <= cur_state;
+          default: next_state = cur_state;
         endcase
     end
   end

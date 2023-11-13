@@ -24,41 +24,27 @@ module bpu (
     .unsigned_less_than_o ( unsigned_less_than )
   );
 
-  assign branch_en_o = (( rst == `RST_ENABLE ) || ( bpu_op_i == `BPU_OP_NOP )) ? `BRANCH_DISABLE : 
-                       (
-                         ( bpu_op_i == `BPU_OP_BEQ  && equal               ) ||
-                         ( bpu_op_i == `BPU_OP_BNE  && !equal              ) ||
-                         ( bpu_op_i == `BPU_OP_BLT  && signed_less_than    ) ||
-                         ( bpu_op_i == `BPU_OP_BGE  && !signed_less_than   ) ||
-                         ( bpu_op_i == `BPU_OP_BLTU && unsigned_less_than  ) ||
-                         ( bpu_op_i == `BPU_OP_BGEU && !unsigned_less_than ) ||
-                         ( bpu_op_i == `BPU_OP_JAL                         ) ||
-                         ( bpu_op_i == `BPU_OP_JALR                        )
-                       );
+  assign  branch_en_o = (( rst == `RST_ENABLE ) || ( bpu_op_i == `BPU_OP_NOP )) ? `BRANCH_DISABLE : 
+                        (
+                          ( bpu_op_i == `BPU_OP_BEQ  && equal               ) ||
+                          ( bpu_op_i == `BPU_OP_BNE  && !equal              ) ||
+                          ( bpu_op_i == `BPU_OP_BLT  && signed_less_than    ) ||
+                          ( bpu_op_i == `BPU_OP_BGE  && !signed_less_than   ) ||
+                          ( bpu_op_i == `BPU_OP_BLTU && unsigned_less_than  ) ||
+                          ( bpu_op_i == `BPU_OP_BGEU && !unsigned_less_than ) ||
+                          ( bpu_op_i == `BPU_OP_JAL                         ) ||
+                          ( bpu_op_i == `BPU_OP_JALR                        )
+                        );
 
-  assign dnpc_o = ( rst == `RST_ENABLE )  ? 32'h8000_0000 : 
-                  (( branch_en_o ) && ( bpu_op_i == `BPU_OP_BEQ  )) ? pc_i     + imm_i :  
-                  (( branch_en_o ) && ( bpu_op_i == `BPU_OP_BNE  )) ? pc_i     + imm_i :  
-                  (( branch_en_o ) && ( bpu_op_i == `BPU_OP_BLT  )) ? pc_i     + imm_i :  
-                  (( branch_en_o ) && ( bpu_op_i == `BPU_OP_BGE  )) ? pc_i     + imm_i :  
-                  (( branch_en_o ) && ( bpu_op_i == `BPU_OP_BLTU )) ? pc_i     + imm_i :  
-                  (( branch_en_o ) && ( bpu_op_i == `BPU_OP_BGEU )) ? pc_i     + imm_i :  
-                  (( branch_en_o ) && ( bpu_op_i == `BPU_OP_JAL  )) ? pc_i     + imm_i :
-                  (( branch_en_o ) && ( bpu_op_i == `BPU_OP_JALR )) ? rdata1_i + imm_i :
-                                                                      pc_i     + 32'h4 ;
+  assign  dnpc_o      = ( rst == `RST_ENABLE ) ? 32'h8000_0000 : 
+                        (( branch_en_o ) && ( bpu_op_i == `BPU_OP_BEQ  )) ? pc_i     + imm_i :  
+                        (( branch_en_o ) && ( bpu_op_i == `BPU_OP_BNE  )) ? pc_i     + imm_i :  
+                        (( branch_en_o ) && ( bpu_op_i == `BPU_OP_BLT  )) ? pc_i     + imm_i :  
+                        (( branch_en_o ) && ( bpu_op_i == `BPU_OP_BGE  )) ? pc_i     + imm_i :  
+                        (( branch_en_o ) && ( bpu_op_i == `BPU_OP_BLTU )) ? pc_i     + imm_i :  
+                        (( branch_en_o ) && ( bpu_op_i == `BPU_OP_BGEU )) ? pc_i     + imm_i :  
+                        (( branch_en_o ) && ( bpu_op_i == `BPU_OP_JAL  )) ? pc_i     + imm_i :
+                        (( branch_en_o ) && ( bpu_op_i == `BPU_OP_JALR )) ? rdata1_i + imm_i :
+                                                                            pc_i     + 32'h4 ;
 
 endmodule
-
-
-
-
-
-
-
-
-
-
-
-
-
-

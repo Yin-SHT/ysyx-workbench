@@ -1,52 +1,42 @@
 `include "defines.v"
 
 module wbu_reg (
-  input   clk,
-  input   rst,
-  input   we,
+  input                        clk,
+  input                        rst,
+  input                        we,
 
-  input   wen_i,
-  input   wsel_i,
-  input   [`REG_ADDR_BUS]   waddr_i, 
-  input   [`REG_DATA_BUS]   alu_result_i,
-  input   [`REG_DATA_BUS]   mem_result_i,
+  input                        wena_i,
+  input                        wsel_i,
+  input   [`REG_ADDR_BUS]      waddr_i, 
+  input   [`REG_DATA_BUS]      alu_result_i,
+  input   [`REG_DATA_BUS]      mem_result_i,
 
-  output  [`REG_DATA_BUS]   wdata_o
+  output  reg                  wena_o,
+  output  reg [`REG_ADDR_BUS]  waddr_o, 
+  output  reg [`REG_DATA_BUS]  wdata_o
 );
-
-  reg                 wen;
-  reg                 wsel;
-  reg [`REG_ADDR_BUS] waddr;
-  reg [`REG_DATA_BUS] alu_result;
-  reg [`REG_DATA_BUS] mem_result;
-
-  assign wdata_o = ( wsel == 1'b0 ) ? alu_result : mem_result;
 
   always @( posedge clk or negedge rst ) begin
     if ( rst == `RST_ENABLE ) begin
-      wen        <= 1'b0;
-      wsel       <= 1'b0;
-      waddr      <= 5'b0;
-      alu_result <= 32'b0;
-      mem_result <= 32'b0;
+      wena_o     <= 1'b0;
+      waddr_o    <= 5'b0;
+      wdata_o    <= 32'h0000_0000;
     end else begin
-      wen        <= wen;
-      wsel       <= wsel;
-      waddr      <= waddr;
-      alu_result <= alu_result;
-      mem_result <= mem_result;
+      wena_o     <= wena_o;
+      waddr_o    <= waddr_o;
+      wdata_o    <= wdata_o;
       if ( we ) begin
-        wen        <= wen_i;
-        wsel       <= wsel_i;
-        waddr      <= waddr_i;
-        alu_result <= alu_result_i;
-        mem_result <= mem_result_i;
+        wena_o     <= wena_i;
+        waddr_o    <= waddr_i;
+        if ( wsel_i == `SEL_ALU_DATA ) begin
+          wdata_o  <= alu_result_i;
+        end else begin
+          wdata_o  <= mem_result_i;   
+        end
       end else begin
-        wen        <= 1'b0;
-        wsel       <= 1'b0;
-        waddr      <= 5'b0;
-        alu_result <= 32'b0;
-        mem_result <= 32'b0;
+        wena_o     <= wena_o;
+        waddr_o    <= waddr_o;
+        wdata_o    <= wdata_o;
       end     
     end
   end

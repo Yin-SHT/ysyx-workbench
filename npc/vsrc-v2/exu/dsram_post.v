@@ -1,13 +1,13 @@
-`include "../../defines.v"
+`include "../defines.v"
 
 module dsram_post (
-  input rst,
+  input                   rst,
 
-  input [`LSU_OP_BUS]    lsu_op_i,
-  input [`INST_ADDR_BUS] roff_i,
+  input [`LSU_OP_BUS]     lsu_op_i,
+  input [`INST_ADDR_BUS]  roff_i,
+  input [`REG_DATA_BUS]   rdata_i,
 
-  input [`REG_DATA_BUS]  rdata_i,
-  output [`REG_DATA_BUS] mem_data_o
+  output [`REG_DATA_BUS]  mem_data_o
 );
 
   wire [`MEM_DATA_BUS] shift_data;

@@ -10,24 +10,22 @@ module wbu_fsm (
   input    ready_post_i,
   output   ready_pre_o,
 
-  output   we
+  output   we_o
 );
 
   parameter idle       = 2'b00;
-  parameter wback      = 2'b01;
-  parameter wait_ready = 2'b10;
+  parameter wait_ready = 2'b01;
 
-  reg [7:0] wback_cnt;           // Recode number of cycles of wbacking
   reg [1:0] cur_state;
   reg [1:0] next_state;
 
   //-----------------------------------------------------------------
   // Outputs 
   //-----------------------------------------------------------------
-  assign we           = ((valid_pre_i && wback_cnt == 8'b0)) ? `WRITE_ENABLE : `WRITE_DISABLE;
+  assign we_o         = ( valid_pre_i && ready_pre_o );
+  assign ready_pre_o  = ( cur_state == idle          );
+  assign valid_post_o = ( cur_state == wait_ready    );
 
-  assign ready_pre_o  = (cur_state == idle      ) ? 1'b1 : 1'b0;
-  assign valid_post_o = (cur_state == wait_ready) ? 1'b1 : 1'b0;
 
   //-----------------------------------------------------------------
   // Synchronous State - Transition always@ ( posedge Clock ) block
@@ -40,41 +38,17 @@ module wbu_fsm (
     end
   end
 
+
   //-----------------------------------------------------------------
   // Conditional State - Transition always@ ( * ) block
   //-----------------------------------------------------------------
   always @( * ) begin
     next_state = cur_state;
     case ( cur_state )
-      idle: begin
-        if ( valid_pre_i ) next_state = wback;      
-      end
-      wback: begin
-        if ( wback_cnt >= `WBU_DELAY ) next_state = wait_ready;
-      end
-      wait_ready: begin
-        if ( ready_post_i ) next_state = idle;
-      end
-      default: begin
-        next_state = cur_state;
-      end 
+      idle:       if ( valid_pre_i )  next_state = wait_ready;
+      wait_ready: if ( ready_post_i ) next_state = idle;
+      default: next_state = cur_state;
     endcase
-  end
-
-  //-----------------------------------------------------------------
-  // Miscellaneous
-  //-----------------------------------------------------------------
-  always @( posedge clk or negedge rst ) begin
-    wback_cnt <= wback_cnt;
-    if ( rst == `RST_ENABLE ) begin
-      wback_cnt <= 8'b0;
-    end else begin
-      if ( cur_state == idle ) begin
-        wback_cnt <= 8'b0;
-      end else if ( cur_state == wback ) begin
-        wback_cnt <= wback_cnt + 8'b1;
-      end
-    end
   end
 
 endmodule // wbu_fsm

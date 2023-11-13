@@ -12,7 +12,7 @@ module idu_fsm (
   input    ready_post_i,
   output   ready_pre_o,
 
-  output   we
+  output   we_o
 );
 
   parameter idle       = 2'b00;
@@ -24,7 +24,7 @@ module idu_fsm (
   //-----------------------------------------------------------------
   // Outputs 
   //-----------------------------------------------------------------
-  assign we           = ( valid_pre_i && ready_pre_o );
+  assign we_o         = ( valid_pre_i && ready_pre_o );
   assign ready_pre_o  = ( cur_state == idle          );
   assign valid_post_o = ( cur_state == wait_ready    );
 
