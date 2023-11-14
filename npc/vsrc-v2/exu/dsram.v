@@ -99,7 +99,7 @@ module dsram (
     if ( rst == `RST_ENABLE ) begin
       rc_cnt <= 4'h0;
     end else begin
-      if ( arvalid_i && cur_state == read ) begin
+      if ( cur_state == read ) begin
         rc_cnt <= rc_cnt + 1;
       end else begin
         rc_cnt <= 4'b0;

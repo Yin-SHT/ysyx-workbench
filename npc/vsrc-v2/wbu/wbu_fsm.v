@@ -15,6 +15,8 @@ module wbu_fsm (
 
   parameter idle       = 2'b00;
   parameter wait_ready = 2'b01;
+  parameter pre_start  = 2'b10;
+  parameter start      = 2'b11;
 
   reg [1:0] cur_state;
   reg [1:0] next_state;
@@ -23,8 +25,8 @@ module wbu_fsm (
   // Outputs 
   //-----------------------------------------------------------------
   assign we_o         = ( valid_pre_i && ready_pre_o );
-  assign ready_pre_o  = ( cur_state == idle          );
-  assign valid_post_o = ( cur_state == wait_ready    );
+  assign ready_pre_o  = ( cur_state   == idle        );
+  assign valid_post_o = ( cur_state   == wait_ready  || cur_state == start );
 
 
   //-----------------------------------------------------------------
@@ -32,7 +34,7 @@ module wbu_fsm (
   //-----------------------------------------------------------------
   always @( posedge clk or negedge rst ) begin
     if ( rst == `RST_ENABLE ) begin
-      cur_state <= idle;
+      cur_state <= pre_start;
     end else begin
       cur_state <= next_state;
     end
@@ -45,7 +47,9 @@ module wbu_fsm (
   always @( * ) begin
     next_state = cur_state;
     case ( cur_state )
-      idle:       if ( valid_pre_i )  next_state = wait_ready;
+      pre_start:  if ( rst == 1'b1  ) next_state = start;
+      start:                          next_state = idle;
+      idle:       if ( valid_pre_i  ) next_state = wait_ready;
       wait_ready: if ( ready_post_i ) next_state = idle;
       default: next_state = cur_state;
     endcase

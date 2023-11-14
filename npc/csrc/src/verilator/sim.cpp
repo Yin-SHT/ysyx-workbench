@@ -35,15 +35,18 @@ void single_cycle() {
   cur_pc = top->rootp->top__DOT__araddr;
   cur_inst = top->rootp->top__DOT__rdata;
   word_t a0 = top->rootp->top__DOT__u_idu__DOT__u_regfile__DOT__regs[10];
+  word_t sp = top->rootp->top__DOT__u_idu__DOT__u_regfile__DOT__regs[2];
+  word_t imm = top->rootp->top__DOT__u_exu__DOT__imm;
+//  printf("0x%08x: %08x\tsp: 0x%08x\timm: %08x\n", cur_pc, cur_inst, sp, imm);
 
   NPCTRAP(cur_pc, a0);
-  INV(cur_inst, cur_pc);
+//  INV(cur_inst, cur_pc);
 
   top->clk = 1; 
   top->eval(); IFDEF(CONFIG_WAVEFORM, tfp->dump(contextp->time())); contextp->timeInc(1);
 
-  next_pc = top->rootp->top__DOT__araddr;
-  next_inst = top->rootp->top__DOT__rdata;
+//  next_pc = top->rootp->top__DOT__araddr;
+//  next_inst = top->rootp->top__DOT__rdata;
 
   /* Regfile 是同步写，异步读。
    * 因此把 update_cpu() 放在这里来获取执行完一条指令后的 regfile 的状态。
