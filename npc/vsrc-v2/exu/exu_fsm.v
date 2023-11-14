@@ -66,9 +66,9 @@ module exu_fsm (
         next_state = cur_state;
         case ( cur_state )
             idle: begin
-              if ( valid_pre_i && inst_type_i == `INST_LOAD ) begin
+              if (( valid_pre_i ) && ( inst_type_i == `INST_LOAD )) begin
                 next_state = wait_arready;
-              end else if ( valid_pre_i && inst_type_i != `INST_LOAD ) begin
+              end else if (( valid_pre_i ) && ( inst_type_i != `INST_LOAD )) begin
                 next_state = wait_ready;
               end
             end 

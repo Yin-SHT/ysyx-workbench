@@ -21,21 +21,21 @@ module dsram_pre (
   wire [`INST_ADDR_BUS] woff;
 
   /* READ */
-  assign araddr_o = ( rst         == `RST_ENABLE ) ? 32'h0000_0000                       : 
-                    ( inst_type_i == `INST_LOAD  ) ? rdata1_i + imm_i                    : 32'h0000_0000; 
+  assign araddr_o = ( rst         == `RST_ENABLE ) ? 32'h0000_0000                           : 
+                    ( inst_type_i == `INST_LOAD  ) ? rdata1_i + imm_i                        : 32'h0000_0000; 
                     
-  assign roff_o   = ( rst         == `RST_ENABLE ) ? 32'h0000_0000                       :
-                    ( inst_type_i == `INST_LOAD  ) ? araddr_o - araddr_o & 32'hFFFF_FFFC : 32'h0000_0000; 
+  assign roff_o   = ( rst         == `RST_ENABLE ) ? 32'h0000_0000                           :
+                    ( inst_type_i == `INST_LOAD  ) ? araddr_o - ( araddr_o & 32'hFFFF_FFFC ) : 32'h0000_0000; 
  
   /* WRITE */
-  assign awaddr_o = ( rst         == `RST_ENABLE ) ? 32'h0000_0000                       : 
-                    ( inst_type_i == `INST_STORE ) ? rdata1_i + imm_i                    : 32'h0000_0000; 
+  assign awaddr_o = ( rst         == `RST_ENABLE ) ? 32'h0000_0000                           : 
+                    ( inst_type_i == `INST_STORE ) ? rdata1_i + imm_i                        : 32'h0000_0000; 
 
-  assign wdata_o  = ( rst         == `RST_ENABLE ) ? 32'h0000_0000                       : 
-                    ( inst_type_i == `INST_STORE ) ? rdata2_i                            : 32'h0000_0000; 
+  assign wdata_o  = ( rst         == `RST_ENABLE ) ? 32'h0000_0000                           : 
+                    ( inst_type_i == `INST_STORE ) ? rdata2_i                                : 32'h0000_0000; 
 
-  assign woff     = ( rst         == `RST_ENABLE ) ? 32'h0000_0000                       :
-                    ( inst_type_i == `INST_STORE ) ? awaddr_o - awaddr_o & 32'hFFFF_FFFC : 32'h0000_0000; 
+  assign woff     = ( rst         == `RST_ENABLE ) ? 32'h0000_0000                           :
+                    ( inst_type_i == `INST_STORE ) ? awaddr_o - ( awaddr_o & 32'hFFFF_FFFC ) : 32'h0000_0000; 
 
   assign wstrb_o  = ( rst         == `RST_ENABLE ) ? 8'b0000_0000: 
                     ( woff        == 32'h00      ) ? (( lsu_op_i == `LSU_OP_SB ) ? 8'b0000_0001 : 

@@ -14,11 +14,13 @@ static Vtop *top;
 
 static int _ebreak;
 static int _invalid;
+bool cur_wbu_valid = false;
+bool pre_wbu_valid = false;
+bool first_wbu_valid = true;
 
 extern uint32_t cur_pc;
+extern uint32_t pre_pc;
 extern uint32_t cur_inst;
-extern uint32_t next_pc;
-extern uint32_t next_inst;
 
 /* Signel cycle simulation in verilator */
 static void update_cpu(uint32_t next_pc) {
@@ -29,30 +31,25 @@ static void update_cpu(uint32_t next_pc) {
 }
 
 void single_cycle() {
-  top->clk = 0; 
-  top->eval(); IFDEF(CONFIG_WAVEFORM, tfp->dump(contextp->time())); contextp->timeInc(1);
+  static uint32_t i = 0;
 
+  top->clk = 0; top->eval(); IFDEF(CONFIG_WAVEFORM, tfp->dump(contextp->time())); contextp->timeInc(1);
+  top->clk = 1; top->eval(); IFDEF(CONFIG_WAVEFORM, tfp->dump(contextp->time())); contextp->timeInc(1);
+
+  /* Check ebreak instruction */
+  pre_pc = cur_pc;
   cur_pc = top->rootp->top__DOT__araddr;
   cur_inst = top->rootp->top__DOT__rdata;
   word_t a0 = top->rootp->top__DOT__u_idu__DOT__u_regfile__DOT__regs[10];
-  word_t sp = top->rootp->top__DOT__u_idu__DOT__u_regfile__DOT__regs[2];
-  word_t imm = top->rootp->top__DOT__u_exu__DOT__imm;
-//  printf("0x%08x: %08x\tsp: 0x%08x\timm: %08x\n", cur_pc, cur_inst, sp, imm);
-
   NPCTRAP(cur_pc, a0);
-//  INV(cur_inst, cur_pc);
 
-  top->clk = 1; 
-  top->eval(); IFDEF(CONFIG_WAVEFORM, tfp->dump(contextp->time())); contextp->timeInc(1);
+  /* Check whether inst is within wbu stage */
+  pre_wbu_valid = cur_wbu_valid;
+  cur_wbu_valid = top->rootp->top__DOT__valid_wbu_ifu;
 
-//  next_pc = top->rootp->top__DOT__araddr;
-//  next_inst = top->rootp->top__DOT__rdata;
-
-  /* Regfile 是同步写，异步读。
-   * 因此把 update_cpu() 放在这里来获取执行完一条指令后的 regfile 的状态。
-   * next_pc is the next pc that will be executed
-   */
-  IFDEF(CONFIG_DIFFTEST, update_cpu(next_pc));
+  if (pre_wbu_valid) {
+    IFDEF(CONFIG_DIFFTEST, update_cpu(cur_pc));
+  }
 }
 
 void init_verilator(int argc, char **argv) {

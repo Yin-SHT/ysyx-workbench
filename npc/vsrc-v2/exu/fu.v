@@ -50,7 +50,7 @@ module fu (
                         ( alu_op_i == `ALU_OP_AND   )  ?  operand1  &  operand2 :
                         ( alu_op_i == `ALU_OP_SLL   )  ?  operand1  << operand2 :
                         ( alu_op_i == `ALU_OP_SRL   )  ?  operand1  >> operand2 :
-                        ( alu_op_i == `ALU_OP_SRA   )  ?  $signed(operand1) >> operand2 :
+                        ( alu_op_i == `ALU_OP_SRA   )  ?  (({32{operand1[31]}} << (32'd32 - operand2)) | (operand1 >> operand2)) :
                         ( alu_op_i == `ALU_OP_SLT   )  ?  {{31{1'b0}},   $signed(operand1) <   $signed(operand2)} :
                         ( alu_op_i == `ALU_OP_SLTU  )  ?  {{31{1'b0}}, $unsigned(operand1) < $unsigned(operand2)} :
                         ( alu_op_i == `ALU_OP_LUI   )  ?  operand1  +  operand2 :

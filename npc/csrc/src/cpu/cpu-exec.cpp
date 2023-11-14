@@ -10,11 +10,12 @@
 
 CPU_state cpu = {};
 uint32_t cur_pc;
+uint32_t pre_pc;
 uint32_t cur_inst;
-uint32_t next_pc;
-uint32_t next_inst;
 static bool g_print_step = false;
 static char logbuf[512] = { 0 };
+extern bool pre_wbu_valid;
+extern bool first_wbu_valid;
 
 void translate_inst(uint32_t pc, uint32_t inst, char *buf) {
   char *p = buf;
@@ -47,12 +48,17 @@ static void trace_and_difftest(vaddr_t pc, vaddr_t dnpc) {
   int decode_ftrace(uint32_t inst, vaddr_t pc);
   decode_ftrace(cur_inst, cur_pc);
 #endif
-  IFDEF(CONFIG_DIFFTEST, difftest_step(pc, dnpc));
+  if (pre_wbu_valid) {
+    if (first_wbu_valid == false) {
+      IFDEF(CONFIG_DIFFTEST, difftest_step(pc, dnpc));
+    }
+    first_wbu_valid = false;
+  }
 }
 
 void exec_once() {
   single_cycle();
-  trace_and_difftest(cur_pc, cpu.pc);
+  trace_and_difftest(pre_pc, cpu.pc);
   IFDEF(CONFIG_DEVICE, device_update());
 }
 

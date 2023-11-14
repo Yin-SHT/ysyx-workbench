@@ -57,7 +57,7 @@ module dsram (
   end
 
   always @( * ) begin
-    if ( rst == `RST_DISABLE && inst_type_i == `INST_STORE ) begin
+    if (( rst == `RST_DISABLE ) && ( inst_type_i == `INST_STORE )) begin
       paddr_write(awaddr_i, wdata_i, wstrb_i);
     end
   end

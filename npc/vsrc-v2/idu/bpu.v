@@ -26,14 +26,14 @@ module bpu (
 
   assign  branch_en_o = (( rst == `RST_ENABLE ) || ( bpu_op_i == `BPU_OP_NOP )) ? `BRANCH_DISABLE : 
                         (
-                          ( bpu_op_i == `BPU_OP_BEQ  && equal               ) ||
-                          ( bpu_op_i == `BPU_OP_BNE  && !equal              ) ||
-                          ( bpu_op_i == `BPU_OP_BLT  && signed_less_than    ) ||
-                          ( bpu_op_i == `BPU_OP_BGE  && !signed_less_than   ) ||
-                          ( bpu_op_i == `BPU_OP_BLTU && unsigned_less_than  ) ||
-                          ( bpu_op_i == `BPU_OP_BGEU && !unsigned_less_than ) ||
-                          ( bpu_op_i == `BPU_OP_JAL                         ) ||
-                          ( bpu_op_i == `BPU_OP_JALR                        )
+                          (( bpu_op_i == `BPU_OP_BEQ  ) && ( equal               )) ||
+                          (( bpu_op_i == `BPU_OP_BNE  ) && ( !equal              )) ||
+                          (( bpu_op_i == `BPU_OP_BLT  ) && ( signed_less_than    )) ||
+                          (( bpu_op_i == `BPU_OP_BGE  ) && ( !signed_less_than   )) ||
+                          (( bpu_op_i == `BPU_OP_BLTU ) && ( unsigned_less_than  )) ||
+                          (( bpu_op_i == `BPU_OP_BGEU ) && ( !unsigned_less_than )) ||
+                          (( bpu_op_i == `BPU_OP_JAL  )                           ) ||
+                          (( bpu_op_i == `BPU_OP_JALR )                           )
                         );
 
   assign  dnpc_o      = ( rst == `RST_ENABLE ) ? 32'h8000_0000 : 
