@@ -4,14 +4,14 @@ module ifu (
   input                    rst,
   input                    clk,
 
-  input                    branch_en_i,
-  input  [`INST_ADDR_BUS]  dnpc_i,
-
   input                    valid_pre_i,
   output                   ready_pre_o,
 
   output                   valid_post_o,
   input                    ready_post_i,
+
+  input                    branch_en_i,
+  input  [`INST_ADDR_BUS]  dnpc_i,
 
   output [`INST_ADDR_BUS]  araddr_o,
   output [`INST_DATA_BUS]  rdata_o
