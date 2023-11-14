@@ -5,7 +5,7 @@ ARGS = -b \
 			 --diff=$(NEMU_HOME)/build/riscv32-nemu-interpreter-so
 
 CSRC_DIR = csrc
-VSRC_DIR = vsrc
+VSRC_DIR = vsrc-v2
 INC_DIR = $(NPC_HOME)/csrc/include
 OBJ_DIR = build
 
@@ -17,7 +17,7 @@ CSRCS = $(shell find $(CSRC_DIR) -name "*.cpp" )
 VSRCS = $(shell find $(VSRC_DIR) -name "*.v" )
 
 VERILATOR = verilator
-COMPILE_FLAG = --cc --trace --top-module top --Wall --timing -Ivsrc -Mdir $(OBJ_DIR)
+COMPILE_FLAG = --cc --trace --top-module top --Wall --timing -Ivsrc-v2 -Mdir $(OBJ_DIR)
 SIM_FLAG = $(COMPILE_FLAG) --exe --build -j 80
 
 all:

@@ -1,4 +1,4 @@
-`include "../defines.v"
+`include "defines.v"
 
 module subtract (
   input [`REG_DATA_BUS]     rdata1_i,
