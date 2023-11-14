@@ -235,5 +235,4 @@ module decode (
   assign  raddr1_o  = ( rena1_o == `READ_DISABLE  ) ? `ZERO_REG : rs1; 
   assign  raddr2_o  = ( rena2_o == `READ_DISABLE  ) ? `ZERO_REG : rs2;
 
-
 endmodule
