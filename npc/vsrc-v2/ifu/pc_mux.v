@@ -1,11 +1,11 @@
 `include "../defines.v"
 
 module pc_mux (
-  input rst,
+  input                    rst,
 
-  input                   branch_en_i, 
-  input [`INST_ADDR_BUS]  araddr_i,
-  input [`INST_ADDR_BUS]  dnpc_i,
+  input                    branch_en_i, 
+  input  [`INST_ADDR_BUS]  araddr_i,
+  input  [`INST_ADDR_BUS]  dnpc_i,
 
   output [`INST_ADDR_BUS]  next_pc_o
 );

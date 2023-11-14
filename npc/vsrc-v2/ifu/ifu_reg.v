@@ -1,8 +1,8 @@
 `include "../defines.v"
 
 module ifu_reg (
-  input clk,
-  input rst,
+  input                       clk,
+  input                       rst,
 
   /* IDU controller */
   input                       we_i,       // write enable 
