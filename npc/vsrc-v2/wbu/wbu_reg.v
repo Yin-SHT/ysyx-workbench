@@ -3,7 +3,8 @@
 module wbu_reg (
   input                        clk,
   input                        rst,
-  input                        we,
+
+  input                        we_i,
 
   input                        wena_i,
   input                        wsel_i,
@@ -25,7 +26,7 @@ module wbu_reg (
       wena_o     <= wena_o;
       waddr_o    <= waddr_o;
       wdata_o    <= wdata_o;
-      if ( we ) begin
+      if ( we_i ) begin
         wena_o     <= wena_i;
         waddr_o    <= waddr_i;
         if ( wsel_i == `SEL_ALU_DATA ) begin
