@@ -29,14 +29,17 @@ module lsu (
   wire [`MEM_ADDR_BUS] awaddr;
   wire [`MEM_DATA_BUS] wdata;
   wire [`MEM_MASK_BUS] wstrb;
+  wire [`MEM_DATA_BUS] rdata;
 
   dsram_pre u_dsram_pre(
   	.rst         ( rst         ),
+
     .inst_type_i ( inst_type_i ),
     .lsu_op_i    ( lsu_op_i    ),
     .imm_i       ( imm_i       ),
     .rdata1_i    ( rdata1_i    ),
     .rdata2_i    ( rdata2_i    ),
+
     .araddr_o    ( araddr      ),
     .roff_o      ( roff        ),
     .awaddr_o    ( awaddr      ),
@@ -44,8 +47,6 @@ module lsu (
     .wstrb_o     ( wstrb       )
   );
   
-  wire [`MEM_DATA_BUS] rdata;
-
   dsram u_dsram(
   	.clk         ( clk         ),
     .rst         ( rst         ),

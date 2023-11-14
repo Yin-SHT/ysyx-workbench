@@ -29,30 +29,12 @@ module exu (
   output [`REG_DATA_BUS]     mem_result_o
 );
   
-  wire                  arvalid;
-  wire                  arready;
-  wire [`INST_DATA_BUS] rresp;
-  wire                  rready;
-  wire                  rvalid;
-  wire                  we;
-
-  exu_fsm u_exu_fsm(
-  	.clk          ( clk          ),
-    .rst          ( rst          ),
-    .inst_type_i  ( inst_type_i  ),
-    .valid_pre_i  ( valid_pre_i  ),
-    .ready_pre_o  ( ready_pre_o  ),
-    .valid_post_o ( valid_post_o ),
-    .ready_post_i ( ready_post_i ),
-    .arvalid_o    ( arvalid      ),
-    .arready_i    ( arready      ),
-    .rvalid_i     ( rvalid       ),
-    .rresp_i      ( rresp        ),
-    .rready_o     ( rready       ),
-    .we_o         ( we           )
-  );
-  
-
+  wire                    arvalid;
+  wire                    arready;
+  wire [`INST_DATA_BUS]   rresp;
+  wire                    rready;
+  wire                    rvalid;
+  wire                    we;
   wire [`INST_TYPE_BUS]   inst_type;
   wire [`ALU_OP_BUS]      alu_op;
   wire [`LSU_OP_BUS]      lsu_op;
@@ -61,10 +43,31 @@ module exu (
   wire [`REG_DATA_BUS]    rdata1;
   wire [`REG_DATA_BUS]    rdata2;
   
-  exu_reg u_exu_reg(
+  exu_fsm u_exu_fsm (
   	.clk          ( clk          ),
     .rst          ( rst          ),
+
+    .inst_type_i  ( inst_type_i  ),
+
+    .valid_pre_i  ( valid_pre_i  ),
+    .ready_pre_o  ( ready_pre_o  ),
+    .valid_post_o ( valid_post_o ),
+    .ready_post_i ( ready_post_i ),
+
+    .arvalid_o    ( arvalid      ),
+    .arready_i    ( arready      ),
+    .rvalid_i     ( rvalid       ),
+    .rresp_i      ( rresp        ),
+    .rready_o     ( rready       ),
+    .we_o         ( we           )
+  );
+  
+  exu_reg u_exu_reg (
+  	.clk          ( clk          ),
+    .rst          ( rst          ),
+
     .we_i         ( we           ),
+
     .inst_type_i  ( inst_type_i  ),
     .alu_op_i     ( alu_op_i     ),
     .lsu_op_i     ( lsu_op_i     ),
@@ -75,6 +78,7 @@ module exu (
     .imm_i        ( imm_i        ),
     .rdata1_i     ( rdata1_i     ),
     .rdata2_i     ( rdata2_i     ),
+
     .inst_type_o  ( inst_type    ),
     .alu_op_o     ( alu_op       ),
     .lsu_op_o     ( lsu_op       ),
@@ -87,32 +91,35 @@ module exu (
     .rdata2_o     ( rdata2       )
   );
   
-
-  fu u_fu(
+  fu u_fu (
   	.rst          ( rst          ),
+
     .inst_type_i  ( inst_type    ),
     .alu_op_i     ( alu_op       ),
     .pc_i         ( pc           ),
     .imm_i        ( imm          ),
     .rdata1_i     ( rdata1       ),
     .rdata2_i     ( rdata2       ),
+
     .alu_result_o ( alu_result_o )
   );
   
-
-  lsu u_lsu(
+  lsu u_lsu (
   	.clk          ( clk          ),
     .rst          ( rst          ),
+
     .inst_type_i  ( inst_type    ),
     .lsu_op_i     ( lsu_op       ),
     .imm_i        ( imm          ),
     .rdata1_i     ( rdata1       ),
     .rdata2_i     ( rdata2       ),
+
     .arvalid_i    ( arvalid      ),
     .arready_o    ( arready      ),
     .rresp_o      ( rresp        ),
     .rready_i     ( rready       ),
     .rvalid_o     ( rvalid       ),
+
     .mem_data_o   ( mem_result_o )
   );
 
