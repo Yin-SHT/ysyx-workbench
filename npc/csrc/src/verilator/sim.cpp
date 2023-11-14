@@ -23,7 +23,7 @@ extern uint32_t next_inst;
 /* Signel cycle simulation in verilator */
 static void update_cpu(uint32_t next_pc) {
   for (int i = 0; i < MUXDEF(CONFIG_RVE, 16, 32); i++) {
-    cpu.gpr[i] = top->rootp->top__DOT__u_regfile__DOT__regs[i];
+    cpu.gpr[i] = top->rootp->top__DOT__u_idu__DOT__u_regfile__DOT__regs[i];
   }
   cpu.pc = next_pc;
 }
@@ -32,9 +32,9 @@ void single_cycle() {
   top->clk = 0; 
   top->eval(); IFDEF(CONFIG_WAVEFORM, tfp->dump(contextp->time())); contextp->timeInc(1);
 
-  cur_pc = top->rootp->top__DOT__pc___05Finst_fetch;
-  cur_inst = top->rootp->top__DOT__u_inst_mem__DOT__rdata;
-  word_t a0 = top->rootp->top__DOT__u_regfile__DOT__regs[10];
+  cur_pc = top->rootp->top__DOT__araddr;
+  cur_inst = top->rootp->top__DOT__rdata;
+  word_t a0 = top->rootp->top__DOT__u_idu__DOT__u_regfile__DOT__regs[10];
 
   NPCTRAP(cur_pc, a0);
   INV(cur_inst, cur_pc);
@@ -42,8 +42,8 @@ void single_cycle() {
   top->clk = 1; 
   top->eval(); IFDEF(CONFIG_WAVEFORM, tfp->dump(contextp->time())); contextp->timeInc(1);
 
-  next_pc = top->rootp->top__DOT__pc___05Finst_fetch;
-  next_inst = top->rootp->top__DOT__u_inst_mem__DOT__rdata;
+  next_pc = top->rootp->top__DOT__araddr;
+  next_inst = top->rootp->top__DOT__rdata;
 
   /* Regfile 是同步写，异步读。
    * 因此把 update_cpu() 放在这里来获取执行完一条指令后的 regfile 的状态。
@@ -69,7 +69,7 @@ void init_verilator(int argc, char **argv) {
 #endif
 
   // Prepare for DPI-C
-  const svScope scope_pd = svGetScopeFromName("TOP.top.u_inst_decode");
+  const svScope scope_pd = svGetScopeFromName("TOP.top.u_idu.u_decode");
   Assert(scope_pd, "scope_pd is null"); // Check for nullptr if scope not found
   svSetScope(scope_pd);
 
@@ -80,12 +80,12 @@ void init_verilator(int argc, char **argv) {
 
 /* Utilities */
 void reset(int n) {
-  top->rst = 1;
+  top->rst = 0;
   while (n -- > 0) {
     top->clk = 0; top->eval(); IFDEF(CONFIG_WAVEFORM, tfp->dump(contextp->time())); contextp->timeInc(1);
     top->clk = 1; top->eval(); IFDEF(CONFIG_WAVEFORM, tfp->dump(contextp->time())); contextp->timeInc(1);
   }
-  top->rst = 0;
+  top->rst = 1;
 }
 
 void clean_up() {
@@ -102,5 +102,5 @@ int check_reg_idx(int idx) {
 
 word_t npc_regs(int i) {
   int idx =  check_reg_idx(i);
-  return  top->rootp->top__DOT__u_regfile__DOT__regs[idx];
+  return top->rootp->top__DOT__u_idu__DOT__u_regfile__DOT__regs[idx];
 }

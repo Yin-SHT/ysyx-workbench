@@ -17,6 +17,7 @@ module ifu_fsm (
   input    arready_i,
 
   /* Data Read Channel */
+  /* verilator lint_off UNUSEDSIGNAL */
   input    [`INST_DATA_BUS] rresp_i,
   input    rvalid_i,
   output   rready_o,

@@ -18,6 +18,7 @@ module exu_fsm (
   input    arready_i,
 
   /* Data Read Channel */
+  /* verilator lint_off UNUSEDSIGNAL */
   input    rvalid_i,
   input    [`INST_DATA_BUS] rresp_i,
   output   rready_o,

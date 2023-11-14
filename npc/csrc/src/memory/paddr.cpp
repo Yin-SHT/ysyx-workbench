@@ -32,13 +32,13 @@ void init_mem() {
   Log("physical memory area [" FMT_PADDR ", " FMT_PADDR "]", PMEM_LEFT, PMEM_RIGHT);
 }
 
-extern "C" int paddr_read(int raddr, int len) {
+extern "C" int paddr_read(int raddr, int *rresp) {
   /* Process addr  */
   raddr &= (~(0x3u));
-  len = 4;
+  *rresp = 0;
 
-  if (likely(in_pmem(raddr))) return pmem_read(raddr, len);
-  IFDEF(CONFIG_DEVICE, return mmio_read(raddr, len));
+  if (likely(in_pmem(raddr))) return pmem_read(raddr, 4);
+  IFDEF(CONFIG_DEVICE, return mmio_read(raddr, 4));
   out_of_bound(raddr);
   return 0;
 }
