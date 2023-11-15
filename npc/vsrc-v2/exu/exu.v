@@ -29,11 +29,6 @@ module exu (
   output [`REG_DATA_BUS]     mem_result_o
 );
   
-  wire                    arvalid;
-  wire                    arready;
-  wire [`INST_DATA_BUS]   rresp;
-  wire                    rready;
-  wire                    rvalid;
   wire                    we;
   wire [`INST_TYPE_BUS]   inst_type;
   wire [`ALU_OP_BUS]      alu_op;
@@ -42,8 +37,20 @@ module exu (
   wire [`REG_DATA_BUS]    imm;
   wire [`REG_DATA_BUS]    rdata1;
   wire [`REG_DATA_BUS]    rdata2;
+  wire                    arvalid;
+  wire                    arready;
+  wire                    [`INST_DATA_BUS] rresp;
+  wire                    rvalid;
+  wire                    rready;
+  wire                    awvalid;
+  wire                    awready;
+  wire                    wvalid;
+  wire                    wready;
+  wire                    [`INST_DATA_BUS] bresp;
+  wire                    bvalid;
+  wire                    bready;
   
-  exu_fsm u_exu_fsm (
+  exu_fsm u_exu_fsm(
   	.clk          ( clk          ),
     .rst          ( rst          ),
 
@@ -56,12 +63,26 @@ module exu (
 
     .arvalid_o    ( arvalid      ),
     .arready_i    ( arready      ),
-    .rvalid_i     ( rvalid       ),
+
     .rresp_i      ( rresp        ),
+    .rvalid_i     ( rvalid       ),
     .rready_o     ( rready       ),
+
+    .awvalid_o    ( awvalid      ),
+    .awready_i    ( awready      ),
+
+    .wvalid_o     ( wvalid       ),
+    .wready_i     ( wready       ),
+
+    .bresp_i      ( bresp        ),
+    .bvalid_i     ( bvalid       ),
+    .bready_o     ( bready       ),
+
     .we_o         ( we           )
   );
   
+
+
   exu_reg u_exu_reg (
   	.clk          ( clk          ),
     .rst          ( rst          ),
@@ -104,23 +125,35 @@ module exu (
     .alu_result_o ( alu_result_o )
   );
   
-  lsu u_lsu (
-  	.clk          ( clk          ),
-    .rst          ( rst          ),
+  lsu u_lsu(
+  	.clk          ( clk           ),
+    .rst          ( rst           ),
 
-    .inst_type_i  ( inst_type    ),
-    .lsu_op_i     ( lsu_op       ),
-    .imm_i        ( imm          ),
-    .rdata1_i     ( rdata1       ),
-    .rdata2_i     ( rdata2       ),
+    .inst_type_i  ( inst_type     ),
+    .lsu_op_i     ( lsu_op        ),
+    .imm_i        ( imm           ),
+    .rdata1_i     ( rdata1        ),
+    .rdata2_i     ( rdata2        ),
 
-    .arvalid_i    ( arvalid      ),
-    .arready_o    ( arready      ),
-    .rresp_o      ( rresp        ),
-    .rready_i     ( rready       ),
-    .rvalid_o     ( rvalid       ),
+    .arvalid_i    ( arvalid       ),
+    .arready_o    ( arready       ),
 
-    .mem_data_o   ( mem_result_o )
+    .rresp_o      ( rresp         ),
+    .rvalid_o     ( rvalid        ),
+    .rready_i     ( rready        ),
+
+    .awvalid_i    ( awvalid       ),
+    .awready_o    ( awready       ),
+
+    .wvalid_i     ( wvalid        ),
+    .wready_o     ( wready        ),
+
+    .bresp_o      ( bresp         ),
+    .bvalid_o     ( bvalid        ),
+    .bready_i     ( bready        ),
+
+    .mem_result_o ( mem_result_o  )
   );
+  
 
 endmodule

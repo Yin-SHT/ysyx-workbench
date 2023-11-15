@@ -43,8 +43,9 @@ extern "C" int paddr_read(int raddr, int *rresp) {
   return 0;
 }
 
-extern "C" void paddr_write(int waddr, int wdata, char wmask) {
+extern "C" void paddr_write(int waddr, int wdata, char wmask, int *bresp) {
   /* Process addr */
+  *bresp = 0;
   int len = 0;
   waddr = waddr & (~(0x3u));
   switch (wmask) {

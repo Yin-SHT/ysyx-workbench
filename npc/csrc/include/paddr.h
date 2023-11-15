@@ -59,7 +59,7 @@ static inline void host_write(void *addr, int len, word_t data) {
 //word_t paddr_read(paddr_t addr, int len);
 //void paddr_write(paddr_t addr, int len, word_t data);
 extern "C" int paddr_read(int raddr, int *rresp);
-extern "C" void paddr_write(int waddr, int wdata, char wmask);
+extern "C" void paddr_write(int waddr, int wdata, char wmask, int *bresp);
 
 word_t host_read(void *addr, int len);
 void host_write(void *addr, int len, word_t data);
