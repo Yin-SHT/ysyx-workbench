@@ -17,13 +17,20 @@ module ifu (
   output [`INST_DATA_BUS]  rdata_o
 );
 
-  wire                   arvalid;
-  wire                   arready;
-  wire  [`INST_DATA_BUS] rresp;
-  wire                   rvalid;
-  wire                   rready;
   wire                   we;
   wire [`INST_ADDR_BUS]  next_pc;
+  wire                   arvalid;
+  wire                   arready;
+  wire [`INST_DATA_BUS]  rresp;
+  wire                   rvalid;
+  wire                   rready;
+  wire                   awvalid;
+  wire                   awready;
+  wire                   wvalid;
+  wire                   wready;
+  wire [`INST_DATA_BUS]  bresp;
+  wire                   bvalid;
+  wire                   bready;
 
   ifu_fsm u_ifu_fsm(
   	.clk          ( clk          ),
@@ -36,9 +43,21 @@ module ifu (
 
     .arvalid_o    ( arvalid      ),
     .arready_i    ( arready      ),
+
     .rresp_i      ( rresp        ),
     .rvalid_i     ( rvalid       ),
     .rready_o     ( rready       ),
+
+    .awvalid_o    ( awvalid      ),
+    .awready_i    ( awready      ),
+
+    .wvalid_o     ( wvalid       ),
+    .wready_i     ( wready       ),
+
+    .bresp_i      ( bresp        ),
+    .bvalid_i     ( bvalid       ),
+    .bready_o     ( bready       ),
+
     .we_o         ( we           )
   );
 
@@ -62,16 +81,32 @@ module ifu (
   );
   
   isram u_isram(
-  	.clk          ( clk          ),
-    .rst          ( rst          ),
-    .araddr_i     ( araddr_o     ),
-    .arvalid_i    ( arvalid      ),
-    .arready_o    ( arready      ),
-    .rdata_o      ( rdata_o      ),
-    .rresp_o      ( rresp        ),
-    .rready_i     ( rready       ),
-    .rvalid_o     ( rvalid       )
+  	.clk       ( clk       ),
+    .rst       ( rst       ),
+
+    .araddr_i  ( araddr_o  ),
+    .arvalid_i ( arvalid   ),
+    .arready_o ( arready   ),
+    
+    .rdata_o   ( rdata_o   ),
+    .rresp_o   ( rresp     ),
+    .rvalid_o  ( rvalid    ),
+    .rready_i  ( rready    ),
+
+    .awaddr_i  ( 32'h0     ),
+    .awvalid_i ( awvalid   ),
+    .awready_o ( awready   ),
+
+    .wdata_i   ( 32'h0     ),
+    .wstrb_i   ( 8'h0      ),
+    .wvalid_i  ( wvalid    ),
+    .wready_o  ( wready    ),
+
+    .bresp_o   ( bresp     ),
+    .bvalid_o  ( bvalid    ),
+    .bready_i  ( bready    )
   );
-  
+    
+
 
 endmodule
