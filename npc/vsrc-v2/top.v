@@ -22,7 +22,6 @@ module top (
   wire [`INST_ADDR_BUS]     dnpc;
 
   /* IFU & IDU */     
-  wire [`INST_ADDR_BUS]     araddr;
   wire [`INST_DATA_BUS]     rdata;
 
   /* WBU & IDU */
@@ -49,6 +48,63 @@ module top (
   wire  [`REG_DATA_BUS]     alu_result;
   wire  [`REG_DATA_BUS]     mem_result;
 
+  /* IFU & ARBITER */
+  wire  [`MEM_ADDR_BUS]     ifu_araddr;
+  wire                      ifu_arvalid;
+  wire                      ifu_arready;
+  wire  [`MEM_DATA_BUS]     ifu_rdata;
+  wire  [`INST_DATA_BUS]    ifu_rresp;
+  wire                      ifu_rvalid;
+  wire                      ifu_rready;
+  wire  [`MEM_ADDR_BUS]     ifu_awaddr;
+  wire                      ifu_awvalid;
+  wire                      ifu_awready;
+  wire  [`MEM_DATA_BUS]     ifu_wdata;
+  wire  [`MEM_MASK_BUS]     ifu_wstrb;
+  wire                      ifu_wvalid;
+  wire                      ifu_wready;
+  wire  [`INST_DATA_BUS]    ifu_bresp;
+  wire                      ifu_bvalid;
+  wire                      ifu_bready;
+
+  /* EXU & ARBITER */
+  wire  [`MEM_ADDR_BUS]     exu_araddr;
+  wire                      exu_arvalid;
+  wire                      exu_arready;
+  wire  [`MEM_DATA_BUS]     exu_rdata;
+  wire  [`INST_DATA_BUS]    exu_rresp;
+  wire                      exu_rvalid;
+  wire                      exu_rready;
+  wire  [`MEM_ADDR_BUS]     exu_awaddr;
+  wire                      exu_awvalid;
+  wire                      exu_awready;
+  wire  [`MEM_DATA_BUS]     exu_wdata;
+  wire  [`MEM_MASK_BUS]     exu_wstrb;
+  wire                      exu_wvalid;
+  wire                      exu_wready;
+  wire  [`INST_DATA_BUS]    exu_bresp;
+  wire                      exu_bvalid;
+  wire                      exu_bready;
+
+  /* ARBITER & SRAM */
+  wire  [`INST_ADDR_BUS]    sram_araddr;
+  wire                      sram_arvalid;
+  wire                      sram_arready;
+  wire  [`INST_DATA_BUS]    sram_rdata;
+  wire  [`INST_DATA_BUS]    sram_rresp;
+  wire                      sram_rvalid;
+  wire                      sram_rready;
+  wire  [`MEM_ADDR_BUS]     sram_awaddr;
+  wire                      sram_awvalid;
+  wire                      sram_awready;
+  wire  [`MEM_DATA_BUS]     sram_wdata;
+  wire  [`MEM_MASK_BUS]     sram_wstrb;
+  wire                      sram_wvalid;
+  wire                      sram_wready;
+  wire  [`INST_DATA_BUS]    sram_bresp;
+  wire                      sram_bvalid;
+  wire                      sram_bready;
+
   ifu u_ifu(
   	.rst          ( rst           ),
     .clk          ( clk           ),
@@ -61,8 +117,29 @@ module top (
     .branch_en_i  ( branch_en     ),
     .dnpc_i       ( dnpc          ),
 
-    .araddr_o     ( araddr        ),
-    .rdata_o      ( rdata         )
+    .rdata_o      ( rdata         ),
+
+    .araddr_o     ( ifu_araddr    ),
+    .arvalid_o    ( ifu_arvalid   ),
+    .arready_i    ( ifu_arready   ),
+
+    .rdata_i      ( ifu_rdata     ),
+    .rresp_i      ( ifu_rresp     ),
+    .rvalid_i     ( ifu_rvalid    ),
+    .rready_o     ( ifu_rready    ),
+
+    .awaddr_o     ( ifu_awaddr    ),
+    .awvalid_o    ( ifu_awvalid   ),
+    .awready_i    ( ifu_awready   ),
+
+    .wdata_o      ( ifu_wdata     ),
+    .wstrb_o      ( ifu_wstrb     ),
+    .wvalid_o     ( ifu_wvalid    ),
+    .wready_i     ( ifu_wready    ),
+
+    .bresp_i      ( ifu_bresp     ),
+    .bvalid_i     ( ifu_bvalid    ),
+    .bready_o     ( ifu_bready    )
   );
   
   idu u_idu(
@@ -78,7 +155,7 @@ module top (
     .waddr_i      ( waddr         ),
     .wdata_i      ( wdata         ),
 
-    .pc_i         ( araddr        ),
+    .pc_i         ( ifu_araddr    ),
     .inst_i       ( rdata         ),
 
     .inst_type_o  ( inst_type     ),
@@ -120,7 +197,29 @@ module top (
     .wena_o       ( wena_exu_wbu  ),
     .waddr_o      ( waddr_exu_wbu ),
     .alu_result_o ( alu_result    ),
-    .mem_result_o ( mem_result    )
+    .mem_result_o ( mem_result    ),
+
+    .araddr_o     ( exu_araddr    ),
+    .arvalid_o    ( exu_arvalid   ),
+    .arready_i    ( exu_arready   ),
+
+    .rdata_i      ( exu_rdata     ),
+    .rresp_i      ( exu_rresp     ),
+    .rvalid_i     ( exu_rvalid    ),
+    .rready_o     ( exu_rready    ),
+
+    .awaddr_o     ( exu_awaddr    ),
+    .awvalid_o    ( exu_awvalid   ),
+    .awready_i    ( exu_awready   ),
+
+    .wdata_o      ( exu_wdata     ),
+    .wstrb_o      ( exu_wstrb     ),
+    .wvalid_o     ( exu_wvalid    ),
+    .wready_i     ( exu_wready    ),
+
+    .bresp_i      ( exu_bresp     ),
+    .bvalid_i     ( exu_bvalid    ),
+    .bready_o     ( exu_bready    )
   );
   
   wbu u_wbu(
@@ -142,5 +241,106 @@ module top (
     .waddr_o      ( waddr         ),
     .wdata_o      ( wdata         )
   );
+
+  arbiter u_arbiter(
+  	.clk            ( clk            ),
+    .rst            ( rst            ),
+
+    /* AR: Address Read Channel */
+    .ifu_araddr_i   ( ifu_araddr     ),
+    .exu_araddr_i   ( exu_araddr     ),
+    .sram_araddr_o  ( sram_araddr    ),
+
+    .ifu_arvalid_i  ( ifu_arvalid    ),
+    .exu_arvalid_i  ( exu_arvalid    ),
+    .sram_arvalid_o ( sram_arvalid   ),
+
+    .sram_arready_i ( sram_arready   ),
+    .ifu_arready_o  ( ifu_arready    ),
+    .exu_arready_o  ( exu_arready    ),
+
+    /*  R: Data Read Channel */
+    .sram_rdata_i   ( sram_rdata     ),
+    .ifu_rdata_o    ( ifu_rdata      ),
+    .exu_rdata_o    ( exu_rdata      ),
+
+    .sram_rresp_i   ( sram_rresp     ),
+    .ifu_rresp_o    ( ifu_rresp      ),
+    .exu_rresp_o    ( exu_rresp      ),
+
+    .sram_rvalid_i  ( sram_rvalid    ),
+    .ifu_rvalid_o   ( ifu_rvalid     ),
+    .exu_rvalid_o   ( exu_rvalid     ),
+
+    .ifu_rready_i   ( ifu_rready     ),
+    .exu_rready_i   ( exu_rready     ),
+    .sram_rready_o  ( sram_rready    ),
+
+    /* AW: Address Write Channel */
+    .ifu_awaddr_i   ( ifu_awaddr     ),
+    .exu_awaddr_i   ( exu_awaddr     ),
+    .sram_awaddr_o  ( sram_awaddr    ),
+
+    .ifu_awvalid_i  ( ifu_awvalid    ),
+    .exu_awvalid_i  ( exu_awvalid    ),
+    .sram_awvalid_o ( sram_awvalid   ),
+
+    .sram_awready_i ( sram_awready   ),
+    .ifu_awready_o  ( ifu_awready    ),
+    .exu_awready_o  ( exu_awready    ),
+
+    /*  W: Data Write Channel */
+    .ifu_wdata_i    ( ifu_wdata      ),
+    .exu_wdata_i    ( exu_wdata      ),
+    .sram_wdata_o   ( sram_wdata     ),
+
+    .ifu_wstrb_i    ( ifu_wstrb      ),
+    .exu_wstrb_i    ( exu_wstrb      ),
+    .sram_wstrb_o   ( sram_wstrb     ),
+
+    .ifu_wvalid_i   ( ifu_wvalid     ),
+    .exu_wvalid_i   ( exu_wvalid     ),
+    .sram_wvalid_o  ( sram_wvalid    ),
+
+    .sram_wready_i  ( sram_wready    ),
+    .ifu_wready_o   ( ifu_wready     ),
+    .exu_wready_o   ( exu_wready     ),
+
+    /* B: Response Write Channel */
+    .sram_bresp_i   ( sram_bresp     ),
+    .ifu_bresp_o    ( ifu_bresp      ),
+    .exu_bresp_o    ( exu_bresp      ),
+
+    .sram_bvalid_i  ( sram_bvalid    ),
+    .ifu_bvalid_o   ( ifu_bvalid     ),
+    .exu_bvalid_o   ( exu_bvalid     ),
+
+    .ifu_bready_i   ( ifu_bready     ),
+    .exu_bready_i   ( exu_bready     ),
+    .sram_bready_o  ( sram_bready    )
+  );
+
+  sram u_sram(
+  	.clk        ( clk          ),
+    .rst        ( rst          ),
+    .araddr_i   ( sram_araddr  ),
+    .arvalid_i  ( sram_arvalid ),
+    .arready_o  ( sram_arready ),
+    .rdata_o    ( sram_rdata   ),
+    .rresp_o    ( sram_rresp   ),
+    .rvalid_o   ( sram_rvalid  ),
+    .rready_i   ( sram_rready  ),
+    .awaddr_i   ( sram_awaddr  ),
+    .awvalid_i  ( sram_awvalid ),
+    .awready_o  ( sram_awready ),
+    .wdata_i    ( sram_wdata   ),
+    .wstrb_i    ( sram_wstrb   ),
+    .wvalid_i   ( sram_wvalid  ),
+    .wready_o   ( sram_wready  ),
+    .bresp_o    ( sram_bresp   ),
+    .bvalid_o   ( sram_bvalid  ),
+    .bready_i   ( sram_bready  )
+  );
+  
 
 endmodule

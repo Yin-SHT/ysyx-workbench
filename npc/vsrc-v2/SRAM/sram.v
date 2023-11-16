@@ -1,6 +1,6 @@
 `include "defines.v"
 
-module isram (
+module sram (
   input                         clk,
   input                         rst,
 

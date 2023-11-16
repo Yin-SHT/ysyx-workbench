@@ -26,7 +26,39 @@ module exu (
   output                     wena_o,
   output [`REG_ADDR_BUS]     waddr_o,
   output [`REG_DATA_BUS]     alu_result_o,
-  output [`REG_DATA_BUS]     mem_result_o
+  output [`REG_DATA_BUS]     mem_result_o,
+
+  /* AR: Address Read Channel */
+  output [`MEM_ADDR_BUS]     araddr_o,
+
+  output                     arvalid_o,
+  input                      arready_i,
+
+  /*  R: Data Read Channel */
+  input  [`MEM_DATA_BUS]     rdata_i,
+  input  [`INST_DATA_BUS]    rresp_i,
+
+  input                      rvalid_i,
+  output                     rready_o,
+
+  /* WR: Address Write Channel */
+  output [`MEM_ADDR_BUS]     awaddr_o,
+
+  output                     awvalid_o,
+  input                      awready_i,
+
+  /*  W: Data Write Channel */
+  output [`MEM_DATA_BUS]     wdata_o,
+  output [`MEM_MASK_BUS]     wstrb_o,
+
+  output                     wvalid_o,
+  input                      wready_i,
+
+  /*  B: Response Write Channel */
+  input  [`INST_DATA_BUS]    bresp_i,
+
+  input                      bvalid_i,
+  output                     bready_o
 );
   
   wire                    we;
@@ -37,20 +69,8 @@ module exu (
   wire [`REG_DATA_BUS]    imm;
   wire [`REG_DATA_BUS]    rdata1;
   wire [`REG_DATA_BUS]    rdata2;
-  wire                    arvalid;
-  wire                    arready;
-  wire                    [`INST_DATA_BUS] rresp;
-  wire                    rvalid;
-  wire                    rready;
-  wire                    awvalid;
-  wire                    awready;
-  wire                    wvalid;
-  wire                    wready;
-  wire                    [`INST_DATA_BUS] bresp;
-  wire                    bvalid;
-  wire                    bready;
   
-  exu_fsm u_exu_fsm(
+  exu_fsm u_exu_fsm (
   	.clk          ( clk          ),
     .rst          ( rst          ),
 
@@ -61,28 +81,26 @@ module exu (
     .valid_post_o ( valid_post_o ),
     .ready_post_i ( ready_post_i ),
 
-    .arvalid_o    ( arvalid      ),
-    .arready_i    ( arready      ),
+    .arvalid_o    ( arvalid_o    ),
+    .arready_i    ( arready_i    ),
 
-    .rresp_i      ( rresp        ),
-    .rvalid_i     ( rvalid       ),
-    .rready_o     ( rready       ),
+    .rresp_i      ( rresp_i      ),
+    .rvalid_i     ( rvalid_i     ),
+    .rready_o     ( rready_o     ),
 
-    .awvalid_o    ( awvalid      ),
-    .awready_i    ( awready      ),
+    .awvalid_o    ( awvalid_o    ),
+    .awready_i    ( awready_i    ),
 
-    .wvalid_o     ( wvalid       ),
-    .wready_i     ( wready       ),
+    .wvalid_o     ( wvalid_o     ),
+    .wready_i     ( wready_i     ),
 
-    .bresp_i      ( bresp        ),
-    .bvalid_i     ( bvalid       ),
-    .bready_o     ( bready       ),
+    .bresp_i      ( bresp_i      ),
+    .bvalid_i     ( bvalid_i     ),
+    .bready_o     ( bready_o     ),
 
     .we_o         ( we           )
   );
   
-
-
   exu_reg u_exu_reg (
   	.clk          ( clk          ),
     .rst          ( rst          ),
@@ -126,34 +144,22 @@ module exu (
   );
   
   lsu u_lsu(
-  	.clk          ( clk           ),
-    .rst          ( rst           ),
+  	.rst          ( rst          ),
 
-    .inst_type_i  ( inst_type     ),
-    .lsu_op_i     ( lsu_op        ),
-    .imm_i        ( imm           ),
-    .rdata1_i     ( rdata1        ),
-    .rdata2_i     ( rdata2        ),
+    .inst_type_i  ( inst_type_i  ),
+    .lsu_op_i     ( lsu_op       ),
+    .imm_i        ( imm_i        ),
+    .rdata1_i     ( rdata1_i     ),
+    .rdata2_i     ( rdata2_i     ),
 
-    .arvalid_i    ( arvalid       ),
-    .arready_o    ( arready       ),
+    .araddr_o     ( araddr_o     ),
+    .awaddr_o     ( awaddr_o     ),
+    .wdata_o      ( wdata_o      ),
+    .wstrb_o      ( wstrb_o      ),
 
-    .rresp_o      ( rresp         ),
-    .rvalid_o     ( rvalid        ),
-    .rready_i     ( rready        ),
-
-    .awvalid_i    ( awvalid       ),
-    .awready_o    ( awready       ),
-
-    .wvalid_i     ( wvalid        ),
-    .wready_o     ( wready        ),
-
-    .bresp_o      ( bresp         ),
-    .bvalid_o     ( bvalid        ),
-    .bready_i     ( bready        ),
-
-    .mem_result_o ( mem_result_o  )
+    .rdata_i      ( rdata_i      ),
+    .mem_result_o ( mem_result_o )
   );
-  
+   
 
 endmodule

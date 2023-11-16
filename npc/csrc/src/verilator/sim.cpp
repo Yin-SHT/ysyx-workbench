@@ -38,12 +38,11 @@ void single_cycle() {
 
   /* Check ebreak instruction */
   pre_pc = cur_pc;
-  cur_pc = top->rootp->top__DOT__araddr;
-  cur_inst = top->rootp->top__DOT__rdata;
+  cur_pc = top->rootp->top__DOT__ifu_araddr;
+  cur_inst = top->rootp->top__DOT__u_idu__DOT__rdata;
   word_t a0 = top->rootp->top__DOT__u_idu__DOT__u_regfile__DOT__regs[10];
   NPCTRAP(cur_pc, a0);
 
-  /* Check whether inst is within wbu stage */
   pre_wbu_valid = cur_wbu_valid;
   cur_wbu_valid = top->rootp->top__DOT__valid_wbu_ifu;
 

@@ -1,36 +1,60 @@
 `include "defines.v"
 
 module ifu (
-  input                    rst,
-  input                    clk,
+  input                      rst,
+  input                      clk,
 
-  input                    valid_pre_i,
-  output                   ready_pre_o,
+  input                      valid_pre_i,
+  output                     ready_pre_o,
 
-  output                   valid_post_o,
-  input                    ready_post_i,
+  output                     valid_post_o,
+  input                      ready_post_i,
 
-  input                    branch_en_i,
-  input  [`INST_ADDR_BUS]  dnpc_i,
+  input                      branch_en_i,
+  input  [`INST_ADDR_BUS]    dnpc_i,
 
-  output [`INST_ADDR_BUS]  araddr_o,
-  output [`INST_DATA_BUS]  rdata_o
+  output [`MEM_DATA_BUS]     rdata_o,
+
+  /* AR: Address Read Channel */
+  output [`MEM_ADDR_BUS]     araddr_o,
+
+  output                     arvalid_o,
+  input                      arready_i,
+
+  /*  R: Data Read Channel */
+  input  [`MEM_DATA_BUS]     rdata_i,
+  input  [`INST_DATA_BUS]    rresp_i,
+
+  input                      rvalid_i,
+  output                     rready_o,
+
+  /* WR: Address Write Channel */
+  output [`MEM_ADDR_BUS]     awaddr_o,
+
+  output                     awvalid_o,
+  input                      awready_i,
+
+  /*  W: Data Write Channel */
+  output [`MEM_DATA_BUS]     wdata_o,
+  output [`MEM_MASK_BUS]     wstrb_o,
+
+  output                     wvalid_o,
+  input                      wready_i,
+
+  /*  B: Response Write Channel */
+  input  [`INST_DATA_BUS]    bresp_i,
+
+  input                      bvalid_i,
+  output                     bready_o
 );
+
+  assign  rdata_o  = rdata_i;
+  assign  awaddr_o = 32'h0000_0000;
+  assign  wdata_o  = 32'h0000_0000;
+  assign  wstrb_o  =  8'b0000_0000;
 
   wire                   we;
   wire [`INST_ADDR_BUS]  next_pc;
-  wire                   arvalid;
-  wire                   arready;
-  wire [`INST_DATA_BUS]  rresp;
-  wire                   rvalid;
-  wire                   rready;
-  wire                   awvalid;
-  wire                   awready;
-  wire                   wvalid;
-  wire                   wready;
-  wire [`INST_DATA_BUS]  bresp;
-  wire                   bvalid;
-  wire                   bready;
 
   ifu_fsm u_ifu_fsm(
   	.clk          ( clk          ),
@@ -41,22 +65,22 @@ module ifu (
     .valid_post_o ( valid_post_o ),
     .ready_post_i ( ready_post_i ),
 
-    .arvalid_o    ( arvalid      ),
-    .arready_i    ( arready      ),
+    .arvalid_o    ( arvalid_o    ),
+    .arready_i    ( arready_i    ),
 
-    .rresp_i      ( rresp        ),
-    .rvalid_i     ( rvalid       ),
-    .rready_o     ( rready       ),
+    .rresp_i      ( rresp_i      ),
+    .rvalid_i     ( rvalid_i     ),
+    .rready_o     ( rready_o     ),
 
-    .awvalid_o    ( awvalid      ),
-    .awready_i    ( awready      ),
+    .awvalid_o    ( awvalid_o    ),
+    .awready_i    ( awready_i    ),
 
-    .wvalid_o     ( wvalid       ),
-    .wready_i     ( wready       ),
+    .wvalid_o     ( wvalid_o     ),
+    .wready_i     ( wready_i     ),
 
-    .bresp_i      ( bresp        ),
-    .bvalid_i     ( bvalid       ),
-    .bready_o     ( bready       ),
+    .bresp_i      ( bresp_i      ),
+    .bvalid_i     ( bvalid_i     ),
+    .bready_o     ( bready_o     ),
 
     .we_o         ( we           )
   );
@@ -80,33 +104,4 @@ module ifu (
     .araddr_o     ( araddr_o     )
   );
   
-  isram u_isram(
-  	.clk       ( clk       ),
-    .rst       ( rst       ),
-
-    .araddr_i  ( araddr_o  ),
-    .arvalid_i ( arvalid   ),
-    .arready_o ( arready   ),
-    
-    .rdata_o   ( rdata_o   ),
-    .rresp_o   ( rresp     ),
-    .rvalid_o  ( rvalid    ),
-    .rready_i  ( rready    ),
-
-    .awaddr_i  ( 32'h0     ),
-    .awvalid_i ( awvalid   ),
-    .awready_o ( awready   ),
-
-    .wdata_i   ( 32'h0     ),
-    .wstrb_i   ( 8'h0      ),
-    .wvalid_i  ( wvalid    ),
-    .wready_o  ( wready    ),
-
-    .bresp_o   ( bresp     ),
-    .bvalid_o  ( bvalid    ),
-    .bready_i  ( bready    )
-  );
-    
-
-
 endmodule
