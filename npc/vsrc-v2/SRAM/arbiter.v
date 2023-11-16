@@ -92,22 +92,22 @@ module arbiter (
   // Outputs 
   //-----------------------------------------------------------------
   /* AR: Address Read Channel */
-  assign sram_araddr_o    =   (( cur_state == ifu_read ) || ( cur_state == post )) ? ifu_araddr_i    : 
-                              (( cur_state == exu_read ) || ( cur_state == post )) ? exu_araddr_i    : 32'h0000_0000;
-  assign sram_arvalid_o   =   (( cur_state == ifu_read ) || ( cur_state == post )) ? ifu_arvalid_i   : 
-                              (( cur_state == exu_read ) || ( cur_state == post )) ? exu_arvalid_i   : 1'b0;
-  assign ifu_arready_o    =   (( cur_state == ifu_read ) || ( cur_state == post )) ? sram_arready_i  : 1'b0;
-  assign exu_arready_o    =   (( cur_state == exu_read ) || ( cur_state == post )) ? sram_arready_i  : 1'b0;
+  assign sram_araddr_o    =   (( cur_state == ifu_read  ) || ( cur_state == post )) ? ifu_araddr_i   : 
+                              (( cur_state == exu_read  ) || ( cur_state == post )) ? exu_araddr_i   : 32'h0000_0000;
+  assign sram_arvalid_o   =   (( cur_state == ifu_read  ) || ( cur_state == post )) ? ifu_arvalid_i  : 
+                              (( cur_state == exu_read  ) || ( cur_state == post )) ? exu_arvalid_i  : 1'b0;
+  assign ifu_arready_o    =   (( cur_state == ifu_read  ) || ( cur_state == post )) ? sram_arready_i : 1'b0;
+  assign exu_arready_o    =   (( cur_state == exu_read  ) || ( cur_state == post )) ? sram_arready_i : 1'b0;
 
   /*  R: Data Read Channel */
-  assign ifu_rdata_o      =   (( cur_state == ifu_read ) || ( cur_state == post )) ? sram_rdata_i    : 32'h0000_0000;
-  assign exu_rdata_o      =   (( cur_state == exu_read ) || ( cur_state == post )) ? sram_rdata_i    : 32'h0000_0000;
-  assign ifu_rresp_o      =   (( cur_state == ifu_read ) || ( cur_state == post )) ? sram_rresp_i    : 32'h0000_0000;
-  assign exu_rresp_o      =   (( cur_state == exu_read ) || ( cur_state == post )) ? sram_rresp_i    : 32'h0000_0000;
-  assign ifu_rvalid_o     =   (( cur_state == ifu_read ) || ( cur_state == post )) ? sram_rvalid_i   : 1'b0;
-  assign exu_rvalid_o     =   (( cur_state == exu_read ) || ( cur_state == post )) ? sram_rvalid_i   : 1'b0;
-  assign sram_rready_o    =   (( cur_state == ifu_read ) || ( cur_state == post )) ? ifu_rready_i    : 
-                              (( cur_state == exu_read ) || ( cur_state == post )) ? exu_rready_i    : 1'b0;
+  assign ifu_rdata_o      =   (( cur_state == ifu_read  ) || ( cur_state == post )) ? sram_rdata_i   : 32'h0000_0000;
+  assign exu_rdata_o      =   (( cur_state == exu_read  ) || ( cur_state == post )) ? sram_rdata_i   : 32'h0000_0000;
+  assign ifu_rresp_o      =   (( cur_state == ifu_read  ) || ( cur_state == post )) ? sram_rresp_i   : 32'h0000_0000;
+  assign exu_rresp_o      =   (( cur_state == exu_read  ) || ( cur_state == post )) ? sram_rresp_i   : 32'h0000_0000;
+  assign ifu_rvalid_o     =   (( cur_state == ifu_read  ) || ( cur_state == post )) ? sram_rvalid_i  : 1'b0;
+  assign exu_rvalid_o     =   (( cur_state == exu_read  ) || ( cur_state == post )) ? sram_rvalid_i  : 1'b0;
+  assign sram_rready_o    =   (( cur_state == ifu_read  ) || ( cur_state == post )) ? ifu_rready_i   : 
+                              (( cur_state == exu_read  ) || ( cur_state == post )) ? exu_rready_i   : 1'b0;
 
   /* AW: Address Write Channel */
   assign sram_awaddr_o    =   (( cur_state == ifu_write ) || ( cur_state == post )) ? ifu_awaddr_i   :
