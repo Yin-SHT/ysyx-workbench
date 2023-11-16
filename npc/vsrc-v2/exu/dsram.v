@@ -4,8 +4,6 @@ module dsram (
   input                         clk,
   input                         rst,
 
-  input   [`INST_TYPE_BUS]      inst_type_i,
-
   /* ARC: Address Read Channel */
   input   [`INST_ADDR_BUS]      araddr_i,
 
@@ -33,7 +31,7 @@ module dsram (
   output                        wready_o,
 
   /*  BC: Response Write Channel */
-  output  reg [`INST_DATA_BUS]      bresp_o,
+  output  reg [`INST_DATA_BUS]  bresp_o,
 
   output                        bvalid_o,
   input                         bready_i
@@ -84,7 +82,7 @@ module dsram (
     if ( rst == `RST_ENABLE ) begin
       bresp_o <= 32'h0;
     end else begin
-      if (( cur_state == wait_wvalid ) && wvalid_i && ( inst_type_i == `INST_STORE )) begin
+      if (( cur_state == wait_wvalid ) && wvalid_i ) begin
         bresp_o <= paddr_write( awaddr_i, wdata_i, wstrb_i );
       end else begin
         bresp_o = bresp_o;
