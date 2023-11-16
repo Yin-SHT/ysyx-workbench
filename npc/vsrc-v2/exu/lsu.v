@@ -65,8 +65,6 @@ module lsu (
   	.clk         ( clk         ),
     .rst         ( rst         ),
 
-    .inst_type_i ( inst_type_i ),
-
     .araddr_i    ( araddr      ),
     .arvalid_i   ( arvalid_i   ),
     .arready_o   ( arready_o   ),
