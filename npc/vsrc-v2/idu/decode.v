@@ -51,8 +51,6 @@ module decode (
   wire [`REG_DATA_BUS] immB = {{20{inst_i[31]}}, inst_i[7],     inst_i[30:25], inst_i[11:8],  1'b0                };
   wire [`REG_DATA_BUS] immU = {inst_i[31],       inst_i[30:20], inst_i[19:12], 12'b0                              };
   wire [`REG_DATA_BUS] immJ = {{12{inst_i[31]}}, inst_i[19:12], inst_i[20],    inst_i[30:25], inst_i[24:21], 1'b0 };
-  wire [`REG_DATA_BUS] immSHIFT = {27'b0, immI[4:0]};
-
   
   wire inst_add   = ( opcode == `OPCODE_ADD   ) & ( funct3 == `FUNCT3_ADD  ) & ( funct7 == `FUNCT7_ADD );
   wire inst_sub   = ( opcode == `OPCODE_SUB   ) & ( funct3 == `FUNCT3_SUB  ) & ( funct7 == `FUNCT7_SUB );
@@ -128,15 +126,15 @@ module decode (
                      );
 
   
-  wire [`REG_DATA_BUS] imm =  ( inst_addi  | inst_xori | inst_ori  | inst_andi  | inst_slti | inst_sltiu ) ? immI     :
-                              ( inst_slli  | inst_srli | inst_srai                                       ) ? immSHIFT :
-                              ( inst_lb    | inst_lh   | inst_lw   | inst_lbu   | inst_lhu               ) ? immI     : 
-                              ( inst_sb    | inst_sh   | inst_sw                                         ) ? immS     : 
-                              ( inst_beq   | inst_bne  | inst_blt  | inst_bge   | inst_bltu | inst_bgeu  ) ? immB     :
-                              ( inst_jal                                                                 ) ? immJ     :
-                              ( inst_jalr                                                                ) ? immI     : 
-                              ( inst_lui   | inst_auipc                                                  ) ? immU     :
-                              ( inst_csrrw | inst_csrrs                                                  ) ? immI     : 32'h0000_0000;
+  wire [`REG_DATA_BUS] imm =  ( inst_addi  | inst_xori | inst_ori  | inst_andi  | inst_slti | inst_sltiu ) ? immI :
+                              ( inst_slli  | inst_srli | inst_srai                                       ) ? immI :
+                              ( inst_lb    | inst_lh   | inst_lw   | inst_lbu   | inst_lhu               ) ? immI : 
+                              ( inst_sb    | inst_sh   | inst_sw                                         ) ? immS : 
+                              ( inst_beq   | inst_bne  | inst_blt  | inst_bge   | inst_bltu | inst_bgeu  ) ? immB :
+                              ( inst_jal                                                                 ) ? immJ :
+                              ( inst_jalr                                                                ) ? immI : 
+                              ( inst_lui   | inst_auipc                                                  ) ? immU :
+                              ( inst_csrrw | inst_csrrs                                                  ) ? immI : 32'h0000_0000;
 
   
   assign  inst_type_o = ( rst    == `RST_ENABLE  ) ? `INST_NOP     :
