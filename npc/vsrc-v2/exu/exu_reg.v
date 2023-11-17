@@ -17,6 +17,7 @@ module exu_reg (
   input  [`REG_DATA_BUS]        imm_i,
   input  [`REG_DATA_BUS]        rdata1_i,
   input  [`REG_DATA_BUS]        rdata2_i,
+  input  [`CSR_DATA_BUS]        csr_i,
 
   output reg [`INST_TYPE_BUS]   inst_type_o,
   output reg [`ALU_OP_BUS]      alu_op_o,
@@ -27,7 +28,8 @@ module exu_reg (
   output reg [`INST_ADDR_BUS]   pc_o,
   output reg [`REG_DATA_BUS]    imm_o,
   output reg [`REG_DATA_BUS]    rdata1_o,
-  output reg [`REG_DATA_BUS]    rdata2_o
+  output reg [`REG_DATA_BUS]    rdata2_o,
+  output reg [`CSR_DATA_BUS]    csr_o
 );
 
   always @( posedge clk or negedge rst ) begin
@@ -42,6 +44,7 @@ module exu_reg (
       imm_o       <= 0;
       rdata1_o    <= 0;
       rdata2_o    <= 0;
+      csr_o       <= 0;
     end else begin
       inst_type_o <= inst_type_o;
       alu_op_o    <= alu_op_o;
@@ -53,6 +56,7 @@ module exu_reg (
       imm_o       <= imm_o;
       rdata1_o    <= rdata1_o;
       rdata2_o    <= rdata2_o;
+      csr_o       <= csr_o;
       if ( we_i == `WRITE_ENABLE ) begin
           inst_type_o <= inst_type_i;
           alu_op_o    <= alu_op_i;
@@ -64,6 +68,7 @@ module exu_reg (
           imm_o       <= imm_i;
           rdata1_o    <= rdata1_i;
           rdata2_o    <= rdata2_i;
+          csr_o       <= csr_i;
         end else begin
           inst_type_o <= inst_type_o;
           alu_op_o    <= alu_op_o;
@@ -75,6 +80,7 @@ module exu_reg (
           imm_o       <= imm_o;
           rdata1_o    <= rdata1_o;
           rdata2_o    <= rdata2_o;
+          csr_o       <= csr_o;
         end
     end
   end

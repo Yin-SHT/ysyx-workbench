@@ -142,6 +142,8 @@ module top (
     .bready_o     ( ifu_bready    )
   );
   
+  wire [`CSR_DATA_BUS] csr;
+
   idu u_idu(
   	.clk          ( clk           ),
     .rst          ( rst           ),
@@ -168,6 +170,7 @@ module top (
     .imm_o        ( imm           ),
     .rdata1_o     ( rdata1        ),
     .rdata2_o     ( rdata2        ),
+    .csr_o        ( csr           ),
 
     .branch_en_o  ( branch_en     ),
     .dnpc_o       ( dnpc          ) 
@@ -192,6 +195,7 @@ module top (
     .imm_i        ( imm           ),
     .rdata1_i     ( rdata1        ),
     .rdata2_i     ( rdata2        ),
+    .csr_i        ( csr           ),
 
     .wsel_o       ( wsel_exu_wbu  ),
     .wena_o       ( wena_exu_wbu  ),

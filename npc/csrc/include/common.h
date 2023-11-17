@@ -41,11 +41,11 @@ typedef MUXDEF(PMEM64, uint64_t, uint32_t) paddr_t;
 #define FMT_PADDR MUXDEF(PMEM64, "0x%016" PRIx64, "0x%08" PRIx32)
 typedef uint16_t ioaddr_t;
 
-//#define CONFIG_DEVICE 1
-//#define CONFIG_HAS_SERIAL 1
-//#define CONFIG_HAS_TIMER 1
+#define CONFIG_DEVICE 1
+#define CONFIG_HAS_SERIAL 1
+#define CONFIG_HAS_TIMER 1
 //#define CONFIG_HAS_VGA 1
-//#define CONFIG_HAS_KEYBOARD 1
+#define CONFIG_HAS_KEYBOARD 1
 
 //#define CONFIG_ITRACE 1
 //#define CONFIG_FTRACE 1

@@ -28,6 +28,11 @@ static void update_cpu(uint32_t next_pc) {
     cpu.gpr[i] = top->rootp->top__DOT__u_idu__DOT__u_regfile__DOT__regs[i];
   }
   cpu.pc = next_pc;
+
+  cpu.mstatus = top->rootp->top__DOT__u_idu__DOT__u_csrs__DOT__mstatus;
+  cpu.mcause = top->rootp->top__DOT__u_idu__DOT__u_csrs__DOT__mcause;
+  cpu.mtvec = top->rootp->top__DOT__u_idu__DOT__u_csrs__DOT__mtvec;
+  cpu.mepc = top->rootp->top__DOT__u_idu__DOT__u_csrs__DOT__mepc; 
 }
 
 void single_cycle() {

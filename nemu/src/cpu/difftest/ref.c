@@ -23,6 +23,13 @@
 struct diff_context_t {
   word_t gpr[MUXDEF(CONFIG_RVE, 16, 32)];
   word_t pc;
+
+  // control and status registers
+  word_t mstatus;
+  word_t mcause;
+  word_t mtvec;
+  word_t mepc;
+  word_t satp;
 };
 
 void diff_step(uint64_t n) {
@@ -35,6 +42,11 @@ void diff_get_regs(void* diff_context) {
     ctx->gpr[i] = cpu.gpr[i];
   }
   ctx->pc = cpu.pc;
+
+  ctx->mstatus = cpu.mstatus;
+  ctx->mcause = cpu.mcause;
+  ctx->mtvec = cpu.mtvec;
+  ctx->mepc = cpu.mepc;
 }
 
 void diff_set_regs(void* diff_context) {
@@ -43,6 +55,11 @@ void diff_set_regs(void* diff_context) {
     cpu.gpr[i] = ctx->gpr[i];
   }
   cpu.pc = ctx->pc;
+
+  cpu.mstatus = ctx->mstatus;
+  cpu.mcause = ctx->mcause;
+  cpu.mtvec = ctx->mtvec;
+  cpu.mepc = ctx->mepc;
 }
 
 void diff_memcpy(paddr_t dest, void *src, size_t n) {

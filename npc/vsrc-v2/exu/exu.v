@@ -21,6 +21,7 @@ module exu (
   input  [`REG_DATA_BUS]     imm_i,
   input  [`REG_DATA_BUS]     rdata1_i,
   input  [`REG_DATA_BUS]     rdata2_i,
+  input  [`CSR_DATA_BUS]     csr_i,
   
   output                     wsel_o,
   output                     wena_o,
@@ -69,6 +70,7 @@ module exu (
   wire [`REG_DATA_BUS]    imm;
   wire [`REG_DATA_BUS]    rdata1;
   wire [`REG_DATA_BUS]    rdata2;
+  wire [`CSR_DATA_BUS]    csr;
   
   exu_fsm u_exu_fsm (
   	.clk          ( clk          ),
@@ -117,6 +119,7 @@ module exu (
     .imm_i        ( imm_i        ),
     .rdata1_i     ( rdata1_i     ),
     .rdata2_i     ( rdata2_i     ),
+    .csr_i        ( csr_i        ),
 
     .inst_type_o  ( inst_type    ),
     .alu_op_o     ( alu_op       ),
@@ -127,7 +130,8 @@ module exu (
     .pc_o         ( pc           ),
     .imm_o        ( imm          ),
     .rdata1_o     ( rdata1       ),
-    .rdata2_o     ( rdata2       )
+    .rdata2_o     ( rdata2       ),
+    .csr_o        ( csr          )
   );
   
   fu u_fu (
@@ -139,6 +143,7 @@ module exu (
     .imm_i        ( imm          ),
     .rdata1_i     ( rdata1       ),
     .rdata2_i     ( rdata2       ),
+    .csr_i        ( csr          ),
 
     .alu_result_o ( alu_result_o )
   );

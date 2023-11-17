@@ -10,6 +10,7 @@ module decode (
   output  [`ALU_OP_BUS]       alu_op_o,
   output  [`LSU_OP_BUS]       lsu_op_o,
   output  [`BPU_OP_BUS]       bpu_op_o,
+  output  [`CSR_OP_BUS]       csr_op_o,
   output                      wsel_o,
   output                      wena_o,
   output  [`REG_ADDR_BUS]     waddr_o,
@@ -148,23 +149,24 @@ module decode (
                         ( opcode == 7'b110_0111  ) ? `INST_JALR    :
                         ( opcode == 7'b011_0111  ) ? `INST_LUI     :
                         ( opcode == 7'b001_0111  ) ? `INST_AUIPC   :
-                        ( opcode == 7'b111_0011  ) ? `INST_SYSTEM  : `INST_NOP;
+                        ( opcode == 7'b111_0011  ) ? `INST_CSRR    : `INST_NOP;
 
 
-  assign  alu_op_o    = ( rst == `RST_ENABLE     ) ? `ALU_OP_NOP   :
-                        ( inst_add  | inst_addi  ) ? `ALU_OP_ADD   :
-                        ( inst_sub               ) ? `ALU_OP_SUB   :
-                        ( inst_xor  | inst_xori  ) ? `ALU_OP_XOR   :
-                        ( inst_or   | inst_ori   ) ? `ALU_OP_OR    :
-                        ( inst_and  | inst_andi  ) ? `ALU_OP_AND   :
-                        ( inst_sll  | inst_slli  ) ? `ALU_OP_SLL   :
-                        ( inst_srl  | inst_srli  ) ? `ALU_OP_SRL   :
-                        ( inst_sra  | inst_srai  ) ? `ALU_OP_SRA   :
-                        ( inst_slt  | inst_slti  ) ? `ALU_OP_SLT   :
-                        ( inst_sltu | inst_sltiu ) ? `ALU_OP_SLTU  :
-                        ( inst_jal  | inst_jalr  ) ? `ALU_OP_JUMP  : 
-                        ( inst_lui               ) ? `ALU_OP_LUI   :
-                        ( inst_auipc             ) ? `ALU_OP_AUIPC : `ALU_OP_NOP;
+  assign  alu_op_o    = ( rst == `RST_ENABLE       ) ? `ALU_OP_NOP   :
+                        ( inst_add   | inst_addi   ) ? `ALU_OP_ADD   :
+                        ( inst_sub                 ) ? `ALU_OP_SUB   :
+                        ( inst_xor   | inst_xori   ) ? `ALU_OP_XOR   :
+                        ( inst_or    | inst_ori    ) ? `ALU_OP_OR    :
+                        ( inst_and   | inst_andi   ) ? `ALU_OP_AND   :
+                        ( inst_sll   | inst_slli   ) ? `ALU_OP_SLL   :
+                        ( inst_srl   | inst_srli   ) ? `ALU_OP_SRL   :
+                        ( inst_sra   | inst_srai   ) ? `ALU_OP_SRA   :
+                        ( inst_slt   | inst_slti   ) ? `ALU_OP_SLT   :
+                        ( inst_sltu  | inst_sltiu  ) ? `ALU_OP_SLTU  :
+                        ( inst_jal   | inst_jalr   ) ? `ALU_OP_JUMP  : 
+                        ( inst_lui                 ) ? `ALU_OP_LUI   :
+                        ( inst_auipc               ) ? `ALU_OP_AUIPC : 
+                        ( inst_csrrs | inst_csrrw  ) ? `ALU_OP_CSRR  : `ALU_OP_NOP;
 
   assign  lsu_op_o    = ( rst == `RST_ENABLE     ) ? `LSU_OP_NOP   :
                         ( inst_lb                ) ? `LSU_OP_LB    :
@@ -186,6 +188,11 @@ module decode (
                         ( inst_jal               ) ? `BPU_OP_JAL   :
                         ( inst_jalr              ) ? `BPU_OP_JALR  : `BPU_OP_NOP;
 
+  assign  csr_op_o    = ( rst == `RST_ENABLE     ) ? `CSR_OP_NOP   :
+                        ( inst_csrrw             ) ? `CSR_OP_CSRRW :
+                        ( inst_csrrs             ) ? `CSR_OP_CSRRS :
+                        ( ecall                  ) ? `CSR_OP_ECALL :
+                        ( inst_mret              ) ? `CSR_OP_MRET  : `CSR_OP_NOP;
 
   assign  wsel_o      = ( rst == `RST_ENABLE                                ) ? `SEL_ALU_DATA :
                         ( inst_lb | inst_lh | inst_lw | inst_lbu | inst_lhu ) ? `SEL_LSU_DATA : `SEL_ALU_DATA;
@@ -211,16 +218,16 @@ module decode (
   /* To Register File */
   assign  rena1_o     = ( rst == `RST_DISABLE ) & 
                         ( 
-                          inst_add  | inst_sub  | inst_xor   | inst_or   | inst_and   |
-                          inst_sll  | inst_srl  | inst_sra   | inst_slt  | inst_sltu  |
-                          inst_addi |             inst_xori  | inst_ori  | inst_andi  | 
-                          inst_slli | inst_srli | inst_srai  | inst_slti | inst_sltiu |
-                          inst_lb   | inst_lh   | inst_lw    | inst_lbu  | inst_lhu   |
-                          inst_sb   | inst_sh   | inst_sw    |
-                          inst_beq  | inst_bne  | inst_blt   | inst_bge  | inst_bltu  | inst_bgeu |
-                          inst_jalr |                
-                          inst_csrrw| inst_csrrs|
-                          inst_mul  | inst_mulh | inst_mulhu | inst_div  | inst_divu  | inst_rem  | inst_remu
+                          inst_add   | inst_sub  | inst_xor   | inst_or   | inst_and   |
+                          inst_sll   | inst_srl  | inst_sra   | inst_slt  | inst_sltu  |
+                          inst_addi  |             inst_xori  | inst_ori  | inst_andi  | 
+                          inst_slli  | inst_srli | inst_srai  | inst_slti | inst_sltiu |
+                          inst_lb    | inst_lh   | inst_lw    | inst_lbu  | inst_lhu   |
+                          inst_sb    | inst_sh   | inst_sw    |
+                          inst_beq   | inst_bne  | inst_blt   | inst_bge  | inst_bltu  | inst_bgeu |
+                          inst_jalr  |                
+                          inst_csrrw | inst_csrrs|
+                          inst_mul   | inst_mulh | inst_mulhu | inst_div  | inst_divu  | inst_rem  | inst_remu
                         );
 
   assign  rena2_o   = ( rst == `RST_DISABLE ) & 

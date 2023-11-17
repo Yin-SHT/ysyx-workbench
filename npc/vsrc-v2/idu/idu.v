@@ -28,6 +28,7 @@ module idu (
   output  [`REG_DATA_BUS]     imm_o,
   output  [`REG_DATA_BUS]     rdata1_o,
   output  [`REG_DATA_BUS]     rdata2_o,
+  output  [`CSR_DATA_BUS]     csr_o,
   
   output                      branch_en_o,
   output  [`INST_ADDR_BUS]    dnpc_o
@@ -39,8 +40,11 @@ module idu (
   wire                  rena1;
   wire                  rena2;
   wire [`BPU_OP_BUS]    bpu_op;
+  wire [`CSR_OP_BUS]    csr_op;
   wire [`REG_ADDR_BUS]  raddr1;
   wire [`REG_ADDR_BUS]  raddr2;
+  wire [`CSR_DATA_BUS]  csr_pc;
+
 
   idu_fsm  u_idu_fsm (
     .clk          ( clk          ),
@@ -76,6 +80,7 @@ module idu (
     .alu_op_o     ( alu_op_o     ),
     .lsu_op_o     ( lsu_op_o     ),
     .bpu_op_o     ( bpu_op       ),
+    .csr_op_o     ( csr_op       ),
     .wsel_o       ( wsel_o       ),
     .wena_o       ( wena_o       ),
     .waddr_o      ( waddr_o      ),
@@ -103,15 +108,27 @@ module idu (
     .rdata1_o     ( rdata1_o     ),
     .rdata2_o     ( rdata2_o     )
   );
-  
+
+  csrs u_csrs(
+  	.rst      ( rst      ),
+    .csr_op_i ( csr_op   ),
+    .pc_i     ( pc_o     ),
+    .imm_i    ( imm_o    ),
+    .rdata1_i ( rdata1_o ),
+    .csr_o    ( csr_o    ),
+    .csr_pc_o ( csr_pc   )
+  );
+
   bpu u_bpu(
   	.rst          ( rst          ),
 
     .bpu_op_i     ( bpu_op       ),
+    .csr_op_i     ( csr_op       ),
     .pc_i         ( pc_o         ),
     .imm_i        ( imm_o        ),
     .rdata1_i     ( rdata1_o     ),
     .rdata2_i     ( rdata2_o     ),
+    .csr_pc_i     ( csr_pc       ),
 
     .branch_en_o  ( branch_en_o  ),
     .dnpc_o       ( dnpc_o       )

@@ -25,9 +25,13 @@
 `define REG_ADDR_BUS       4  : 0
 `define REG_DATA_BUS       31 : 0
 
+`define CSR_ADDR_BUS       11 : 0
+`define CSR_DATA_BUS       31 : 0
+
 `define ALU_OP_BUS         7  : 0
 `define LSU_OP_BUS         7  : 0
 `define BPU_OP_BUS         7  : 0
+`define CSR_OP_BUS         7  : 0
 `define INST_TYPE_BUS      7  : 0
 
 // -------------------------------------------------
@@ -57,7 +61,7 @@
 `define INST_JALR          8'b0000_1001
 `define INST_LUI           8'b0000_1010
 `define INST_AUIPC         8'b0000_1011 
-`define INST_SYSTEM        8'b0000_1100
+`define INST_CSRR          8'b0000_1100
 
 // ***  Register-Register Instructions
 `define INST_RR            8'b0000_0001
@@ -238,6 +242,7 @@
 `define ALU_OP_LUI      8'b0000_1011
 `define ALU_OP_AUIPC    8'b0000_1100
 `define ALU_OP_JUMP     8'b0000_1101
+`define ALU_OP_CSRR     8'b0000_1110
 
 // -------------------------------------------------
 // LSU_OP
@@ -266,6 +271,15 @@
 `define BPU_OP_BGEU     8'b0001_0110
 `define BPU_OP_JAL      8'b0001_0111
 `define BPU_OP_JALR     8'b0001_1000
+
+// -------------------------------------------------
+// CSR_OP
+// -------------------------------------------------
+`define CSR_OP_NOP      8'b0000_0000
+`define CSR_OP_CSRRW    8'b0000_0001
+`define CSR_OP_CSRRS    8'b0000_0010
+`define CSR_OP_MRET     8'b0000_0011
+`define CSR_OP_ECALL    8'b0000_0100
 
 // -------------------------------------------------
 // WBU

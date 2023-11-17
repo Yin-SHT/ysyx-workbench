@@ -9,6 +9,7 @@ module fu (
   input   [`REG_DATA_BUS]     imm_i,
   input   [`REG_DATA_BUS]     rdata1_i,
   input   [`REG_DATA_BUS]     rdata2_i,
+  input   [`CSR_DATA_BUS]     csr_i,
 
   output  [`REG_DATA_BUS]     alu_result_o
 );
@@ -26,7 +27,8 @@ module fu (
                         ( inst_type_i == `INST_LUI   ) ? 32'h0000_0000 :
                         ( inst_type_i == `INST_AUIPC ) ? pc_i          : 
                         ( inst_type_i == `INST_JAL   ) ? pc_i          : 
-                        ( inst_type_i == `INST_JALR  ) ? pc_i          : 32'h0000_0000;
+                        ( inst_type_i == `INST_JALR  ) ? pc_i          : 
+                        ( inst_type_i == `INST_CSRR  ) ? csr_i         : 32'h0000_0000;
 
   assign operand2     = ( 
                           ( rst         == `RST_ENABLE ) || 
@@ -55,6 +57,7 @@ module fu (
                         ( alu_op_i == `ALU_OP_SLTU  )  ?  {{31{1'b0}}, $unsigned(operand1) < $unsigned(operand2)} :
                         ( alu_op_i == `ALU_OP_LUI   )  ?  operand1  +  operand2 :
                         ( alu_op_i == `ALU_OP_AUIPC )  ?  operand1  +  operand2 :
-                        ( alu_op_i == `ALU_OP_JUMP  )  ?  operand1  +  32'h4    : 32'h0000_0000;
+                        ( alu_op_i == `ALU_OP_JUMP  )  ?  operand1  +  32'h4    : 
+                        ( alu_op_i == `ALU_OP_CSRR  )  ?  operand1              : 32'h0000_0000;
 
 endmodule // fu 
