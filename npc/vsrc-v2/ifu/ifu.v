@@ -23,7 +23,7 @@ module ifu (
 
   /*  R: Data Read Channel */
   input  [`MEM_DATA_BUS]     rdata_i,
-  input  [`INST_DATA_BUS]    rresp_i,
+  input  [`RRESP_DATA_BUS]    rresp_i,
 
   input                      rvalid_i,
   output                     rready_o,
@@ -42,7 +42,7 @@ module ifu (
   input                      wready_i,
 
   /*  B: Response Write Channel */
-  input  [`INST_DATA_BUS]    bresp_i,
+  input  [`BRESP_DATA_BUS]    bresp_i,
 
   input                      bvalid_i,
   output                     bready_o

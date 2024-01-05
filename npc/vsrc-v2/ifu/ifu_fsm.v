@@ -18,7 +18,7 @@ module ifu_fsm (
 
   /*  R: Data Read Channel */
   /* verilator lint_off UNUSEDSIGNAL */
-  input    [`INST_DATA_BUS] rresp_i,
+  input    [`RRESP_DATA_BUS] rresp_i,
   input    rvalid_i,
   output   rready_o,
 
@@ -31,7 +31,7 @@ module ifu_fsm (
   input    wready_i,
 
   /*  B: Response Write Channel */
-  input    [`INST_DATA_BUS] bresp_i,
+  input    [`BRESP_DATA_BUS] bresp_i,
   input    bvalid_i,
   output   bready_o,
 
@@ -59,7 +59,8 @@ module ifu_fsm (
   assign we_o         = ( valid_pre_i && ready_pre_o  );
 
   assign ready_pre_o  = ( cur_state   == idle         );
-  assign valid_post_o = ( cur_state   == wait_ready   );
+  assign valid_post_o = ( cur_state   == wait_ready   ) || 
+                        (( cur_state  == wait_rvalid  ) && ( rvalid_i == 1'b1 ));
 
   /* Read */
   assign arvalid_o    = ( cur_state   == wait_arready );    // ARC
@@ -94,12 +95,9 @@ module ifu_fsm (
         case ( cur_state )
             idle:         if ( valid_pre_i  ) next_state = wait_arready;
             wait_arready: if ( arready_i    ) next_state = wait_rvalid;  
-            wait_rvalid:  if ( rvalid_i     ) next_state = wait_ready; 
+            wait_rvalid:  if ( rvalid_i && ready_post_i ) next_state = idle; 
+                          else if ( rvalid_i && !ready_post_i ) next_state = wait_ready;
             wait_ready:   if ( ready_post_i ) next_state = idle;
-
-            wait_awready: if ( awready_i    ) next_state = wait_wready;
-            wait_wready:  if ( wready_i     ) next_state = wait_bvalid;
-            wait_bvalid:  if ( bvalid_i     ) next_state = wait_ready;
           default:                            next_state = cur_state;
         endcase
     end

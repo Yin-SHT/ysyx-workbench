@@ -12,7 +12,7 @@ module sram (
 
   /*  RC: Data Read Channel */
   output  reg [`INST_DATA_BUS]  rdata_o,
-  output  reg [`INST_DATA_BUS]  rresp_o,
+  output  reg [`RRESP_DATA_BUS] rresp_o,
 
   output                        rvalid_o,
   input                         rready_i,
@@ -31,7 +31,7 @@ module sram (
   output                        wready_o,
 
   /*  BC: Response Write Channel */
-  output  reg [`INST_DATA_BUS]  bresp_o,
+  output  reg [`BRESP_DATA_BUS] bresp_o,
 
   output                        bvalid_o,
   input                         bready_i
@@ -56,6 +56,10 @@ module sram (
   reg [2:0] cur_state;
   reg [2:0] next_state;
 
+  /* verilator lint_off UNUSEDSIGNAL */
+  reg [`MEM_DATA_BUS] rresp;
+  reg [`MEM_DATA_BUS] bresp;
+
   //-----------------------------------------------------------------
   // Outputs 
   //-----------------------------------------------------------------
@@ -66,12 +70,15 @@ module sram (
   assign wready_o  = ( cur_state == wait_wvalid );
   assign bvalid_o  = ( cur_state == wait_bready );
 
+  assign rresp_o = rresp[1:0];
+  assign bresp_o = bresp[1:0];
+
   always @( posedge clk or negedge rst ) begin
     if ( rst == `RST_ENABLE ) begin
       rdata_o <= 32'h0;
     end else begin
       if ( arvalid_i && arready_o ) begin
-        rdata_o <= paddr_read( araddr_i, rresp_o );
+        rdata_o <= paddr_read( araddr_i, rresp );
       end else begin
         rdata_o <= rdata_o;
       end
@@ -80,10 +87,10 @@ module sram (
 
   always @( posedge clk or negedge rst ) begin
     if ( rst == `RST_ENABLE ) begin
-      bresp_o <= 32'h0;
+      bresp <= 32'h0;
     end else begin
       if (( cur_state == wait_wvalid ) && wvalid_i ) begin
-        bresp_o <= paddr_write( awaddr_i, wdata_i, wstrb_i );
+        bresp <= paddr_write( awaddr_i, wdata_i, wstrb_i );
       end else begin
         bresp_o = bresp_o;
       end

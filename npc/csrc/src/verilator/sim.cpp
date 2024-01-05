@@ -25,14 +25,14 @@ extern uint32_t cur_inst;
 /* Signel cycle simulation in verilator */
 static void update_cpu(uint32_t next_pc) {
   for (int i = 0; i < MUXDEF(CONFIG_RVE, 16, 32); i++) {
-    cpu.gpr[i] = top->rootp->top__DOT__u_idu__DOT__u_regfile__DOT__regs[i];
+    cpu.gpr[i] = top->rootp->top__DOT__u_cpu__DOT__u_idu__DOT__u_regfile__DOT__regs[i];
   }
   cpu.pc = next_pc;
 
-  cpu.mstatus = top->rootp->top__DOT__u_idu__DOT__u_csrs__DOT__mstatus;
-  cpu.mcause = top->rootp->top__DOT__u_idu__DOT__u_csrs__DOT__mcause;
-  cpu.mtvec = top->rootp->top__DOT__u_idu__DOT__u_csrs__DOT__mtvec;
-  cpu.mepc = top->rootp->top__DOT__u_idu__DOT__u_csrs__DOT__mepc; 
+  cpu.mstatus = top->rootp->top__DOT__u_cpu__DOT__u_idu__DOT__u_csrs__DOT__mstatus;
+  cpu.mcause = top->rootp->top__DOT__u_cpu__DOT__u_idu__DOT__u_csrs__DOT__mcause;
+  cpu.mtvec = top->rootp->top__DOT__u_cpu__DOT__u_idu__DOT__u_csrs__DOT__mtvec;
+  cpu.mepc = top->rootp->top__DOT__u_cpu__DOT__u_idu__DOT__u_csrs__DOT__mepc; 
 }
 
 void single_cycle() {
@@ -43,13 +43,13 @@ void single_cycle() {
 
   /* Check ebreak instruction */
   pre_pc = cur_pc;
-  cur_pc = top->rootp->top__DOT__ifu_araddr;
-  cur_inst = top->rootp->top__DOT__u_idu__DOT__rdata;
-  word_t a0 = top->rootp->top__DOT__u_idu__DOT__u_regfile__DOT__regs[10];
+  cur_pc = top->rootp->top__DOT__u_cpu__DOT__ifu_araddr;
+  cur_inst = top->rootp->top__DOT__u_cpu__DOT__u_idu__DOT__rdata;
+  word_t a0 = top->rootp->top__DOT__u_cpu__DOT__u_idu__DOT__u_regfile__DOT__regs[10];
   NPCTRAP(cur_pc, a0);
 
   pre_wbu_valid = cur_wbu_valid;
-  cur_wbu_valid = top->rootp->top__DOT__valid_wbu_ifu;
+  cur_wbu_valid = top->rootp->top__DOT__u_cpu__DOT__valid_wbu_ifu;
 
   if (pre_wbu_valid) {
     IFDEF(CONFIG_DIFFTEST, update_cpu(cur_pc));
@@ -73,7 +73,7 @@ void init_verilator(int argc, char **argv) {
 #endif
 
   // Prepare for DPI-C
-  const svScope scope_pd = svGetScopeFromName("TOP.top.u_idu.u_decode");
+  const svScope scope_pd = svGetScopeFromName("TOP.top.u_cpu.u_idu.u_decode");
   Assert(scope_pd, "scope_pd is null"); // Check for nullptr if scope not found
   svSetScope(scope_pd);
 
@@ -106,5 +106,5 @@ int check_reg_idx(int idx) {
 
 word_t npc_regs(int i) {
   int idx =  check_reg_idx(i);
-  return top->rootp->top__DOT__u_idu__DOT__u_regfile__DOT__regs[idx];
+  return top->rootp->top__DOT__u_cpu__DOT__u_idu__DOT__u_regfile__DOT__regs[idx];
 }
