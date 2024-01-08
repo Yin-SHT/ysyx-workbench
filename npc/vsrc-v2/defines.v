@@ -41,8 +41,8 @@
 `define SRAM_ADDR_END       32'h87ff_ffff
 `define UART_ADDR_BEGIN     32'ha000_03f8
 `define UART_ADDR_END       32'ha000_03ff
-`define CLINT_ADDR_BEGIN    32'h0200_0000
-`define CLINT_ADDR_END      32'h0200_bfff
+`define CLINT_ADDR_BEGIN    32'ha000_0048
+`define CLINT_ADDR_END      32'ha000_004f
 
 // -------------------------------------------------
 // AXI4

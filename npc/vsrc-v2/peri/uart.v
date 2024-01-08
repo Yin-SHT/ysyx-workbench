@@ -122,7 +122,7 @@ module uart (
   always @( posedge clk or negedge rst ) begin
     if ( rst == `RST_DISABLE ) begin
       if ( cur_state == print ) begin
-        $display("%c", uart_reg[7:0]);
+        $write("%c", uart_reg[7:0]);
       end
     end
   end

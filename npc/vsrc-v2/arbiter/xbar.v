@@ -23,6 +23,7 @@ module xbar (
 
   /*  W: Data Write Channel */
   input [`MEM_ADDR_BUS]     cpu_wdata_i,
+  input [`WSTRB_DATA_BUS]   cpu_wstrb_i,
   input                     cpu_wvalid_i,
   output                    cpu_wready_o,
 
@@ -47,6 +48,7 @@ module xbar (
   input                     sram_awready_i,
 
   output [`MEM_ADDR_BUS]    sram_wdata_o,
+  output [`WSTRB_DATA_BUS]  sram_wstrb_o,
   output                    sram_wvalid_o,
   input                     sram_wready_i,
 
@@ -69,6 +71,7 @@ module xbar (
   input                     uart_awready_i,
 
   output [`MEM_ADDR_BUS]    uart_wdata_o,
+  output [`WSTRB_DATA_BUS]  uart_wstrb_o,
   output                    uart_wvalid_o,
   input                     uart_wready_i,
 
@@ -91,6 +94,7 @@ module xbar (
   input                     clint_awready_i,
 
   output [`MEM_ADDR_BUS]    clint_wdata_o,
+  output [`WSTRB_DATA_BUS]  clint_wstrb_o,
   output                    clint_wvalid_o,
   input                     clint_wready_i,
 
@@ -160,6 +164,10 @@ module xbar (
   assign sram_wdata_o    = ( cur_state == wait_sram_bvalid  ) ? cpu_wdata_i : 0;
   assign uart_wdata_o    = ( cur_state == wait_uart_bvalid  ) ? cpu_wdata_i : 0;
   assign clint_wdata_o   = ( cur_state == wait_clint_bvalid ) ? cpu_wdata_i : 0;
+
+  assign sram_wstrb_o    = ( cur_state == wait_sram_bvalid  ) ? cpu_wstrb_i : 0;
+  assign uart_wstrb_o    = ( cur_state == wait_uart_bvalid  ) ? cpu_wstrb_i : 0;
+  assign clint_wstrb_o   = ( cur_state == wait_clint_bvalid ) ? cpu_wstrb_i : 0;
 
   assign sram_wvalid_o   = ( cur_state == wait_sram_bvalid  ) ? cpu_wvalid_i : 0;
   assign uart_wvalid_o   = ( cur_state == wait_uart_bvalid  ) ? cpu_wvalid_i : 0;
