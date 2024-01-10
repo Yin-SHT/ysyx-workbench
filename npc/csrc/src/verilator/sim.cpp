@@ -36,8 +36,6 @@ static void update_cpu(uint32_t next_pc) {
 }
 
 void single_cycle() {
-  static uint32_t i = 0;
-
   ysyxSoCFull->clock = 0; ysyxSoCFull->eval(); IFDEF(CONFIG_WAVEFORM, tfp->dump(contextp->time())); contextp->timeInc(1);
   ysyxSoCFull->clock = 1; ysyxSoCFull->eval(); IFDEF(CONFIG_WAVEFORM, tfp->dump(contextp->time())); contextp->timeInc(1);
 
@@ -47,8 +45,6 @@ void single_cycle() {
   cur_inst = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__u_idu__DOT__rdata;
   word_t a0 = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__u_idu__DOT__u_regfile__DOT__regs[10];
   NPCTRAP(cur_pc, a0);
-
-  printf ("cur_pc: %#x %d\n", cur_pc, i ++);
 
   pre_wbu_valid = cur_wbu_valid;
   cur_wbu_valid = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__valid_wbu_ifu;
@@ -86,12 +82,12 @@ void init_verilator(int argc, char **argv) {
 
 /* Utilities */
 void reset(int n) {
-  ysyxSoCFull->reset = 0;
+  ysyxSoCFull->reset = 1;
   while (n -- > 0) {
     ysyxSoCFull->clock = 0; ysyxSoCFull->eval(); IFDEF(CONFIG_WAVEFORM, tfp->dump(contextp->time())); contextp->timeInc(1);
     ysyxSoCFull->clock = 1; ysyxSoCFull->eval(); IFDEF(CONFIG_WAVEFORM, tfp->dump(contextp->time())); contextp->timeInc(1);
   }
-  ysyxSoCFull->reset = 1;
+  ysyxSoCFull->reset = 0;
 }
 
 void clean_up() {

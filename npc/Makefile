@@ -45,7 +45,7 @@ $(BIN): $(VSRCS) $(CSRCS)
 
 sim:
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
-	$(BUILD_DIR)/$(TOPNAME) $(ARGS) $(IMG)
+	$(BUILD_DIR)/$(TOPNAME) -b $(ARGS) $(IMG)
 
 all: default
 

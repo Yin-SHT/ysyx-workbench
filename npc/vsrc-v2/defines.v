@@ -1,10 +1,10 @@
 // -------------------------------------------------
 // GLOBAL
 // -------------------------------------------------
-`define RST_PC             32'h8000_0000
+`define RST_PC             32'h2000_0000
 
-`define RST_ENABLE         1'b0
-`define RST_DISABLE        1'b1
+`define RST_ENABLE         1'b1
+`define RST_DISABLE        1'b0
 
 `define WRITE_ENABLE       1'b1
 `define WRITE_DISABLE      1'b0

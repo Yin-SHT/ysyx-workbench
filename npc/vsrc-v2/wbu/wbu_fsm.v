@@ -47,7 +47,7 @@ module wbu_fsm (
   always @( * ) begin
     next_state = cur_state;
     case ( cur_state )
-      pre_start:  if ( rst == 1'b1  ) next_state = start;
+      pre_start:  if ( rst == `RST_DISABLE ) next_state = start;
       start:                          next_state = idle;
       idle:       if ( valid_pre_i  ) next_state = wait_ready;
       wait_ready: if ( ready_post_i ) next_state = idle;
