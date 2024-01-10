@@ -3,14 +3,14 @@
 #include <utils.h>
 #include <isa.h>
 #include <cpu.h>
-#include "Vtop.h"
+#include "VysyxSoCFull.h"
 #include "verilated_vcd_c.h"
-#include "Vtop__Dpi.h"
-#include "Vtop___024root.h"
+#include "VysyxSoCFull__Dpi.h"
+#include "VysyxSoCFull___024root.h"
 
 static VerilatedContext* contextp;
 static VerilatedVcdC* tfp;
-static Vtop *top;
+static VysyxSoCFull *ysyxSoCFull;
 
 static int _ebreak;
 static int _invalid;
@@ -25,31 +25,33 @@ extern uint32_t cur_inst;
 /* Signel cycle simulation in verilator */
 static void update_cpu(uint32_t next_pc) {
   for (int i = 0; i < MUXDEF(CONFIG_RVE, 16, 32); i++) {
-    cpu.gpr[i] = top->rootp->top__DOT__u_cpu__DOT__u_idu__DOT__u_regfile__DOT__regs[i];
+    cpu.gpr[i] = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__u_idu__DOT__u_regfile__DOT__regs[i];
   }
   cpu.pc = next_pc;
 
-  cpu.mstatus = top->rootp->top__DOT__u_cpu__DOT__u_idu__DOT__u_csrs__DOT__mstatus;
-  cpu.mcause = top->rootp->top__DOT__u_cpu__DOT__u_idu__DOT__u_csrs__DOT__mcause;
-  cpu.mtvec = top->rootp->top__DOT__u_cpu__DOT__u_idu__DOT__u_csrs__DOT__mtvec;
-  cpu.mepc = top->rootp->top__DOT__u_cpu__DOT__u_idu__DOT__u_csrs__DOT__mepc; 
+  cpu.mstatus = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__u_idu__DOT__u_csrs__DOT__mstatus;
+  cpu.mcause = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__u_idu__DOT__u_csrs__DOT__mcause;
+  cpu.mtvec = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__u_idu__DOT__u_csrs__DOT__mtvec;
+  cpu.mepc = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__u_idu__DOT__u_csrs__DOT__mepc;
 }
 
 void single_cycle() {
   static uint32_t i = 0;
 
-  top->clk = 0; top->eval(); IFDEF(CONFIG_WAVEFORM, tfp->dump(contextp->time())); contextp->timeInc(1);
-  top->clk = 1; top->eval(); IFDEF(CONFIG_WAVEFORM, tfp->dump(contextp->time())); contextp->timeInc(1);
+  ysyxSoCFull->clock = 0; ysyxSoCFull->eval(); IFDEF(CONFIG_WAVEFORM, tfp->dump(contextp->time())); contextp->timeInc(1);
+  ysyxSoCFull->clock = 1; ysyxSoCFull->eval(); IFDEF(CONFIG_WAVEFORM, tfp->dump(contextp->time())); contextp->timeInc(1);
 
   /* Check ebreak instruction */
   pre_pc = cur_pc;
-  cur_pc = top->rootp->top__DOT__u_cpu__DOT__ifu_araddr;
-  cur_inst = top->rootp->top__DOT__u_cpu__DOT__u_idu__DOT__rdata;
-  word_t a0 = top->rootp->top__DOT__u_cpu__DOT__u_idu__DOT__u_regfile__DOT__regs[10];
+  cur_pc = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__ifu_araddr;
+  cur_inst = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__u_idu__DOT__rdata;
+  word_t a0 = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__u_idu__DOT__u_regfile__DOT__regs[10];
   NPCTRAP(cur_pc, a0);
 
+  printf ("cur_pc: %#x %d\n", cur_pc, i ++);
+
   pre_wbu_valid = cur_wbu_valid;
-  cur_wbu_valid = top->rootp->top__DOT__u_cpu__DOT__valid_wbu_ifu;
+  cur_wbu_valid = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__valid_wbu_ifu;
 
   if (pre_wbu_valid) {
     IFDEF(CONFIG_DIFFTEST, update_cpu(cur_pc));
@@ -62,7 +64,7 @@ void init_verilator(int argc, char **argv) {
   contextp->commandArgs(argc, argv);
 
   // Construct Top Object
-  top = new Vtop{contextp};
+  ysyxSoCFull = new VysyxSoCFull{contextp};
 
   // Build Trace Object
 #ifdef CONFIG_WAVEFORM
@@ -73,7 +75,7 @@ void init_verilator(int argc, char **argv) {
 #endif
 
   // Prepare for DPI-C
-  const svScope scope_pd = svGetScopeFromName("TOP.top.u_cpu.u_idu.u_decode");
+  const svScope scope_pd = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.u_idu.u_decode");
   Assert(scope_pd, "scope_pd is null"); // Check for nullptr if scope not found
   svSetScope(scope_pd);
 
@@ -84,18 +86,18 @@ void init_verilator(int argc, char **argv) {
 
 /* Utilities */
 void reset(int n) {
-  top->rst = 0;
+  ysyxSoCFull->reset = 0;
   while (n -- > 0) {
-    top->clk = 0; top->eval(); IFDEF(CONFIG_WAVEFORM, tfp->dump(contextp->time())); contextp->timeInc(1);
-    top->clk = 1; top->eval(); IFDEF(CONFIG_WAVEFORM, tfp->dump(contextp->time())); contextp->timeInc(1);
+    ysyxSoCFull->clock = 0; ysyxSoCFull->eval(); IFDEF(CONFIG_WAVEFORM, tfp->dump(contextp->time())); contextp->timeInc(1);
+    ysyxSoCFull->clock = 1; ysyxSoCFull->eval(); IFDEF(CONFIG_WAVEFORM, tfp->dump(contextp->time())); contextp->timeInc(1);
   }
-  top->rst = 1;
+  ysyxSoCFull->reset = 1;
 }
 
 void clean_up() {
   tfp->close();
   IFDEF(CONFIG_WAVEFORM, delete tfp);
-  delete top;
+  delete ysyxSoCFull;
   delete contextp;
 }
 
@@ -106,5 +108,5 @@ int check_reg_idx(int idx) {
 
 word_t npc_regs(int i) {
   int idx =  check_reg_idx(i);
-  return top->rootp->top__DOT__u_cpu__DOT__u_idu__DOT__u_regfile__DOT__regs[idx];
+  return ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__u_idu__DOT__u_regfile__DOT__regs[idx];
 }

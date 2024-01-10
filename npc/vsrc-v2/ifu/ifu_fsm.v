@@ -13,29 +13,23 @@ module ifu_fsm (
   input    ready_post_i,
 
   /* AR: Address Read Channel */
-  output   arvalid_o,
-  input    arready_i,
+  input                      arready_i,
+  output                     arvalid_o,
+//output [31:0]              araddr_o,    ifu.v
+  output [3:0]               arid_o,
+  output [7:0]               arlen_o,
+//output [2:0]               arsize_o,    ifu.v
+  output [1:0]               arburst_o,
 
   /*  R: Data Read Channel */
-  /* verilator lint_off UNUSEDSIGNAL */
-  input    [`RRESP_DATA_BUS] rresp_i,
-  input    rvalid_i,
-  output   rready_o,
+  output                     rready_o,
+  input                      rvalid_i,
+  input  [1:0]               rresp_i,
+//input  [63:0]              rdata_i,     ifu.v
+  input                      rlast_i,
+  input  [3:0]               rid_i,
 
-  /* WR: Address Write Channel */
-  output   awvalid_o,
-  input    awready_i,
-
-  /*  W: Data Write Channel */
-  output   wvalid_o,
-  input    wready_i,
-
-  /*  B: Response Write Channel */
-  input    [`BRESP_DATA_BUS] bresp_i,
-  input    bvalid_i,
-  output   bready_o,
-
-  output   we_o
+  output                     we_o
 );
 
   parameter idle         = 3'b000;
@@ -44,11 +38,7 @@ module ifu_fsm (
   parameter wait_arready = 3'b001;
   parameter wait_rvalid  = 3'b010;
 
-  /* States with write operation */
-  parameter wait_awready = 3'b011;
-  parameter wait_wready  = 3'b100;
-  parameter wait_bvalid  = 3'b101;
-  parameter wait_ready   = 3'b110;
+  parameter wait_ready   = 3'b011;
 
   reg [2:0] cur_state;
   reg [2:0] next_state;
@@ -64,13 +54,11 @@ module ifu_fsm (
 
   /* Read */
   assign arvalid_o    = ( cur_state   == wait_arready );    // ARC
+  assign arid_o       = 0;
+  assign arlen_o      = 0;
+  assign arburst_o    = 0;
+
   assign rready_o     = ( cur_state   == wait_rvalid  );    //  RC
-
-  /* Write */
-  assign awvalid_o    = ( cur_state   == wait_awready );    // AWC
-  assign wvalid_o     = ( cur_state   == wait_wready  );    //  WC
-  assign bready_o     = ( cur_state   == wait_bvalid  );    //  BC
-
 
   //-----------------------------------------------------------------
   // Synchronous State - Transition always@ ( posedge Clock ) block

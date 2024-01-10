@@ -29,37 +29,44 @@ module exu (
   output [`REG_DATA_BUS]     alu_result_o,
   output [`REG_DATA_BUS]     mem_result_o,
 
-  /* AR: Address Read Channel */
-  output [`MEM_ADDR_BUS]     araddr_o,
-
-  output                     arvalid_o,
-  input                      arready_i,
-
-  /*  R: Data Read Channel */
-  input  [`MEM_DATA_BUS]     rdata_i,
-  input  [`RRESP_DATA_BUS]   rresp_i,
-
-  input                      rvalid_i,
-  output                     rready_o,
-
-  /* WR: Address Write Channel */
-  output [`MEM_ADDR_BUS]     awaddr_o,
-
-  output                     awvalid_o,
+  /* AW: Address Write Channel */
   input                      awready_i,
+  output                     awvalid_o,
+  output [31:0]              awaddr_o,
+  output [3:0]               awid_o,
+  output [7:0]               awlen_o,
+  output [2:0]               awsize_o,
+  output [1:0]               awburst_o,
 
   /*  W: Data Write Channel */
-  output [`MEM_DATA_BUS]     wdata_o,
-  output [`MEM_MASK_BUS]     wstrb_o,
-
-  output                     wvalid_o,
   input                      wready_i,
+  output                     wvalid_o,
+  output [63:0]              wdata_o,
+  output [7:0]               wstrb_o,
+  output                     wlast_o,
 
   /*  B: Response Write Channel */
-  input  [`BRESP_DATA_BUS]   bresp_i,
-
+  output                     bready_o,
   input                      bvalid_i,
-  output                     bready_o
+  input  [1:0]               bresp_i,
+  input  [3:0]               bid_i,
+
+  /* AR: Address Read Channel */
+  input                      arready_i,
+  output                     arvalid_o,
+  output [31:0]              araddr_o,
+  output [3:0]               arid_o,
+  output [7:0]               arlen_o,
+  output [2:0]               arsize_o,
+  output [1:0]               arburst_o,
+
+  /*  R: Data Read Channel */
+  output                     rready_o,
+  input                      rvalid_i,
+  input  [1:0]               rresp_i,
+  input  [63:0]              rdata_i,
+  input                      rlast_i,
+  input  [3:0]               rid_i
 );
   
   wire                    we;
@@ -72,43 +79,14 @@ module exu (
   wire [`REG_DATA_BUS]    rdata2;
   wire [`CSR_DATA_BUS]    csr;
   
-  exu_fsm u_exu_fsm (
-  	.clk          ( clk          ),
-    .rst          ( rst          ),
-
-    .inst_type_i  ( inst_type_i  ),
-
-    .valid_pre_i  ( valid_pre_i  ),
-    .ready_pre_o  ( ready_pre_o  ),
-    .valid_post_o ( valid_post_o ),
-    .ready_post_i ( ready_post_i ),
-
-    .arvalid_o    ( arvalid_o    ),
-    .arready_i    ( arready_i    ),
-
-    .rresp_i      ( rresp_i      ),
-    .rvalid_i     ( rvalid_i     ),
-    .rready_o     ( rready_o     ),
-
-    .awvalid_o    ( awvalid_o    ),
-    .awready_i    ( awready_i    ),
-
-    .wvalid_o     ( wvalid_o     ),
-    .wready_i     ( wready_i     ),
-
-    .bresp_i      ( bresp_i      ),
-    .bvalid_i     ( bvalid_i     ),
-    .bready_o     ( bready_o     ),
-
-    .we_o         ( we           )
-  );
-  
   exu_reg u_exu_reg (
   	.clk          ( clk          ),
     .rst          ( rst          ),
 
+    // from fsm
     .we_i         ( we           ),
 
+    // from idu
     .inst_type_i  ( inst_type_i  ),
     .alu_op_i     ( alu_op_i     ),
     .lsu_op_i     ( lsu_op_i     ),
@@ -121,6 +99,7 @@ module exu (
     .rdata2_i     ( rdata2_i     ),
     .csr_i        ( csr_i        ),
 
+    // to internal modules
     .inst_type_o  ( inst_type    ),
     .alu_op_o     ( alu_op       ),
     .lsu_op_o     ( lsu_op       ),
@@ -134,9 +113,53 @@ module exu (
     .csr_o        ( csr          )
   );
   
+  exu_fsm u_exu_fsm(
+  	.clk          ( clk          ),
+    .rst          ( rst          ),
+
+    .valid_pre_i  ( valid_pre_i  ),
+    .ready_pre_o  ( ready_pre_o  ),
+    .valid_post_o ( valid_post_o ),
+    .ready_post_i ( ready_post_i ),
+
+    // form exu-regs
+    .inst_type_i  ( inst_type    ),
+
+    // AXI4 interface
+    .awready_i    ( awready_i    ),
+    .awvalid_o    ( awvalid_o    ),
+    .awid_o       ( awid_o       ),
+    .awlen_o      ( awlen_o      ),
+    .awburst_o    ( awburst_o    ),
+
+    .wready_i     ( wready_i     ),
+    .wvalid_o     ( wvalid_o     ),
+    .wlast_o      ( wlast_o      ),
+
+    .bready_o     ( bready_o     ),
+    .bvalid_i     ( bvalid_i     ),
+    .bresp_i      ( bresp_i      ),
+    .bid_i        ( bid_i        ),
+
+    .arready_i    ( arready_i    ),
+    .arvalid_o    ( arvalid_o    ),
+    .arid_o       ( arid_o       ),
+    .arlen_o      ( arlen_o      ),
+    .arburst_o    ( arburst_o    ),
+
+    .rready_o     ( rready_o     ),
+    .rvalid_i     ( rvalid_i     ),
+    .rresp_i      ( rresp_i      ),
+    .rlast_i      ( rlast_i      ),
+    .rid_i        ( rid_i        ),
+
+    .we_o         ( we           )
+  );
+  
   fu u_fu (
   	.rst          ( rst          ),
 
+    // from exu-regs
     .inst_type_i  ( inst_type    ),
     .alu_op_i     ( alu_op       ),
     .pc_i         ( pc           ),
@@ -145,25 +168,31 @@ module exu (
     .rdata2_i     ( rdata2       ),
     .csr_i        ( csr          ),
 
+    // to wbu-regs
     .alu_result_o ( alu_result_o )
   );
   
   lsu u_lsu(
   	.rst          ( rst          ),
-
-    .inst_type_i  ( inst_type_i  ),
+    
+    // form exu-regs
+    .inst_type_i  ( inst_type    ),
     .lsu_op_i     ( lsu_op       ),
-    .imm_i        ( imm_i        ),
-    .rdata1_i     ( rdata1_i     ),
-    .rdata2_i     ( rdata2_i     ),
+    .imm_i        ( imm          ),
+    .rdata1_i     ( rdata1       ),
+    .rdata2_i     ( rdata2       ),
+    
+    // to wbu-regs
+    .mem_result_o ( mem_result_o ),
 
-    .araddr_o     ( araddr_o     ),
+    // AXI4 interface
     .awaddr_o     ( awaddr_o     ),
+    .awsize_o     ( awsize_o     ),
     .wdata_o      ( wdata_o      ),
     .wstrb_o      ( wstrb_o      ),
-
-    .rdata_i      ( rdata_i      ),
-    .mem_result_o ( mem_result_o )
+    .araddr_o     ( araddr_o     ),
+    .arsize_o     ( arsize_o     ),
+    .rdata_i      ( rdata_i      )
   );
    
 

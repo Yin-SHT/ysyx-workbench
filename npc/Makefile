@@ -1,43 +1,60 @@
-IMG =
-TOP_NAME = Vtop
-ARGS = -b \
-			 --log=$(NPC_HOME)/output/log.txt \
-			 --diff=$(NEMU_HOME)/build/riscv32-nemu-interpreter-so
-
-CSRC_DIR = csrc
-VSRC_DIR = vsrc-v2
-INC_DIR = $(NPC_HOME)/csrc/include
-OBJ_DIR = build
-
-INCFLAGS = $(addprefix -I, $(INC_DIR))
-CFLAGS += $(INCFLAGS) $(shell llvm-config --cxxflags) 
-LDFLAGS = -lreadline -lSDL2 $(shell llvm-config --libs)
-
-CSRCS = $(shell find $(CSRC_DIR) -name "*.cpp" )
-VSRCS = $(shell find $(VSRC_DIR) -name "*.v" )
+TOPNAME = ysyxSoCFull
+INC_PATH = $(NPC_HOME)/csrc/include
 
 VERILATOR = verilator
-COMPILE_FLAG = --cc --trace --top-module top --Wall --timing -Ivsrc-v2 -Mdir $(OBJ_DIR)
-SIM_FLAG = $(COMPILE_FLAG) --exe --build -j 80
+VERILATOR_FLAGS += -MMD --build -cc -Wall --trace \
+				-O3 --x-assign fast --x-initial fast --noassert  \
+				--timing --timescale "1ns/1ns" \
+				-y $(SOC_HOME)/perip/uart16550/rtl -y $(SOC_HOME)/perip/spi/rtl -y $(NPC_HOME)/vsrc-v2 \
+				-Wno-DECLFILENAME \
+				-Wno-PINCONNECTEMPTY \
+				-Wno-DEFPARAM \
+				-Wno-UNUSEDSIGNAL \
+				-Wno-UNUSEDPARAM \
+				-Wno-UNDRIVEN \
+				-Wno-SYNCASYNCNET \
+				-Wno-BLKSEQ       \
 
-all:
-	@echo "Write this Makefile by your self."
+BUILD_DIR = ./build
+OBJ_DIR = $(BUILD_DIR)/obj_dir
+BIN = $(BUILD_DIR)/$(TOPNAME)
 
-compile:
-	$(VERILATOR) $(COMPILE_FLAG) $(VSRCS)
+default: $(BIN)
+
+$(shell mkdir -p $(BUILD_DIR))
+
+# project source
+VSRCS = $(SOC_HOME)/generated/ysyxSoCFull.v
+VSRCS += $(shell find $(SOC_HOME)/perip -name "*.v")
+VSRCS += $(shell find $(NPC_HOME)/vsrc-v2 -name "*.v")
+
+CSRCS = $(shell find $(NPC_HOME)/csrc -name "*.c" -or -name "*.cc" -or -name "*.cpp")
+
+# rules for verilator
+INCFLAGS = $(addprefix -I, $(INC_PATH))
+CFLAGS = $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\"" \
+		 $(shell llvm-config --cxxflags) 
+LDFLAGS = -lreadline -lSDL2 $(shell llvm-config --libs)
+
+$(BIN): $(VSRCS) $(CSRCS) 
+	@rm -rf $(OBJ_DIR)
+	$(VERILATOR) $(VERILATOR_FLAGS) \
+		--top-module $(TOPNAME) $^ \
+		$(addprefix -CFLAGS , $(CFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
+		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN))
 
 sim:
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
-	@$(VERILATOR) $(SIM_FLAG) \
-			$(addprefix -CFLAGS , $(CFLAGS)) \
-			$(addprefix -LDFLAGS , $(LDFLAGS)) \
-			$(CSRCS) $(VSRCS)
-	$(OBJ_DIR)/$(TOP_NAME) $(ARGS) $(IMG)
+	$(BUILD_DIR)/$(TOPNAME) $(ARGS) $(IMG)
 
-run: sim
+all: default
+
+run: $(BIN)
+	@$^
 
 clean:
-	$(RM) $(OBJ_DIR)/*
-	$(RM) output/*
+	rm -rf $(BUILD_DIR)
 
 include ../Makefile
+
+.PHONY: default all clean run
