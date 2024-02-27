@@ -1,8 +1,8 @@
 `include "defines.v"
 
 module wbu_reg (
-  input                        clk,
-  input                        rst,
+  input                        clock,
+  input                        reset,
 
   input                        we_i,
 
@@ -17,8 +17,8 @@ module wbu_reg (
   output  reg [`REG_DATA_BUS]  wdata_o
 );
 
-  always @( posedge clk or negedge rst ) begin
-    if ( rst == `RST_ENABLE ) begin
+  always @( posedge clock or negedge reset ) begin
+    if ( reset == `RESET_ENABLE ) begin
       wena_o     <= 1'b0;
       waddr_o    <= 5'b0;
       wdata_o    <= 32'h0000_0000;

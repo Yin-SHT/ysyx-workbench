@@ -1,8 +1,8 @@
 `include "defines.v"
 
 module wbu (
-  input                     clk,
-  input                     rst,
+  input                     clock,
+  input                     reset,
 
   input                     valid_pre_i,
   output                    ready_pre_o,
@@ -24,8 +24,8 @@ module wbu (
   wire we;
 
   wbu_fsm u_wbu_fsm(
-  	.clk          ( clk          ),
-    .rst          ( rst          ),
+  	.clock        ( clock        ),
+    .reset        ( reset        ),
 
     .valid_pre_i  ( valid_pre_i  ),
     .valid_post_o ( valid_post_o ),
@@ -36,8 +36,8 @@ module wbu (
   );
   
   wbu_reg u_wbu_reg(
-  	.clk          ( clk          ),
-    .rst          ( rst          ),
+  	.clock        ( clock        ),
+    .reset        ( reset        ),
 
     .we_i         ( we           ),
 

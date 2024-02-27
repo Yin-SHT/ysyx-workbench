@@ -1,8 +1,8 @@
 `include "defines.v"
 
 module idu (
-  input                       clk,
-  input                       rst,
+  input                       clock,
+  input                       reset,
 
   input                       valid_pre_i,
   output                      ready_pre_o,
@@ -10,33 +10,36 @@ module idu (
   output                      valid_post_o,
   input                       ready_post_i,
 
+  // f: wbu
   input                       wena_i,
   input   [`REG_ADDR_BUS]     waddr_i,
   input   [`REG_DATA_BUS]     wdata_i,
 
-  input   [`INST_ADDR_BUS]    pc_i,
-  input   [`INST_DATA_BUS]    inst_i,
+  // f: ifu
+  input   [`NPC_ADDR_BUS]     pc_i,
+  input   [`NPC_DATA_BUS]     inst_i,
 
+  // t: exu
   output  [`INST_TYPE_BUS]    inst_type_o,
   output  [`ALU_OP_BUS]       alu_op_o,
   output  [`LSU_OP_BUS]       lsu_op_o,
   output                      wsel_o,
   output                      wena_o,
   output  [`REG_ADDR_BUS]     waddr_o,
-
-  output  [`INST_ADDR_BUS]    pc_o,
+  output  [`NPC_ADDR_BUS]     pc_o,
   output  [`REG_DATA_BUS]     imm_o,
   output  [`REG_DATA_BUS]     rdata1_o,
   output  [`REG_DATA_BUS]     rdata2_o,
   output  [`CSR_DATA_BUS]     csr_o,
   
+  // t: ifu
   output                      branch_en_o,
-  output  [`INST_ADDR_BUS]    dnpc_o
+  output  [`NPC_ADDR_BUS]     dnpc_o
 );
 
   wire                  we;
-  wire [`INST_ADDR_BUS] araddr;
-  wire [`INST_ADDR_BUS] rdata;
+  wire [`NPC_ADDR_BUS]  pc;
+  wire [`NPC_DATA_BUS]  inst;
   wire                  rena1;
   wire                  rena2;
   wire [`BPU_OP_BUS]    bpu_op;
@@ -47,8 +50,8 @@ module idu (
 
 
   idu_fsm  u_idu_fsm (
-    .clk          ( clk          ),
-    .rst          ( rst          ),
+    .clock        ( clock        ),
+    .reset        ( reset        ),
 
     .valid_pre_i  ( valid_pre_i  ),
     .valid_post_o ( valid_post_o ),
@@ -59,23 +62,19 @@ module idu (
   );
 
   idu_reg u_idu_reg (
-  	.clk          ( clk          ),
-    .rst          ( rst          ),
-
+  	.clock        ( clock        ),
+    .reset        ( reset        ),
     .we_i         ( we           ),
-    .araddr_i     ( pc_i         ),
-    .rdata_i      ( inst_i       ),
-
-    .araddr_o     ( araddr       ),
-    .rdata_o      ( rdata        )
+    .pc_i         ( pc_i         ),
+    .inst_i       ( inst_i       ),
+    .pc_o         ( pc           ),
+    .inst_o       ( inst         )
   );
    
   decode u_decode (
-    .rst          ( rst          ),
-
-    .pc_i         ( araddr       ),
-    .inst_i       ( rdata        ),
-
+    .reset        ( reset        ),
+    .pc_i         ( pc           ),
+    .inst_i       ( inst         ),
     .inst_type_o  ( inst_type_o  ),
     .alu_op_o     ( alu_op_o     ),
     .lsu_op_o     ( lsu_op_o     ),
@@ -93,24 +92,21 @@ module idu (
   );
   
   regfile u_regfile (
-  	.clk          ( clk          ),
-    .rst          ( rst          ),
-
+  	.clock        ( clock        ),
+    .reset        ( reset        ),
     .wena_i       ( wena_i       ),
     .waddr_i      ( waddr_i      ),
     .wdata_i      ( wdata_i      ),
-
     .rena1_i      ( rena1        ),
     .raddr1_i     ( raddr1       ),
     .rena2_i      ( rena2        ),
     .raddr2_i     ( raddr2       ),
-
     .rdata1_o     ( rdata1_o     ),
     .rdata2_o     ( rdata2_o     )
   );
 
   csrs u_csrs(
-  	.rst      ( rst      ),
+  	.reset    ( reset    ),
     .csr_op_i ( csr_op   ),
     .pc_i     ( pc_o     ),
     .imm_i    ( imm_o    ),
@@ -120,8 +116,7 @@ module idu (
   );
 
   bpu u_bpu(
-  	.rst          ( rst          ),
-
+  	.reset        ( reset        ),
     .bpu_op_i     ( bpu_op       ),
     .csr_op_i     ( csr_op       ),
     .pc_i         ( pc_o         ),
@@ -129,7 +124,6 @@ module idu (
     .rdata1_i     ( rdata1_o     ),
     .rdata2_i     ( rdata2_o     ),
     .csr_pc_i     ( csr_pc       ),
-
     .branch_en_o  ( branch_en_o  ),
     .dnpc_o       ( dnpc_o       )
   );

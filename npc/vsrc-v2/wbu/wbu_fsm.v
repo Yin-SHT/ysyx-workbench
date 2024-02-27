@@ -1,8 +1,8 @@
 `include "defines.v"
 
 module wbu_fsm (
-  input    clk,
-  input    rst,
+  input    clock,
+  input    reset,
 
   input    valid_pre_i,
   output   valid_post_o,
@@ -32,8 +32,8 @@ module wbu_fsm (
   //-----------------------------------------------------------------
   // Synchronous State - Transition always@ ( posedge Clock ) block
   //-----------------------------------------------------------------
-  always @( posedge clk or negedge rst ) begin
-    if ( rst == `RST_ENABLE ) begin
+  always @( posedge clock or negedge reset ) begin
+    if ( reset == `RESET_ENABLE ) begin
       cur_state <= pre_start;
     end else begin
       cur_state <= next_state;
@@ -47,7 +47,7 @@ module wbu_fsm (
   always @( * ) begin
     next_state = cur_state;
     case ( cur_state )
-      pre_start:  if ( rst == `RST_DISABLE ) next_state = start;
+      pre_start:  if ( reset == `RESET_DISABLE ) next_state = start;
       start:                          next_state = idle;
       idle:       if ( valid_pre_i  ) next_state = wait_ready;
       wait_ready: if ( ready_post_i ) next_state = idle;

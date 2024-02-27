@@ -1,27 +1,27 @@
 `include "defines.v"
 
 module decode (
-  input   rst,
+  input   reset,
 
-  input   [`INST_ADDR_BUS]    pc_i,
-  input   [`INST_DATA_BUS]    inst_i,
+  input   [`NPC_ADDR_BUS]    pc_i,
+  input   [`NPC_DATA_BUS]    inst_i,
 
-  output  [`INST_TYPE_BUS]    inst_type_o,
-  output  [`ALU_OP_BUS]       alu_op_o,
-  output  [`LSU_OP_BUS]       lsu_op_o,
-  output  [`BPU_OP_BUS]       bpu_op_o,
-  output  [`CSR_OP_BUS]       csr_op_o,
-  output                      wsel_o,
-  output                      wena_o,
-  output  [`REG_ADDR_BUS]     waddr_o,
+  output  [`INST_TYPE_BUS]   inst_type_o,
+  output  [`ALU_OP_BUS]      alu_op_o,
+  output  [`LSU_OP_BUS]      lsu_op_o,
+  output  [`BPU_OP_BUS]      bpu_op_o,
+  output  [`CSR_OP_BUS]      csr_op_o,
+  output                     wsel_o,
+  output                     wena_o,
+  output  [`REG_ADDR_BUS]    waddr_o,
 
-  output  [`INST_ADDR_BUS]    pc_o,
-  output  [`REG_DATA_BUS]     imm_o,
+  output  [`NPC_ADDR_BUS]    pc_o,
+  output  [`REG_DATA_BUS]    imm_o,
 
-  output                      rena1_o,
-  output                      rena2_o,
-  output  [`REG_ADDR_BUS]     raddr1_o,
-  output  [`REG_ADDR_BUS]     raddr2_o
+  output                     rena1_o,
+  output                     rena2_o,
+  output  [`REG_ADDR_BUS]    raddr1_o,
+  output  [`REG_ADDR_BUS]    raddr2_o
 );
 
   export "DPI-C" function inst_ebreak;
@@ -137,7 +137,7 @@ module decode (
                               ( inst_csrrw | inst_csrrs                                                  ) ? immI : 32'h0000_0000;
 
   
-  assign  inst_type_o = ( rst    == `RST_ENABLE  ) ? `INST_NOP     :
+  assign  inst_type_o = ( reset  == `RESET_ENABLE ) ? `INST_NOP     :
                         ( opcode == 7'b011_0011  ) ? `INST_RR      :
                         ( opcode == 7'b001_0011  ) ? `INST_RI      :
                         ( opcode == 7'b000_0011  ) ? `INST_LOAD    :
@@ -150,7 +150,7 @@ module decode (
                         ( opcode == 7'b111_0011  ) ? `INST_CSRR    : `INST_NOP;
 
 
-  assign  alu_op_o    = ( rst == `RST_ENABLE       ) ? `ALU_OP_NOP   :
+  assign  alu_op_o    = ( reset  == `RESET_ENABLE  ) ? `ALU_OP_NOP   :
                         ( inst_add   | inst_addi   ) ? `ALU_OP_ADD   :
                         ( inst_sub                 ) ? `ALU_OP_SUB   :
                         ( inst_xor   | inst_xori   ) ? `ALU_OP_XOR   :
@@ -166,7 +166,7 @@ module decode (
                         ( inst_auipc               ) ? `ALU_OP_AUIPC : 
                         ( inst_csrrs | inst_csrrw  ) ? `ALU_OP_CSRR  : `ALU_OP_NOP;
 
-  assign  lsu_op_o    = ( rst == `RST_ENABLE     ) ? `LSU_OP_NOP   :
+  assign  lsu_op_o    = ( reset == `RESET_ENABLE ) ? `LSU_OP_NOP   :
                         ( inst_lb                ) ? `LSU_OP_LB    :
                         ( inst_lh                ) ? `LSU_OP_LH    :
                         ( inst_lw                ) ? `LSU_OP_LW    :
@@ -176,7 +176,7 @@ module decode (
                         ( inst_sh                ) ? `LSU_OP_SH    :
                         ( inst_sw                ) ? `LSU_OP_SW    : `LSU_OP_NOP;
 
-  assign  bpu_op_o    = ( rst == `RST_ENABLE     ) ? `BPU_OP_NOP   :
+  assign  bpu_op_o    = ( reset == `RESET_ENABLE ) ? `BPU_OP_NOP   :
                         ( inst_beq               ) ? `BPU_OP_BEQ   :
                         ( inst_bne               ) ? `BPU_OP_BNE   :
                         ( inst_blt               ) ? `BPU_OP_BLT   :
@@ -186,16 +186,16 @@ module decode (
                         ( inst_jal               ) ? `BPU_OP_JAL   :
                         ( inst_jalr              ) ? `BPU_OP_JALR  : `BPU_OP_NOP;
 
-  assign  csr_op_o    = ( rst == `RST_ENABLE     ) ? `CSR_OP_NOP   :
+  assign  csr_op_o    = ( reset == `RESET_ENABLE ) ? `CSR_OP_NOP   :
                         ( inst_csrrw             ) ? `CSR_OP_CSRRW :
                         ( inst_csrrs             ) ? `CSR_OP_CSRRS :
                         ( ecall                  ) ? `CSR_OP_ECALL :
                         ( inst_mret              ) ? `CSR_OP_MRET  : `CSR_OP_NOP;
 
-  assign  wsel_o      = ( rst == `RST_ENABLE                                ) ? `SEL_ALU_DATA :
+  assign  wsel_o      = ( reset == `RESET_ENABLE                            ) ? `SEL_ALU_DATA :
                         ( inst_lb | inst_lh | inst_lw | inst_lbu | inst_lhu ) ? `SEL_LSU_DATA : `SEL_ALU_DATA;
 
-  assign  wena_o      = ( rst == `RST_DISABLE ) & 
+  assign  wena_o      = ( reset == `RESET_DISABLE ) & 
                         ( 
                           inst_add  | inst_sub   | inst_xor   | inst_or    | inst_and   |
                           inst_sll  | inst_srl   | inst_sra   | inst_slt   | inst_sltu  | 
@@ -214,7 +214,7 @@ module decode (
   assign  imm_o       = imm;
 
   /* To Register File */
-  assign  rena1_o     = ( rst == `RST_DISABLE ) & 
+  assign  rena1_o     = ( reset == `RESET_DISABLE ) & 
                         ( 
                           inst_add   | inst_sub  | inst_xor   | inst_or   | inst_and   |
                           inst_sll   | inst_srl  | inst_sra   | inst_slt  | inst_sltu  |
@@ -228,7 +228,7 @@ module decode (
                           inst_mul   | inst_mulh | inst_mulhu | inst_div  | inst_divu  | inst_rem  | inst_remu
                         );
 
-  assign  rena2_o   = ( rst == `RST_DISABLE ) & 
+  assign  rena2_o   = ( reset == `RESET_DISABLE ) & 
                       ( 
                         inst_add  | inst_sub  | inst_xor   | inst_or   | inst_and   |
                         inst_sll  | inst_srl  | inst_sra   | inst_slt  | inst_sltu  |

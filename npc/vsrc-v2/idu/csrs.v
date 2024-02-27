@@ -7,10 +7,10 @@
 `define ECALL_FROM_M 32'h0000_000b
 
 module csrs (
-  input                  rst,
+  input                  reset,
 
   input [`CSR_OP_BUS]    csr_op_i,
-  input [`INST_ADDR_BUS] pc_i,
+  input [`NPC_ADDR_BUS]  pc_i,
   input [`REG_DATA_BUS]  imm_i,
   input [`REG_DATA_BUS]  rdata1_i,
   
@@ -24,36 +24,36 @@ module csrs (
   reg [`CSR_DATA_BUS] mcause  = 32'h0000_0000;
 
   /* CSRRW & CSRRS */
-  assign  csr_o = (( rst == `RST_DISABLE ) && (( csr_op_i == `CSR_OP_CSRRW ) || ( csr_op_i == `CSR_OP_CSRRS )) && ( imm_i == `MSTATUS )) ? mstatus       :
-                  (( rst == `RST_DISABLE ) && (( csr_op_i == `CSR_OP_CSRRW ) || ( csr_op_i == `CSR_OP_CSRRS )) && ( imm_i == `MTVEC   )) ? mtvec         :
-                  (( rst == `RST_DISABLE ) && (( csr_op_i == `CSR_OP_CSRRW ) || ( csr_op_i == `CSR_OP_CSRRS )) && ( imm_i == `MEPC    )) ? mepc          :
-                  (( rst == `RST_DISABLE ) && (( csr_op_i == `CSR_OP_CSRRW ) || ( csr_op_i == `CSR_OP_CSRRS )) && ( imm_i == `MCAUSE  )) ? mcause        :
-                                                                                                                                           32'h0000_0000 ;
+  assign  csr_o = (( reset == `RESET_DISABLE ) && (( csr_op_i == `CSR_OP_CSRRW ) || ( csr_op_i == `CSR_OP_CSRRS )) && ( imm_i == `MSTATUS )) ? mstatus       :
+                  (( reset == `RESET_DISABLE ) && (( csr_op_i == `CSR_OP_CSRRW ) || ( csr_op_i == `CSR_OP_CSRRS )) && ( imm_i == `MTVEC   )) ? mtvec         :
+                  (( reset == `RESET_DISABLE ) && (( csr_op_i == `CSR_OP_CSRRW ) || ( csr_op_i == `CSR_OP_CSRRS )) && ( imm_i == `MEPC    )) ? mepc          :
+                  (( reset == `RESET_DISABLE ) && (( csr_op_i == `CSR_OP_CSRRW ) || ( csr_op_i == `CSR_OP_CSRRS )) && ( imm_i == `MCAUSE  )) ? mcause        :
+                                                                                                                                               0             ;
   always @( * ) begin
-    if (( rst == `RST_DISABLE ) && ( csr_op_i == `CSR_OP_CSRRW )) begin
+    if (( reset == `RESET_DISABLE ) && ( csr_op_i == `CSR_OP_CSRRW )) begin
       case ( imm_i )
         `MSTATUS: mstatus = rdata1_i;
         `MTVEC:   mtvec   = rdata1_i;
         `MEPC:    mepc    = rdata1_i;
         `MCAUSE:  mcause  = rdata1_i;
       endcase     
-    end else if (( rst == `RST_DISABLE ) && ( csr_op_i == `CSR_OP_CSRRW )) begin
+    end else if (( reset == `RESET_DISABLE ) && ( csr_op_i == `CSR_OP_CSRRW )) begin
       case ( imm_i )
         `MSTATUS: mstatus = rdata1_i | mstatus;
         `MTVEC:   mtvec   = rdata1_i | mtvec;
         `MEPC:    mepc    = rdata1_i | mepc;
         `MCAUSE:  mcause  = rdata1_i | mcause;
       endcase     
-    end else if (( rst == `RST_DISABLE ) && ( csr_op_i == `CSR_OP_ECALL )) begin
+    end else if (( reset == `RESET_DISABLE ) && ( csr_op_i == `CSR_OP_ECALL )) begin
         mepc    = pc_i;
         mcause  = 11;
     end 
   end
 
   /* ECALL */
-  assign csr_pc_o = ( rst == `RST_DISABLE ) && ( csr_op_i == `CSR_OP_ECALL ) ?  mtvec         :
-                    ( rst == `RST_DISABLE ) && ( csr_op_i == `CSR_OP_MRET  ) ?  mepc          :
-                                                                                32'h0000_0000 ;
+  assign csr_pc_o = ( reset == `RESET_DISABLE ) && ( csr_op_i == `CSR_OP_ECALL ) ?  mtvec         :
+                    ( reset == `RESET_DISABLE ) && ( csr_op_i == `CSR_OP_MRET  ) ?  mepc          :
+                                                                                    0             ;
  
 
 endmodule

@@ -1,18 +1,16 @@
 `include "defines.v"
 
 module idu_fsm (
-  input    clk,
-  input    rst,
+  input clock,
+  input reset,
 
-  /* IFU */
-  input    valid_pre_i,
-  output   valid_post_o,
+  input  valid_pre_i,
+  output valid_post_o,
 
-  /* EXU */
-  input    ready_post_i,
-  output   ready_pre_o,
+  input  ready_post_i,
+  output ready_pre_o,
 
-  output   we_o
+  output we_o
 );
 
   parameter idle       = 2'b00;
@@ -32,8 +30,8 @@ module idu_fsm (
   //-----------------------------------------------------------------
   // Synchronous State - Transition always@ ( posedge Clock ) block
   //-----------------------------------------------------------------
-  always @( posedge clk or negedge rst ) begin
-    if ( rst == `RST_ENABLE ) begin
+  always @( posedge clock or negedge reset ) begin
+    if ( reset == `RESET_ENABLE ) begin
       cur_state <= idle;
     end else begin
       cur_state <= next_state;

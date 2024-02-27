@@ -1,11 +1,11 @@
 `include "defines.v"
 
 module fu (
-  input                       rst,
+  input                       reset,
 
   input   [`INST_TYPE_BUS]    inst_type_i,
   input   [`ALU_OP_BUS]       alu_op_i,
-  input   [`INST_ADDR_BUS]    pc_i,
+  input   [`NPC_ADDR_BUS]     pc_i,
   input   [`REG_DATA_BUS]     imm_i,
   input   [`REG_DATA_BUS]     rdata1_i,
   input   [`REG_DATA_BUS]     rdata2_i,
@@ -18,9 +18,9 @@ module fu (
   wire [`REG_DATA_BUS] operand2;
 
   assign operand1     = ( 
-                          ( rst         == `RST_ENABLE ) || 
-                          ( inst_type_i == `INST_NOP   ) || 
-                          ( alu_op_i    == `ALU_OP_NOP )   
+                          ( reset       == `RESET_ENABLE ) || 
+                          ( inst_type_i == `INST_NOP     ) || 
+                          ( alu_op_i    == `ALU_OP_NOP   )   
                         )                              ? 32'h0000_0000 :
                         ( inst_type_i == `INST_RR    ) ? rdata1_i      :
                         ( inst_type_i == `INST_RI    ) ? rdata1_i      :
@@ -31,19 +31,19 @@ module fu (
                         ( inst_type_i == `INST_CSRR  ) ? csr_i         : 32'h0000_0000;
 
   assign operand2     = ( 
-                          ( rst         == `RST_ENABLE ) || 
-                          ( inst_type_i == `INST_NOP   ) || 
-                          ( alu_op_i    == `ALU_OP_NOP )   
+                          ( reset       == `RESET_ENABLE ) || 
+                          ( inst_type_i == `INST_NOP     ) || 
+                          ( alu_op_i    == `ALU_OP_NOP   )   
                         )                              ? 32'h0000_0000 :
                         ( inst_type_i == `INST_RR    ) ? rdata2_i      :
                         ( inst_type_i == `INST_RI    ) ? imm_i         :
                         ( inst_type_i == `INST_LUI   ) ? imm_i         :
-                        ( inst_type_i == `INST_AUIPC ) ? imm_i          : 32'h0000_0000;
+                        ( inst_type_i == `INST_AUIPC ) ? imm_i         : 32'h0000_0000;
 
   assign alu_result_o = ( 
-                          ( rst         == `RST_ENABLE ) || 
-                          ( inst_type_i == `INST_NOP   ) || 
-                          ( alu_op_i    == `ALU_OP_NOP )   
+                          ( reset       == `RESET_ENABLE ) || 
+                          ( inst_type_i == `INST_NOP     ) || 
+                          ( alu_op_i    == `ALU_OP_NOP   )   
                         )                              ?  32'h0000_0000         :
                         ( alu_op_i == `ALU_OP_ADD   )  ?  operand1  +  operand2 :
                         ( alu_op_i == `ALU_OP_SUB   )  ?  operand1  -  operand2 :

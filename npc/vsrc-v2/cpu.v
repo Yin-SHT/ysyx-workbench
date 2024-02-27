@@ -99,36 +99,36 @@ module cpu (
   wire  ready_exu_wbu;
 
   /* BPU & IFU */
-  wire                      branch_en;
-  wire [`INST_ADDR_BUS]     dnpc;
+  wire                    branch_en;
+  wire [`NPC_ADDR_BUS]    dnpc;
 
   /* IFU & IDU */     
-  wire [`INST_DATA_BUS]     rdata;
+  wire [`NPC_DATA_BUS]    rdata;
 
   /* WBU & IDU */
-  wire                      wena;
-  wire  [`REG_ADDR_BUS]     waddr;
-  wire  [`REG_DATA_BUS]     wdata;
+  wire                    wena;
+  wire  [`REG_ADDR_BUS]   waddr;
+  wire  [`REG_DATA_BUS]   wdata;
 
   /* IDU & EXU */
-  wire  [`INST_TYPE_BUS]    inst_type;
-  wire  [`ALU_OP_BUS]       alu_op;
-  wire  [`LSU_OP_BUS]       lsu_op;
-  wire                      wsel_idu_exu;
-  wire                      wena_idu_exu;
-  wire  [`REG_ADDR_BUS]     waddr_idu_exu;
-  wire  [`INST_ADDR_BUS]    pc;
-  wire  [`REG_DATA_BUS]     imm;
-  wire  [`REG_DATA_BUS]     rdata1;
-  wire  [`REG_DATA_BUS]     rdata2;
-  wire  [`CSR_DATA_BUS]     csr;
+  wire  [`INST_TYPE_BUS]  inst_type;
+  wire  [`ALU_OP_BUS]     alu_op;
+  wire  [`LSU_OP_BUS]     lsu_op;
+  wire                    wsel_idu_exu;
+  wire                    wena_idu_exu;
+  wire  [`REG_ADDR_BUS]   waddr_idu_exu;
+  wire  [`NPC_ADDR_BUS]   pc;
+  wire  [`REG_DATA_BUS]   imm;
+  wire  [`REG_DATA_BUS]   rdata1;
+  wire  [`REG_DATA_BUS]   rdata2;
+  wire  [`CSR_DATA_BUS]   csr;
 
   /* EXU & WBU */
-  wire                      wsel_exu_wbu;
-  wire                      wena_exu_wbu;
-  wire  [`REG_ADDR_BUS]     waddr_exu_wbu;
-  wire  [`REG_DATA_BUS]     alu_result;
-  wire  [`REG_DATA_BUS]     mem_result;
+  wire                    wsel_exu_wbu;
+  wire                    wena_exu_wbu;
+  wire  [`REG_ADDR_BUS]   waddr_exu_wbu;
+  wire  [`REG_DATA_BUS]   alu_result;
+  wire  [`REG_DATA_BUS]   mem_result;
 
   /* IFU & ARBITER */
   wire        ifu_awready;
@@ -206,8 +206,8 @@ module cpu (
   assign io_slave_rid     = 0;
 
   ifu u_ifu(
-  	.rst          ( reset            ),
-    .clk          ( clock            ),
+  	.reset        ( reset            ),
+    .clock        ( clock            ),
 
     .valid_pre_i  ( valid_wbu_ifu    ),
     .ready_pre_o  ( ready_wbu_ifu    ),
@@ -251,8 +251,8 @@ module cpu (
   );
   
   idu u_idu(
-  	.clk          ( clock         ),
-    .rst          ( reset         ),
+  	.clock        ( clock         ),
+    .reset        ( reset         ),
 
     .valid_pre_i  ( valid_ifu_idu ),
     .ready_pre_o  ( ready_ifu_idu ),
@@ -283,8 +283,8 @@ module cpu (
   );
   
   exu u_exu(
-  	.clk          ( clock ),
-    .rst          ( reset ),
+  	.clock        ( clock ),
+    .reset        ( reset ),
 
     .valid_pre_i  ( valid_idu_exu ),
     .ready_pre_o  ( ready_idu_exu ),
@@ -341,8 +341,8 @@ module cpu (
   );
   
   wbu u_wbu(
-  	.clk          ( clock         ),
-    .rst          ( reset         ),
+  	.clock        ( clock         ),
+    .reset        ( reset         ),
 
     .valid_pre_i  ( valid_exu_wbu ),
     .ready_pre_o  ( ready_exu_wbu ),
@@ -361,8 +361,8 @@ module cpu (
   );
 
   arbiter u_arbiter(
-  	.clk           ( clock ),
-    .rst           ( reset ),
+  	.clock           ( clock ),
+    .reset           ( reset ),
     
     .wbu_valid_i   (  valid_wbu_ifu ),
     .idu_valid_i   (  valid_idu_exu ),

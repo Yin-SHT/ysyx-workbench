@@ -1,39 +1,38 @@
 `include "defines.v"
 
 module exu_reg (
-  input clk,
-  input rst,
+  input clock,
+  input reset,
 
-  /* EXU controller */
-  input                         we_i,        // write enable 
+  input we_i,        
 
-  input  [`INST_TYPE_BUS]       inst_type_i,
-  input  [`ALU_OP_BUS]          alu_op_i,
-  input  [`LSU_OP_BUS]          lsu_op_i,
-  input                         wsel_i,
-  input                         wena_i,
-  input  [`REG_ADDR_BUS]        waddr_i,
-  input  [`INST_ADDR_BUS]       pc_i,
-  input  [`REG_DATA_BUS]        imm_i,
-  input  [`REG_DATA_BUS]        rdata1_i,
-  input  [`REG_DATA_BUS]        rdata2_i,
-  input  [`CSR_DATA_BUS]        csr_i,
+  input [`INST_TYPE_BUS]       inst_type_i,
+  input [`ALU_OP_BUS]          alu_op_i,
+  input [`LSU_OP_BUS]          lsu_op_i,
+  input                        wsel_i,
+  input                        wena_i,
+  input [`REG_ADDR_BUS]        waddr_i,
+  input [`NPC_ADDR_BUS]        pc_i,
+  input [`REG_DATA_BUS]        imm_i,
+  input [`REG_DATA_BUS]        rdata1_i,
+  input [`REG_DATA_BUS]        rdata2_i,
+  input [`CSR_DATA_BUS]        csr_i,
 
-  output reg [`INST_TYPE_BUS]   inst_type_o,
-  output reg [`ALU_OP_BUS]      alu_op_o,
-  output reg [`LSU_OP_BUS]      lsu_op_o,
-  output reg                    wsel_o,
-  output reg                    wena_o,
-  output reg [`REG_ADDR_BUS]    waddr_o,
-  output reg [`INST_ADDR_BUS]   pc_o,
-  output reg [`REG_DATA_BUS]    imm_o,
-  output reg [`REG_DATA_BUS]    rdata1_o,
-  output reg [`REG_DATA_BUS]    rdata2_o,
-  output reg [`CSR_DATA_BUS]    csr_o
+  output reg [`INST_TYPE_BUS]  inst_type_o,
+  output reg [`ALU_OP_BUS]     alu_op_o,
+  output reg [`LSU_OP_BUS]     lsu_op_o,
+  output reg                   wsel_o,
+  output reg                   wena_o,
+  output reg [`REG_ADDR_BUS]   waddr_o,
+  output reg [`NPC_ADDR_BUS]   pc_o,
+  output reg [`REG_DATA_BUS]   imm_o,
+  output reg [`REG_DATA_BUS]   rdata1_o,
+  output reg [`REG_DATA_BUS]   rdata2_o,
+  output reg [`CSR_DATA_BUS]   csr_o
 );
 
-  always @( posedge clk or negedge rst ) begin
-    if ( rst == `RST_ENABLE ) begin
+  always @( posedge clock or negedge reset ) begin
+    if ( reset == `RESET_ENABLE ) begin
       inst_type_o <= 0;
       alu_op_o    <= 0;
       lsu_op_o    <= 0;

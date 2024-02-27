@@ -1,8 +1,8 @@
 `include "defines.v"
 
 module arbiter (
-  input                      clk,
-  input                      rst,
+  input                      clock,
+  input                      reset,
 
   /* From WBU */
   input                      wbu_valid_i,
@@ -205,8 +205,8 @@ module arbiter (
   //-----------------------------------------------------------------
   // Synchronous State - Transition always@ ( posedge Clock ) block
   //-----------------------------------------------------------------
-  always @( posedge clk or negedge rst ) begin
-    if ( rst == `RST_ENABLE ) begin
+  always @( posedge clock or negedge reset ) begin
+    if ( reset == `RESET_ENABLE ) begin
       cur_state <= idle;
     end else begin
       cur_state <= next_state;
@@ -218,7 +218,7 @@ module arbiter (
   // Conditional State - Transition always@ ( * ) block
   //-----------------------------------------------------------------
   always @( * ) begin
-    if ( rst == `RST_ENABLE ) begin
+    if ( reset == `RESET_ENABLE ) begin
       next_state = idle;  
     end else begin
       next_state = cur_state;

@@ -32,6 +32,9 @@ uint8_t* guest_to_host(paddr_t paddr);
 /* convert the host virtual address in NEMU to guest physical address in the guest program */
 paddr_t host_to_guest(uint8_t *haddr);
 
+uint8_t* mrom_guest_to_host(paddr_t paddr);
+paddr_t mrom_host_to_guest(uint8_t *haddr);
+
 static inline bool in_pmem(paddr_t addr) {
   return addr - CONFIG_MBASE < CONFIG_MSIZE;
 }

@@ -22,6 +22,7 @@ extern uint32_t cur_pc;
 extern uint32_t pre_pc;
 extern uint32_t cur_inst;
 
+void clean_up();
 /* Signel cycle simulation in verilator */
 static void update_cpu(uint32_t next_pc) {
   for (int i = 0; i < MUXDEF(CONFIG_RVE, 16, 32); i++) {
@@ -41,10 +42,19 @@ void single_cycle() {
 
   /* Check ebreak instruction */
   pre_pc = cur_pc;
-  cur_pc = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__ifu_araddr;
-  cur_inst = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__u_idu__DOT__rdata;
+  cur_pc = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__u_ifu__DOT__pc;
+  cur_inst = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__u_idu__DOT__inst;
   word_t a0 = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__u_idu__DOT__u_regfile__DOT__regs[10];
   NPCTRAP(cur_pc, a0);
+
+  static int i = 0;
+  if (i >= 150) {
+    set_npc_state(NPC_END, cur_pc, a0); 
+    clean_up ();
+    return; 
+  } else {
+    i ++;
+  }
 
   pre_wbu_valid = cur_wbu_valid;
   cur_wbu_valid = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__valid_wbu_ifu;
@@ -66,7 +76,7 @@ void init_verilator(int argc, char **argv) {
 #ifdef CONFIG_WAVEFORM
   Verilated::traceEverOn( true );
   tfp = new VerilatedVcdC;
-  top->trace( tfp, 99 ); // Trace 99 levels of hierarchy (or see below)
+  ysyxSoCFull->trace( tfp, 99 ); // Trace 99 levels of hierarchy (or see below)
   tfp->open( "./output/sim.vcd" );
 #endif
 

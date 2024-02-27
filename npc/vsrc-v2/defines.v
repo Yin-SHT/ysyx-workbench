@@ -1,10 +1,10 @@
 // -------------------------------------------------
 // GLOBAL
 // -------------------------------------------------
-`define RST_PC             32'h2000_0000
+`define RESET_VECTOR       32'h2000_0000
 
-`define RST_ENABLE         1'b1
-`define RST_DISABLE        1'b0
+`define RESET_ENABLE       1'b1
+`define RESET_DISABLE      1'b0
 
 `define WRITE_ENABLE       1'b1
 `define WRITE_DISABLE      1'b0
@@ -15,8 +15,13 @@
 `define BRANCH_ENABLE      1'b1
 `define BRANCH_DISABLE     1'b0
 
-`define INST_ADDR_BUS      31 : 0
-`define INST_DATA_BUS      31 : 0
+`define RV32_ADDR_BUS      31 : 0
+`define RV32_DATA_BUS      31 : 0
+`define RV32_ZERO_DATA     32'h0000_0000
+
+`define NPC_ADDR_BUS       `RV32_ADDR_BUS
+`define NPC_DATA_BUS       `RV32_DATA_BUS
+`define NPC_ZERO_DATA      `RV32_ZERO_DATA
 
 `define MEM_ADDR_BUS       31 : 0
 `define MEM_DATA_BUS       31 : 0
@@ -47,9 +52,24 @@
 // -------------------------------------------------
 // AXI4
 // -------------------------------------------------
-`define RRESP_DATA_BUS     1  : 0
-`define BRESP_DATA_BUS     1  : 0
-`define WSTRB_DATA_BUS     7  : 0
+`define AXI4_AWADDR_BUS  31:0
+`define AXI4_AWID_BUS    3:0
+`define AXI4_AWLEN_BUS   7:0
+`define AXI4_AWSIZE_BUS  2:0
+`define AXI4_AWBURST_BUS 1:0
+`define AXI4_WDATA_BUS   63:0
+`define AXI4_WSTRB_BUS   7:0
+`define AXI4_BRESP_BUS   1:0
+`define AXI4_BID_BUS     3:0
+`define AXI4_ARADDR_BUS  31:0
+`define AXI4_ARID_BUS    3:0
+`define AXI4_ARLEN_BUS   7:0
+`define AXI4_ARSIZE_BUS  2:0
+`define AXI4_ARBURST_BUS 1:0
+`define AXI4_RRESP_BUS   1:0
+`define AXI4_RDATA_BUS   63:0
+`define AXI4_RID_BUS     3:0
+
 
 // -------------------------------------------------
 // Register File

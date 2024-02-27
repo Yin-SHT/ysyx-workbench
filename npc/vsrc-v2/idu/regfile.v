@@ -1,8 +1,8 @@
 `include "defines.v"
 
 module regfile(
-  input                     clk,
-  input                     rst,
+  input                     clock,
+  input                     reset,
 
 	input   		  		        wena_i,
 	input   [`REG_ADDR_BUS]   waddr_i,
@@ -21,8 +21,8 @@ module regfile(
   reg [`REG_DATA_BUS] regs[31 : 0];
 
   /* WRITE */
-  always @( posedge clk or negedge rst ) begin
-    if( rst == `RST_ENABLE ) begin
+  always @( posedge clock or negedge reset ) begin
+    if( reset == `RESET_ENABLE ) begin
       for(integer i = 0; i < 32; i = i + 1 ) begin
           regs[i] <= 32'h0000_0000;
       end
@@ -42,12 +42,12 @@ module regfile(
 
   /* READ */
   assign rdata1_o = ( 
-                      ( rst      == `RST_ENABLE   ) || 
+                      ( reset    == `RESET_ENABLE ) || 
                       ( rena1_i  == `READ_DISABLE ) 
                     ) ? 32'h0000_0000 : regs[raddr1_i]; 
 
   assign rdata2_o = ( 
-                      ( rst      == `RST_ENABLE   ) || 
+                      ( reset    == `RESET_ENABLE ) || 
                       ( rena2_i  == `READ_DISABLE )
                     ) ? 32'h0000_0000 : regs[raddr2_i]; 
 

@@ -8,6 +8,7 @@ void init_rand();
 void init_log(const char *log_file);
 void init_flog(const char *log_file, const char *elf_file);
 void init_mem();
+void init_mrom();
 void init_difftest(char *ref_so_file, long img_size, int port);
 void init_disasm(const char *triple);
 void init_verilator(int argc, char **argv);
@@ -26,6 +27,7 @@ static char *flog_file = NULL;
 static char *elf_file = NULL;
 static char *diff_so_file = NULL;
 static char *img_file = NULL;
+static char *img_mrom_file = NULL;
 static int difftest_port = 1234;
 
 static long load_img() {
@@ -47,6 +49,26 @@ static long load_img() {
   Assert(ret == 1, "ret != 1");
 
   fclose(fp);
+
+  if (img_mrom_file == NULL) {
+    Log("No mrom-image is given. Use the default build-in mrom-image.");
+    return 4096; // built-in image size
+  }
+
+  FILE *mrom_fp = fopen(img_mrom_file, "rb");
+  Assert(mrom_fp, "Can not open '%s'", img_mrom_file);
+
+  fseek(mrom_fp, 0, SEEK_END);
+  size = ftell(mrom_fp);
+
+  Log("The mrom-image is %s, size = %ld", img_mrom_file, size);
+
+  fseek(mrom_fp, 0, SEEK_SET);
+  ret = fread(guest_to_host(RESET_VECTOR), size, 1, mrom_fp);
+  Assert(ret == 1, "ret != 1");
+
+  fclose(mrom_fp);
+
   return size;
 }
 
@@ -58,6 +80,7 @@ static int parse_args(int argc, char *argv[]) {
     {"elf"      , required_argument, NULL, 'e'},
     {"diff"     , required_argument, NULL, 'd'},
     {"port"     , required_argument, NULL, 'p'},
+    {"mrom"     , required_argument, NULL, 'm'},
     {"help"     , no_argument      , NULL, 'h'},
     {0          , 0                , NULL,  0 },
   };
@@ -70,6 +93,7 @@ static int parse_args(int argc, char *argv[]) {
       case 'f': flog_file = optarg; break;
       case 'e': elf_file = optarg; break;
       case 'd': diff_so_file = optarg; break;
+      case 'm': img_mrom_file = optarg; break;
       case 1: img_file = optarg; return 0;
       default:
         printf("Usage: %s [OPTION...] IMAGE [args]\n\n", argv[0]);
@@ -79,6 +103,7 @@ static int parse_args(int argc, char *argv[]) {
         printf("\t-e,--elf=FILE           read elf FILE\n");
         printf("\t-d,--diff=REF_SO        run DiffTest with reference REF_SO\n");
         printf("\t-p,--port=PORT          run DiffTest with port PORT\n");
+        printf("\t-m,--mrom=FILE          read mrom img file\n");
         printf("\n");
         exit(0);
     }
@@ -104,7 +129,7 @@ void init_monitor(int argc, char *argv[]) {
   /* Initialize memory. */
   init_mem();
 
-  /* Initialize memory. */
+  /* Initialize device. */
   init_device();
 
   /* Perform ISA dependent initialization. */

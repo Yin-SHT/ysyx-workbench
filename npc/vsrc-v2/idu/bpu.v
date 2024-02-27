@@ -1,19 +1,19 @@
 `include "defines.v"
 
 module bpu (
-  input rst,
+  input reset,
 
   input [`BPU_OP_BUS]       bpu_op_i,
   input [`ALU_OP_BUS]       csr_op_i,
 
-  input [`INST_ADDR_BUS]    pc_i, 
+  input [`NPC_ADDR_BUS]     pc_i, 
   input [`REG_DATA_BUS]     imm_i,
   input [`REG_DATA_BUS]     rdata1_i,
   input [`REG_DATA_BUS]     rdata2_i,
   input [`CSR_DATA_BUS]     csr_pc_i,
 
   output                    branch_en_o,
-  output  [`INST_ADDR_BUS]  dnpc_o
+  output  [`NPC_ADDR_BUS]   dnpc_o
 );
 
   wire equal, signed_less_than, unsigned_less_than;
@@ -26,7 +26,7 @@ module bpu (
     .unsigned_less_than_o ( unsigned_less_than )
   );
 
-  assign  branch_en_o = ( rst == `RST_ENABLE ) ? `BRANCH_DISABLE : 
+  assign  branch_en_o = ( reset == `RESET_ENABLE ) ? `BRANCH_DISABLE : 
                         (
                           (( bpu_op_i == `BPU_OP_BEQ   ) && ( equal                    )) ||
                           (( bpu_op_i == `BPU_OP_BNE   ) && ( !equal                   )) ||
@@ -39,7 +39,7 @@ module bpu (
                           (( csr_op_i == `CSR_OP_ECALL ) || ( csr_op_i == `CSR_OP_MRET ))
                         );
 
-  assign  dnpc_o      = ( rst == `RST_ENABLE ) ? 32'h8000_0000 : 
+  assign  dnpc_o      = ( reset == `RESET_ENABLE ) ? `RESET_VECTOR : 
                         (( branch_en_o ) && ( bpu_op_i == `BPU_OP_BEQ   )) ? pc_i     + imm_i :  
                         (( branch_en_o ) && ( bpu_op_i == `BPU_OP_BNE   )) ? pc_i     + imm_i :  
                         (( branch_en_o ) && ( bpu_op_i == `BPU_OP_BLT   )) ? pc_i     + imm_i :  

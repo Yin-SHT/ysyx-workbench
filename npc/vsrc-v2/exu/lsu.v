@@ -1,85 +1,219 @@
 `include "defines.v"
 
 module lsu (
-  input                   rst,
+  input                      clock,
+  input                      reset,
 
-  input [`INST_TYPE_BUS]  inst_type_i,
-  input [`LSU_OP_BUS]     lsu_op_i,
+  input [`INST_TYPE_BUS]     inst_type_i,
+  input [`LSU_OP_BUS]        lsu_op_i,
 
-  input [`REG_DATA_BUS]   imm_i,
-  input [`REG_DATA_BUS]   rdata1_i,
-  input [`REG_DATA_BUS]   rdata2_i,
+  input [`REG_DATA_BUS]      imm_i,
+  input [`REG_DATA_BUS]      rdata1_i,
+  input [`REG_DATA_BUS]      rdata2_i,
 
-  output [`MEM_ADDR_BUS]  mem_result_o,
+  input                      rdata_we_i,
 
-  /* AW: Address Write Channel */
-  output [`MEM_ADDR_BUS]  awaddr_o,
-  output [2:0]            awsize_o,
+  // t: wbu
+  output reg [`MEM_ADDR_BUS] mem_result_o,
 
-  /*  W: Data Write Channel*/
-  output [63:0]           wdata_o,
-  output [`MEM_MASK_BUS]  wstrb_o,
+  // AW: Address Write Channel
+  output [`AXI4_AWADDR_BUS]  awaddr_o,
+  output [`AXI4_AWID_BUS]    awid_o,
+  output [`AXI4_AWLEN_BUS]   awlen_o,
+  output [`AXI4_AWSIZE_BUS]  awsize_o,
+  output [`AXI4_AWBURST_BUS] awburst_o,
 
-  /* AR: Address Read Channel */
-  output [`MEM_ADDR_BUS]  araddr_o,
-  output [2:0]            arsize_o,
+  //  W: Data Write Channel
+  output [`AXI4_WDATA_BUS]   wdata_o,
+  output [`AXI4_WSTRB_BUS]   wstrb_o,
 
-  /*  R: Read Channel */
-  input  [63:0]           rdata_i
+  // AR: Address Read Channel
+  output [`AXI4_ARADDR_BUS]  araddr_o,
+  output [`AXI4_ARID_BUS]    arid_o,
+  output [`AXI4_ARLEN_BUS]   arlen_o,
+  output [`AXI4_ARSIZE_BUS]  arsize_o,
+  output [`AXI4_ARBURST_BUS] arburst_o,
+
+  //  R: Read Channel
+  input  [`AXI4_RDATA_BUS]   rdata_i
 );
   
-  wire [31:0] roff;
-  wire [31:0] woff;
-  wire [31:0] shift_data;
+  wire [31:0] awoffset;
+  wire [31:0] aroffset;
+
+  assign awoffset = awaddr_o % 4;  // 4 bytes: 32 bits
+  assign aroffset = araddr_o % 4;  // 4 bytes: 32 bits
+
+  /* Write operation */
+  
+  // AW 
+  assign awaddr_o = ( reset == `RESET_ENABLE ) ? 0 : rdata1_i + imm_i;
+
+  assign awid_o   = 0;
+
+  assign awlen_o  = 0;
+
+  always @( * ) begin
+    if ( reset == `RESET_ENABLE ) begin
+      awsize_o = 0;
+    end else begin
+      case ( lsu_op_i )
+        `LSU_OP_SB: awsize_o = 3'b000; 
+        `LSU_OP_SH: awsize_o = 3'b001; 
+        `LSU_OP_SW: awsize_o = 3'b010; 
+        default: awsize_o = awsize_o;
+      endcase
+    end
+  end
+
+  always @( * ) begin
+    if ( reset == `RESET_ENABLE ) begin
+      awburst_o = 0;
+    end else begin
+      if ( inst_type_i == `INST_STORE ) begin
+        awburst_o = 2'b01;
+      end else begin
+        awburst_o = 0;
+      end
+    end
+  end
+
+
+  // W
+  always @( * ) begin
+    if ( reset == `RESET_ENABLE ) begin
+      wdata_o = 0;
+    end else begin
+      if ( inst_type_i == `INST_STORE ) begin
+        if ( lsu_op_i == `LSU_OP_SB ) begin
+          case ( awoffset )
+            0: wdata_o = {32'h0000_0000, 24'h00_0000,  rdata2_i[7:0]             };
+            1: wdata_o = {32'h0000_0000, 16'h0000,     rdata2_i[7:0], 8'h00      };
+            2: wdata_o = {32'h0000_0000, 8'h0000_0000, rdata2_i[7:0], 16'h0000   };
+            3: wdata_o = {32'h0000_0000,               rdata2_i[7:0], 24'h00_0000};
+            default: wdata_o = wdata_o;
+          endcase
+        end else if ( lsu_op_i == `LSU_OP_SH ) begin
+          case ( awoffset )
+            0: wdata_o = {32'h0000_0000, 16'h0000, rdata2_i[15:0]          };
+            2: wdata_o = {32'h0000_0000,           rdata2_i[15:0], 16'h0000};
+            default: wdata_o = wdata_o;
+          endcase
+        end else if ( lsu_op_i == `LSU_OP_SW ) begin
+          wdata_o = {32'h0000_0000, rdata2_i};
+        end
+      end else begin
+        wdata_o = wdata_o;
+      end
+    end
+  end
+
+  always @( * ) begin
+    if ( reset == `RESET_ENABLE ) begin
+      wstrb_o = 0;
+    end else begin
+      if ( lsu_op_i == `LSU_OP_SB ) begin
+        case ( awoffset )
+          0: wstrb_o = 8'b0000_0001; 
+          1: wstrb_o = 8'b0000_0010; 
+          2: wstrb_o = 8'b0000_0100; 
+          3: wstrb_o = 8'b0000_1000; 
+          default: wstrb_o = wstrb_o;
+        endcase
+      end else if ( lsu_op_i == `LSU_OP_SH ) begin
+        case ( awoffset )
+          0: wstrb_o = 8'b0000_0011; 
+          2: wstrb_o = 8'b0000_1100; 
+          default: wstrb_o = wstrb_o;
+        endcase
+      end else if ( lsu_op_i == `LSU_OP_SW ) begin
+        wstrb_o = 8'b0000_1111;
+      end else begin
+        wstrb_o = wstrb_o;
+      end
+    end
+  end
 
   /* Read operation */
-  assign araddr_o = ( rst         == `RST_ENABLE ) ? 32'h0000_0000    : 
-                    ( inst_type_i == `INST_LOAD  ) ? rdata1_i + imm_i : 32'h0000_0000; 
-                    
-  assign arsize_o = ( rst         == `RST_ENABLE ) ? 3'b000                             :
-                    ((lsu_op_i    == `LSU_OP_LB) || (lsu_op_i == `LSU_OP_LBU)) ? 3'b000 :
-                    ((lsu_op_i    == `LSU_OP_LH) || (lsu_op_i == `LSU_OP_LHU)) ? 3'b001 :
-                    ((lsu_op_i    == `LSU_OP_LW)                             ) ? 3'b010 : 3'b000;
   
-  /* Write operation */
-  assign awaddr_o = ( rst         == `RST_ENABLE ) ? 32'h0000_0000    : 
-                    ( inst_type_i == `INST_STORE ) ? rdata1_i + imm_i : 32'h0000_0000; 
+  // AR
+  assign araddr_o = ( reset == `RESET_ENABLE ) ? 0 : rdata1_i + imm_i;
 
-  assign awsize_o = ( rst         == `RST_ENABLE ) ? 3'b000 :
-                    ( lsu_op_i    == `LSU_OP_SB  ) ? 3'b000 :
-                    ( lsu_op_i    == `LSU_OP_SH  ) ? 3'b001 :
-                    ( lsu_op_i    == `LSU_OP_SW  ) ? 3'b010 : 3'b000;
+  assign arid_o   = 0;
 
-  assign wdata_o  = ( rst         == `RST_ENABLE ) ?   64'h0000_0000_0000_0000   : 
-                    ( inst_type_i == `INST_STORE ) ? { 32'h0000_0000, rdata2_i } : 64'h0000_0000_0000_0000; 
+  assign arlen_o  = 0;
+                   
+  always @( * ) begin
+    if ( reset == `RESET_ENABLE ) begin
+      arsize_o = 0;
+    end else begin
+      case ( lsu_op_i )
+        `LSU_OP_LB:  arsize_o = 3'b000; 
+        `LSU_OP_LBU: arsize_o = 3'b000; 
+        `LSU_OP_LH:  arsize_o = 3'b001; 
+        `LSU_OP_LHU: arsize_o = 3'b001; 
+        `LSU_OP_LW:  arsize_o = 3'b010; 
+        default: arsize_o = arsize_o;
+      endcase
+    end
+  end
 
-  assign wstrb_o  = ( rst         == `RST_ENABLE ) ? 8'b0000_0000: 
-                    ( woff        == 32'h00      ) ? (( lsu_op_i == `LSU_OP_SB ) ? 8'b0000_0001 : 
-                                                      ( lsu_op_i == `LSU_OP_SH ) ? 8'b0000_0011 :
-                                                      ( lsu_op_i == `LSU_OP_SW ) ? 8'b0000_1111 : 8'b0000_0000 ) :
-                    ( woff        == 32'h01      ) ? (( lsu_op_i == `LSU_OP_SB ) ? 8'b0000_0010 : 
-                                                      ( lsu_op_i == `LSU_OP_SH ) ? 8'b0000_0110 : 8'b0000_0000 ) :
-                    ( woff        == 32'h02      ) ? (( lsu_op_i == `LSU_OP_SB ) ? 8'b0000_0100 : 
-                                                      ( lsu_op_i == `LSU_OP_SH ) ? 8'b0000_1100 : 8'b0000_0000 ) :
-                    ( woff        == 32'h03      ) ? (( lsu_op_i == `LSU_OP_SB ) ? 8'b0000_1000 : 8'b0000_0000 ) : 8'b0000_0000;
+  always @( * ) begin
+    if ( reset == `RESET_ENABLE ) begin
+      arburst_o = 0;
+    end else begin
+      if ( inst_type_i == `INST_STORE ) begin
+        arburst_o = 2'b01;
+      end else begin
+        arburst_o = 0;
+      end
+    end
+  end
 
-  /* Miscellaneous */
-  assign roff     = ( rst         == `RST_ENABLE ) ? 32'h0000_0000                           :
-                    ( inst_type_i == `INST_LOAD  ) ? araddr_o - ( araddr_o & 32'hFFFF_FFFC ) : 32'h0000_0000; 
+  
+  // R
+  always @( posedge clock or negedge reset ) begin
+    if ( reset == `RESET_ENABLE ) begin
+      mem_result_o <= 0;
+    end else begin
+      if ( rdata_we_i == `WRITE_ENABLE ) begin
+        if ( inst_type_i == `LSU_OP_LBU ) begin
+          case ( aroffset )
+            0: mem_result_o <= {24'h00_0000, rdata_i[7 :0 ]};
+            1: mem_result_o <= {24'h00_0000, rdata_i[15:8 ]};
+            2: mem_result_o <= {24'h00_0000, rdata_i[23:16]}; 
+            3: mem_result_o <= {24'h00_0000, rdata_i[31:24]};
+            default: mem_result_o <= mem_result_o;
+          endcase
+        end if ( inst_type_i == `LSU_OP_LB  ) begin
+          case ( aroffset )
+            0: mem_result_o <= {{24{rdata_i[7] }}, rdata_i[7 :0 ]};
+            1: mem_result_o <= {{24{rdata_i[15]}}, rdata_i[15:8 ]};
+            2: mem_result_o <= {{24{rdata_i[23]}}, rdata_i[23:16]}; 
+            3: mem_result_o <= {{24{rdata_i[31]}}, rdata_i[31:24]};
+            default: mem_result_o <= mem_result_o;
+          endcase
+        end if ( inst_type_i == `LSU_OP_LHU ) begin
+          case ( aroffset )
+            0: mem_result_o <= {16'h0000, rdata_i[15:0 ]};
+            2: mem_result_o <= {16'h0000, rdata_i[31:16]};
+            default: mem_result_o <= mem_result_o;
+          endcase
+        end if ( inst_type_i == `LSU_OP_LH  ) begin
+          case ( aroffset )
+            0: mem_result_o <= {{16{rdata_i[15]}}, rdata_i[15:0 ]};
+            2: mem_result_o <= {{16{rdata_i[31]}}, rdata_i[31:16]};
+            default: mem_result_o <= mem_result_o;
+          endcase
+        end if ( inst_type_i == `LSU_OP_LW  ) begin
+          mem_result_o <= rdata_i[31:0];
+        end else begin
+          mem_result_o <= mem_result_o;
+        end
+      end else begin
+        mem_result_o <= mem_result_o;
+      end
+    end
+  end
 
-  assign woff     = ( rst         == `RST_ENABLE ) ? 32'h0000_0000                           :
-                    ( inst_type_i == `INST_STORE ) ? awaddr_o - ( awaddr_o & 32'hFFFF_FFFC ) : 32'h0000_0000; 
-
-  assign shift_data   = ( rst      == `RST_ENABLE ) ? ({                          32'h0000_0000 }) :
-                        ( roff     == 32'h00      ) ? ({                         rdata_i[31:0 ] }) :
-                        ( roff     == 32'h01      ) ? ({ {  8{1'b0}},            rdata_i[31:8 ] }) : 
-                        ( roff     == 32'h02      ) ? ({ { 16{1'b0}},            rdata_i[31:16] }) :
-                        ( roff     == 32'h03      ) ? ({ { 24{1'b0}},            rdata_i[31:24] }) : 32'h0000_0000;
-
-  assign mem_result_o = ( rst      == `RST_ENABLE ) ? ({                          32'h0000_0000 }) :
-                        ( lsu_op_i == `LSU_OP_LB  ) ? ({ {24{shift_data[7 ]}}, shift_data[7 :0] }) :
-                        ( lsu_op_i == `LSU_OP_LH  ) ? ({ {16{shift_data[15]}}, shift_data[15:0] }) :
-                        ( lsu_op_i == `LSU_OP_LW  ) ? ({                       shift_data[31:0] }) : 
-                        ( lsu_op_i == `LSU_OP_LBU ) ? ({ {24{1'b0          }}, shift_data[7 :0] }) :
-                        ( lsu_op_i == `LSU_OP_LHU ) ? ({ {16{1'b0          }}, shift_data[15:0] }) : 32'h0000_0000; 
 endmodule
