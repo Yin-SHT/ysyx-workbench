@@ -5,7 +5,7 @@ VERILATOR = verilator
 VERILATOR_FLAGS += -MMD --build -cc -Wall --trace \
 				-O3 --x-assign fast --x-initial fast --noassert  \
 				--timescale "1ns/1ns" --no-timing -Wno-ASSIGNDLY --autoflush \
-				-y $(SOC_HOME)/perip/uart16550/rtl -y $(SOC_HOME)/perip/spi/rtl -y $(NPC_HOME)/vsrc-v2 \
+				-y $(SOC_HOME)/perip/uart16550/rtl -y $(SOC_HOME)/perip/spi/rtl -y $(NPC_HOME)/vsrc \
 				-Wno-DECLFILENAME \
 				-Wno-PINCONNECTEMPTY \
 				-Wno-DEFPARAM \
@@ -26,7 +26,7 @@ $(shell mkdir -p $(BUILD_DIR))
 # project source
 VSRCS = $(SOC_HOME)/generated/ysyxSoCFull.v
 VSRCS += $(shell find $(SOC_HOME)/perip -name "*.v")
-VSRCS += $(shell find $(NPC_HOME)/vsrc-v2 -name "*.v")
+VSRCS += $(shell find $(NPC_HOME)/vsrc -name "*.v")
 
 CSRCS = $(shell find $(NPC_HOME)/csrc -name "*.c" -or -name "*.cc" -or -name "*.cpp")
 
