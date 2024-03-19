@@ -21,6 +21,7 @@ do { \
 do { \
   inst_ebreak(&_ebreak); \
   if(_ebreak) { \
+    clean_up(); \
     difftest_skip_ref(); \
     set_npc_state(NPC_END, cur_pc, a0); \
     return; \

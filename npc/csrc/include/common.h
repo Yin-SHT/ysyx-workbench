@@ -49,7 +49,7 @@ typedef uint16_t ioaddr_t;
 
 //#define CONFIG_ITRACE 1
 //#define CONFIG_FTRACE 1
-#define CONFIG_WAVEFORM 1
+//#define CONFIG_WAVEFORM 1
 //#define CONFIG_DIFFTEST 1
 
 #endif

@@ -23,6 +23,7 @@ extern uint32_t pre_pc;
 extern uint32_t cur_inst;
 
 void clean_up();
+
 /* Signel cycle simulation in verilator */
 static void update_cpu(uint32_t next_pc) {
   for (int i = 0; i < MUXDEF(CONFIG_RVE, 16, 32); i++) {
@@ -43,16 +44,6 @@ void single_cycle() {
   /* Check ebreak instruction */
   cur_pc = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__instpc;
   cur_inst = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__inst;
-
-//printf("pc: 0x%08x\t inst: 0x%08x\n", cur_pc, cur_inst);
-
-  static int i = 0;
-  if (i < 200) {
-    i ++;
-  } else {
-    clean_up();
-    assert(0);
-  }
 
   word_t a0 = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__decode0__DOT__u_regfile__DOT__regs[10];
   NPCTRAP(cur_pc, a0);

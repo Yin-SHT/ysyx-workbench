@@ -32,7 +32,7 @@ module fetch_reg (
   always @( posedge clock or negedge reset ) begin
     pc_o <= pc_o;   // default
     if ( reset ) begin
-      pc_o <= `RESET_VECTOR;
+      pc_o <= `RESET_VECTOR - 4;
     end else if ( pc_we_i ) begin
       if ( branch_en_i ) begin
         pc_o <= dnpc_i; 

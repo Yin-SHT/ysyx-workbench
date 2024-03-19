@@ -4,7 +4,7 @@ INC_PATH = $(NPC_HOME)/csrc/include
 VERILATOR = verilator
 VERILATOR_FLAGS += -MMD --build -cc -Wall --trace \
 				-O3 --x-assign fast --x-initial fast --noassert  \
-				--timing --timescale "1ns/1ns" \
+				--timescale "1ns/1ns" --no-timing -Wno-ASSIGNDLY \
 				-y $(SOC_HOME)/perip/uart16550/rtl -y $(SOC_HOME)/perip/spi/rtl -y $(NPC_HOME)/vsrc-v2 \
 				-Wno-DECLFILENAME \
 				-Wno-PINCONNECTEMPTY \
