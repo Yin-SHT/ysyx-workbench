@@ -102,9 +102,6 @@ module cpu (
   wire                    branch_en;
   wire [`NPC_ADDR_BUS]    dnpc;
 
-  /* IFU & IDU */     
-  wire [`NPC_DATA_BUS]    rdata;
-
   /* WBU & IDU */
   wire                    wena;
   wire  [`REG_ADDR_BUS]   waddr;
@@ -205,7 +202,10 @@ module cpu (
   assign io_slave_rlast   = 0;
   assign io_slave_rid     = 0;
 
-  ifu u_ifu(
+  wire [`NPC_ADDR_BUS] instpc;
+  wire [`NPC_DATA_BUS] inst;
+
+  fetch fetch0 (
   	.reset        ( reset            ),
     .clock        ( clock            ),
 
@@ -217,7 +217,8 @@ module cpu (
     .branch_en_i  ( branch_en        ),
     .dnpc_i       ( dnpc             ),
 
-    .rdata_o      ( rdata            ),
+    .pc_o         ( instpc           ),
+    .inst_o       ( inst             ),
 
     .awready_i    ( ifu_awready      ),
     .awvalid_o    ( ifu_awvalid      ),
@@ -250,7 +251,7 @@ module cpu (
     .rid_i        ( ifu_rid          )
   );
   
-  idu u_idu(
+  idu decode0 (
   	.clock        ( clock         ),
     .reset        ( reset         ),
 
@@ -263,8 +264,8 @@ module cpu (
     .waddr_i      ( waddr         ),
     .wdata_i      ( wdata         ),
 
-    .pc_i         ( ifu_araddr    ),
-    .inst_i       ( rdata         ),
+    .pc_i         ( instpc        ),
+    .inst_i       ( inst          ),
 
     .inst_type_o  ( inst_type     ),
     .alu_op_o     ( alu_op        ),
@@ -282,7 +283,7 @@ module cpu (
     .dnpc_o       ( dnpc          ) 
   );
   
-  exu u_exu(
+  execute execute0 (
   	.clock        ( clock ),
     .reset        ( reset ),
 
@@ -340,7 +341,7 @@ module cpu (
     .rid_i        ( exu_rid       )
   );
   
-  wbu u_wbu(
+  wback wback0 (
   	.clock        ( clock         ),
     .reset        ( reset         ),
 
@@ -360,14 +361,10 @@ module cpu (
     .wdata_o      ( wdata         )
   );
 
-  arbiter u_arbiter(
+  arbiter arbiter0 (
   	.clock           ( clock ),
     .reset           ( reset ),
     
-    .wbu_valid_i   (  valid_wbu_ifu ),
-    .idu_valid_i   (  valid_idu_exu ),
-    .inst_type_i   (  inst_type     ),
-
     .awready_i     (  io_master_awready ),
     .ifu_awready_o (  ifu_awready       ),
     .exu_awready_o (  exu_awready       ),
@@ -456,5 +453,10 @@ module cpu (
     .ifu_rid_o     (  ifu_rid           ),
     .exu_rid_o     (  exu_rid           )
   );
+
+  always @( posedge clock or negedge reset ) begin
+    if ( reset == `RESET_DISABLE ) begin
+    end
+  end
 
 endmodule

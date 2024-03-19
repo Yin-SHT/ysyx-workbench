@@ -1,6 +1,6 @@
 `include "defines.v"
 
-module wbu_reg (
+module wback_reg (
   input                        clock,
   input                        reset,
 
@@ -19,9 +19,9 @@ module wbu_reg (
 
   always @( posedge clock or negedge reset ) begin
     if ( reset == `RESET_ENABLE ) begin
-      wena_o     <= 1'b0;
-      waddr_o    <= 5'b0;
-      wdata_o    <= 32'h0000_0000;
+      wena_o     <= 0;
+      waddr_o    <= 0;
+      wdata_o    <= 0;
     end else begin
       wena_o     <= wena_o;
       waddr_o    <= waddr_o;

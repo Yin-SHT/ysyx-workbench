@@ -26,6 +26,7 @@ module lsu (
   //  W: Data Write Channel
   output [`AXI4_WDATA_BUS]   wdata_o,
   output [`AXI4_WSTRB_BUS]   wstrb_o,
+  output                     wlast_o,
 
   // AR: Address Read Channel
   output [`AXI4_ARADDR_BUS]  araddr_o,
@@ -80,6 +81,8 @@ module lsu (
 
 
   // W
+  assign wlast_o  = 1;
+
   always @( * ) begin
     if ( reset == `RESET_ENABLE ) begin
       wdata_o = 0;

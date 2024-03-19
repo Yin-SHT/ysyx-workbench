@@ -1,6 +1,6 @@
 `include "defines.v"
 
-module exu (
+module execute (
   input                      clock,
   input                      reset,
 
@@ -80,7 +80,8 @@ module exu (
   wire [`REG_DATA_BUS]    rdata2;
   wire [`CSR_DATA_BUS]    csr;
   
-  exu_reg u_exu_reg (
+
+  execute_reg u_exu_reg (
   	.clock        ( clock        ),
     .reset        ( reset        ),
 
@@ -114,7 +115,7 @@ module exu (
     .csr_o        ( csr          )
   );
   
-  exu_fsm u_exu_fsm(
+  execute_controller controller (
   	.clock        ( clock        ),
     .reset        ( reset        ),
 
@@ -123,8 +124,7 @@ module exu (
     .valid_post_o ( valid_post_o ),
     .ready_post_i ( ready_post_i ),
 
-    // form exu-regs
-    .inst_type_i  ( inst_type    ),
+    .inst_type_i  ( inst_type_i  ),
 
     .we_o         ( we           ),
     .rdata_we_o   ( rdata_we     ),
@@ -135,7 +135,6 @@ module exu (
 
     .wready_i     ( wready_i     ),
     .wvalid_o     ( wvalid_o     ),
-    .wlast_o      ( wlast_o      ),
 
     .bready_o     ( bready_o     ),
     .bvalid_i     ( bvalid_i     ),
@@ -192,6 +191,7 @@ module exu (
     .awburst_o    ( awburst_o    ),
     .wdata_o      ( wdata_o      ),
     .wstrb_o      ( wstrb_o      ),
+    .wlast_o      ( wlast_o      ),
     .araddr_o     ( araddr_o     ),
     .arid_o       ( arid_o       ),
     .arlen_o      ( arlen_o      ),

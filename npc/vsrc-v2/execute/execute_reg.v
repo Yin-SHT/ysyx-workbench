@@ -1,10 +1,10 @@
 `include "defines.v"
 
-module exu_reg (
-  input clock,
-  input reset,
+module execute_reg (
+  input                        clock,
+  input                        reset,
 
-  input we_i,        
+  input                        we_i,        
 
   input [`INST_TYPE_BUS]       inst_type_i,
   input [`ALU_OP_BUS]          alu_op_i,

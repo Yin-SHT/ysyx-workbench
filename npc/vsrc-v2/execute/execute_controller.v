@@ -1,6 +1,6 @@
 `include "defines.v"
 
-module exu_fsm (
+module execute_controller (
   input                      clock,
   input                      reset,
 
@@ -22,13 +22,12 @@ module exu_fsm (
   //  W: Data Write Channel 
   input                      wready_i,
   output                     wvalid_o,
-  output                     wlast_o,
 
   //  B: Response Write Channel 
   output                     bready_o,
   input                      bvalid_i,
-  input  [`AXI4_BRESP_BUS]   bresp_i,
-  input  [`AXI4_BID_BUS]     bid_i,
+  input  [`AXI4_BRESP_BUS]   bresp_i,    // don't use
+  input  [`AXI4_BID_BUS]     bid_i,      // don't use
 
   // AR: Address Read Channel
   input                      arready_i,
@@ -37,20 +36,21 @@ module exu_fsm (
   //  R: Data Read Channel
   output                     rready_o,
   input                      rvalid_i,
-  input  [`AXI4_RRESP_BUS]   rresp_i,
-  input                      rlast_i,
-  input  [`AXI4_RID_BUS]     rid_i
+  input  [`AXI4_RRESP_BUS]   rresp_i,    // don't use
+  input                      rlast_i,    // don't use
+  input  [`AXI4_RID_BUS]     rid_i       // don't use
 );
 
-  parameter idle         = 3'b000;
-  parameter wait_ready   = 3'b001;
+  parameter idle         = 3'b000;  
+  parameter wait_ready   = 3'b001;  
 
-  parameter wait_arready = 3'b010;
-  parameter wait_rvalid  = 3'b011;
+  parameter wait_arready = 3'b010;  
+  parameter wait_rvalid  = 3'b011;  
 
-  parameter wait_awready = 3'b100;
-  parameter wait_wready  = 3'b101;
-  parameter wait_bvalid  = 3'b110;
+  parameter wait_aw_w    = 3'b100;  
+  parameter wait_awready = 3'b101;  
+  parameter wait_wready  = 3'b110;
+  parameter wait_bvalid  = 3'b111;
 
   reg [2:0] cur_state;
   reg [2:0] next_state;
@@ -58,27 +58,26 @@ module exu_fsm (
   //-----------------------------------------------------------------
   // Outputs 
   //-----------------------------------------------------------------
-  assign we_o         = ( valid_pre_i && ready_pre_o  );
-  assign rdata_we_o   = ( rvalid_i    && rready_o && rlast_i );
+  assign we_o         = ( valid_pre_i && ready_pre_o );
+  assign rdata_we_o   = ( rvalid_i    && rready_o    );
 
-  assign ready_pre_o  = ( cur_state   == idle       );
-  assign valid_post_o = ( cur_state   == wait_ready );
+  assign ready_pre_o  = ( cur_state   == idle        );
+  assign valid_post_o = ( cur_state   == wait_ready  );
 
   // AW
-  assign awvalid_o    = ( cur_state == wait_awready );
+  assign awvalid_o    = (( cur_state == wait_awready ) || ( cur_state == wait_aw_w ));
 
   // W
-  assign wvalid_o     = ( cur_state == wait_wready  );
-  assign wlast_o      = ( cur_state == wait_wready  );
+  assign wvalid_o     = (( cur_state == wait_wready  ) || ( cur_state == wait_aw_w ));
 
   // B
-  assign bready_o     = ( cur_state == wait_bvalid  );
+  assign bready_o     = ( cur_state == wait_bvalid   );
 
   // AR
-  assign arvalid_o    = ( cur_state == wait_arready );
+  assign arvalid_o    = ( cur_state == wait_arready  );
 
   // R
-  assign rready_o     = ( cur_state == wait_rvalid );
+  assign rready_o     = ( cur_state == wait_rvalid   );
    
   //-----------------------------------------------------------------
   // Synchronous State - Transition always@ ( posedge Clock ) block
@@ -102,28 +101,31 @@ module exu_fsm (
         next_state = cur_state;
         case ( cur_state )
             idle: begin
-                       if (( valid_pre_i ) && ( inst_type_i == `INST_LOAD )) begin
+              if (( valid_pre_i ) && ( inst_type_i == `INST_LOAD )) begin
                 next_state = wait_arready;
               end else if (( valid_pre_i ) && ( inst_type_i == `INST_STORE )) begin
-                next_state = wait_awready;
+                next_state = wait_aw_w;
               end else if (( valid_pre_i ) && ( inst_type_i != `INST_LOAD ) && ( inst_type_i != `INST_STORE )) begin
                 next_state = wait_ready;
               end
             end 
             wait_arready: if ( arready_i    ) next_state = wait_rvalid;  
-            wait_rvalid:  if ( rvalid_i && rlast_i ) next_state = wait_ready;
-            wait_awready: if ( awready_i    ) next_state = wait_wready;
+            wait_rvalid:  if ( rvalid_i     ) next_state = wait_ready;
+            wait_aw_w:    begin
+              if ( awready_i && wready_i ) begin
+                next_state = wait_bvalid;
+              end else if ( awready_i && !wready_i ) begin
+                next_state = wait_wready; 
+              end else if ( !awready_i && wready_i ) begin
+                next_state = wait_awready;
+              end
+            end
+            wait_awready: if ( awready_i    ) next_state = wait_bvalid;
             wait_wready:  if ( wready_i     ) next_state = wait_bvalid;
             wait_bvalid:  if ( bvalid_i     ) next_state = wait_ready;
             wait_ready:   if ( ready_post_i ) next_state = idle;
           default:                            next_state = cur_state;
         endcase
-    end
-  end
-
-  always @( * ) begin
-    if ( &bresp_i && &bid_i && &rresp_i && &rid_i ) begin
-      // do nothing for now
     end
   end
 

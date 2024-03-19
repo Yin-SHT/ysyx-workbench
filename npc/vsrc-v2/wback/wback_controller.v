@@ -1,6 +1,6 @@
 `include "defines.v"
 
-module wbu_fsm (
+module wback_controller (
   input    clock,
   input    reset,
 

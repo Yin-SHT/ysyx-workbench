@@ -26,14 +26,14 @@ void clean_up();
 /* Signel cycle simulation in verilator */
 static void update_cpu(uint32_t next_pc) {
   for (int i = 0; i < MUXDEF(CONFIG_RVE, 16, 32); i++) {
-    cpu.gpr[i] = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__u_idu__DOT__u_regfile__DOT__regs[i];
+    cpu.gpr[i] = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__decode0__DOT__u_regfile__DOT__regs[i];
   }
   cpu.pc = next_pc;
 
-  cpu.mstatus = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__u_idu__DOT__u_csrs__DOT__mstatus;
-  cpu.mcause = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__u_idu__DOT__u_csrs__DOT__mcause;
-  cpu.mtvec = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__u_idu__DOT__u_csrs__DOT__mtvec;
-  cpu.mepc = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__u_idu__DOT__u_csrs__DOT__mepc;
+  cpu.mstatus = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__decode0__DOT__u_csrs__DOT__mstatus;
+  cpu.mcause = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__decode0__DOT__u_csrs__DOT__mcause;
+  cpu.mtvec = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__decode0__DOT__u_csrs__DOT__mtvec;
+  cpu.mepc = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__decode0__DOT__u_csrs__DOT__mepc;
 }
 
 void single_cycle() {
@@ -41,20 +41,21 @@ void single_cycle() {
   ysyxSoCFull->clock = 1; ysyxSoCFull->eval(); IFDEF(CONFIG_WAVEFORM, tfp->dump(contextp->time())); contextp->timeInc(1);
 
   /* Check ebreak instruction */
-  pre_pc = cur_pc;
-  cur_pc = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__u_ifu__DOT__pc;
-  cur_inst = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__u_idu__DOT__inst;
-  word_t a0 = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__u_idu__DOT__u_regfile__DOT__regs[10];
-  NPCTRAP(cur_pc, a0);
+  cur_pc = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__instpc;
+  cur_inst = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__inst;
+
+//printf("pc: 0x%08x\t inst: 0x%08x\n", cur_pc, cur_inst);
 
   static int i = 0;
-  if (i >= 150) {
-    set_npc_state(NPC_END, cur_pc, a0); 
-    clean_up ();
-    return; 
-  } else {
+  if (i < 200) {
     i ++;
+  } else {
+    clean_up();
+    assert(0);
   }
+
+  word_t a0 = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__decode0__DOT__u_regfile__DOT__regs[10];
+  NPCTRAP(cur_pc, a0);
 
   pre_wbu_valid = cur_wbu_valid;
   cur_wbu_valid = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__valid_wbu_ifu;
@@ -81,7 +82,7 @@ void init_verilator(int argc, char **argv) {
 #endif
 
   // Prepare for DPI-C
-  const svScope scope_pd = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.u_idu.u_decode");
+  const svScope scope_pd = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.decode0.u_decode");
   Assert(scope_pd, "scope_pd is null"); // Check for nullptr if scope not found
   svSetScope(scope_pd);
 
@@ -114,5 +115,5 @@ int check_reg_idx(int idx) {
 
 word_t npc_regs(int i) {
   int idx =  check_reg_idx(i);
-  return ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__u_idu__DOT__u_regfile__DOT__regs[idx];
+  return ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__decode0__DOT__u_regfile__DOT__regs[idx];
 }

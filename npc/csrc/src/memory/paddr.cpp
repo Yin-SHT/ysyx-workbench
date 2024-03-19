@@ -22,7 +22,7 @@ static void pmem_write(paddr_t addr, int len, word_t data) {
   host_write(guest_to_host(addr), len, data);
 }
 
-static word_t mrom_read(paddr_t addr, int len) {
+static word_t __mrom_read(paddr_t addr, int len) {
   word_t ret = host_read(mrom_guest_to_host(addr), len);
   return ret;
 }
@@ -82,8 +82,5 @@ extern "C" void paddr_write(int waddr, int wdata, char wmask, int *bresp) {
 
 extern "C" void flash_read(uint32_t addr, uint32_t *data) { assert(0); }
 extern "C" void mrom_read(uint32_t addr, uint32_t *data) { 
-  /* Process addr  */
-  addr &= (~(0x3u));
-
-  *data = mrom_read(addr, 4);
+  *data = __mrom_read(addr, 4);
 }

@@ -1,6 +1,6 @@
 `include "defines.v"
 
-module wbu (
+module wback (
   input                     clock,
   input                     reset,
 
@@ -23,7 +23,7 @@ module wbu (
 
   wire we;
 
-  wbu_fsm u_wbu_fsm(
+  wback_controller controller (
   	.clock        ( clock        ),
     .reset        ( reset        ),
 
@@ -35,7 +35,7 @@ module wbu (
     .we_o         ( we           )
   );
   
-  wbu_reg u_wbu_reg(
+  wback_reg u_wbu_reg(
   	.clock        ( clock        ),
     .reset        ( reset        ),
 

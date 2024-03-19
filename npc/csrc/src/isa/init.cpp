@@ -12,9 +12,6 @@ static const uint32_t img [] = {
 };
 
 static const uint32_t mrom_img [] = {
-  0xffc10113,   // addi	sp,sp,-4
-  0x00812023,   // sw	s0,0(sp)
-  0x00410413,   // addi	s0,sp,4
   0x100007b7,   // lui	a5,0x10000
   0x04100713,   // li	a4,65
   0x00e78023,   // sb	a4,0(a5) # 10000000 <.L2+0xfffffdc>
