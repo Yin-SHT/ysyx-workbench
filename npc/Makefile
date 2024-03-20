@@ -50,8 +50,13 @@ sim:
 
 all: default
 
+# Command to execute NEMU
+IMG ?=
+ARGS ?=
+YSYXSOC_EXEC := $(BIN) $(ARGS) $(IMG)
+
 run: $(BIN)
-	@$^
+	$(YSYXSOC_EXEC)
 
 clean:
 	rm -rf $(BUILD_DIR)

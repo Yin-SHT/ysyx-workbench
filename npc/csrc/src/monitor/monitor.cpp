@@ -46,29 +46,9 @@ static long load_img() {
 
   fseek(fp, 0, SEEK_SET);
   int ret = fread(guest_to_host(RESET_VECTOR), size, 1, fp);
-  Assert(ret == 1, "ret != 1");
+  assert(ret == 1);
 
   fclose(fp);
-
-  if (img_mrom_file == NULL) {
-    Log("No mrom-image is given. Use the default build-in mrom-image.");
-    return 4096; // built-in image size
-  }
-
-  FILE *mrom_fp = fopen(img_mrom_file, "rb");
-  Assert(mrom_fp, "Can not open '%s'", img_mrom_file);
-
-  fseek(mrom_fp, 0, SEEK_END);
-  size = ftell(mrom_fp);
-
-  Log("The mrom-image is %s, size = %ld", img_mrom_file, size);
-
-  fseek(mrom_fp, 0, SEEK_SET);
-  ret = fread(guest_to_host(RESET_VECTOR), size, 1, mrom_fp);
-  Assert(ret == 1, "ret != 1");
-
-  fclose(mrom_fp);
-
   return size;
 }
 

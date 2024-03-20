@@ -4,23 +4,21 @@
 // this is not consistent with uint8_t
 // but it is ok since we do not access the array directly
 static const uint32_t img [] = {
-  0x00000297,  // auipc t0,0
-  0x00028823,  // sb  zero,16(t0)
-  0x0102c503,  // lbu a0,16(t0)
-  0x00100073,  // ebreak (used as nemu_trap)
-  0xdeadbeef,  // some data
-};
+  0x00000413,   // li	s0,0
+  0x0f002137,   // lui	sp,0xf002
+  0x00c000ef,   // jal	ra,20000014 <_trm_init>
 
-static const uint32_t mrom_img [] = {
-  0x100007b7,   // lui	a5,0x10000
-  0x04100713,   // li	a4,65
-  0x00e78023,   // sb	a4,0(a5) # 10000000 <.L2+0xfffffdc>
-  0x100007b7,   // lui	a5,0x10000
-  0x00a00713,   // li	a4,10
-  0x00e78023,   // sb	a4,0(a5) # 10000000 <.L2+0xfffffdc>
-  0x0000006f,   //	j	24 <.L2>
-  0x00100073,   // ebreak (used as nemu_trap, shouldn't being here) 
-  0xdeadbeef,   // some data
+  0x00000513,   // li	a0,0
+  0x00008067,   // ret
+
+  0xff410113,   // addi	sp,sp,-12 # f001ff4 <_entry_offset+0xf001ff4>
+  0x00000517,   // auipc	a0,0x0
+  0x01c50513,   // addi	a0,a0,28 # 20000034 <_etext>
+  0x00112423,   // sw	ra,8(sp)
+  0xfe9ff0ef,   // jal	ra,2000000c <main>
+  0x00050513,   // mv	a0,a0
+  0x00100073,   // ebreak
+  0x0000006f,   // j	20000030 <_trm_init+0x1c>
 };
 
 static void restart() {
@@ -34,9 +32,6 @@ static void restart() {
 void init_isa() {
   /* Load built-in image. */
   memcpy(guest_to_host(RESET_VECTOR), img, sizeof(img));
-
-  /* Load mrom-image into mrom */
-  memcpy(mrom_guest_to_host(CONFIG_MROMBASE), mrom_img, sizeof(mrom_img));
 
   /* Initialize this virtual computer system. */
   restart();

@@ -93,10 +93,12 @@ void reset(int n) {
 }
 
 void clean_up() {
+#ifdef CONFIG_WAVEFORM
   tfp->close();
   IFDEF(CONFIG_WAVEFORM, delete tfp);
   delete ysyxSoCFull;
   delete contextp;
+#endif
 }
 
 int check_reg_idx(int idx) {
