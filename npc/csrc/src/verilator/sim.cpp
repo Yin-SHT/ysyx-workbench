@@ -69,7 +69,7 @@ void init_verilator(int argc, char **argv) {
   Verilated::traceEverOn( true );
   tfp = new VerilatedVcdC;
   ysyxSoCFull->trace( tfp, 99 ); // Trace 99 levels of hierarchy (or see below)
-  tfp->open( "./output/sim.vcd" );
+  tfp->open( "./build/output/sim.vcd" );
 #endif
 
   // Prepare for DPI-C

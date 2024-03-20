@@ -22,6 +22,7 @@ BIN = $(BUILD_DIR)/$(TOPNAME)
 default: $(BIN)
 
 $(shell mkdir -p $(BUILD_DIR))
+$(shell mkdir -p $(BUILD_DIR)/output)
 
 # project source
 VSRCS = $(SOC_HOME)/generated/ysyxSoCFull.v
