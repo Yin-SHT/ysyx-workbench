@@ -42,9 +42,8 @@ void single_cycle() {
   ysyxSoCFull->clock = 1; ysyxSoCFull->eval(); IFDEF(CONFIG_WAVEFORM, tfp->dump(contextp->time())); contextp->timeInc(1);
 
   /* Check ebreak instruction */
+  pre_pc = cur_pc;
   cur_pc = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__instpc;
-  cur_inst = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__inst;
-
   word_t a0 = ysyxSoCFull->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__u_cpu__DOT__decode0__DOT__u_regfile__DOT__regs[10];
   NPCTRAP(cur_pc, a0);
 

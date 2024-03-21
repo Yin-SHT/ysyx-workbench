@@ -53,7 +53,7 @@ all: default
 # Command to execute NEMU
 IMG ?=
 ARGS ?=
-YSYXSOC_EXEC := $(BIN) $(ARGS) $(IMG)
+YSYXSOC_EXEC := $(BIN) $(ARGS) -d /home/gtl/Code/system/ysyx-workbench/nemu/build/riscv32-nemu-interpreter-so $(IMG)
 
 run: $(BIN)
 	$(YSYXSOC_EXEC)

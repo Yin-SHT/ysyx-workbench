@@ -15,6 +15,9 @@ void (*ref_difftest_raise_intr)(uint64_t NO) = NULL;
 static bool is_skip_ref = false;
 static int skip_dut_nr_inst = 0;
 
+#define MROM_SIZE 0x1000
+extern uint8_t mrom[MROM_SIZE];
+
 void difftest_skip_ref() {
   is_skip_ref = true;
   skip_dut_nr_inst = 0;
@@ -46,7 +49,7 @@ void init_difftest(char *ref_so_file, long img_size, int port) {
   Log("The result of every instruction will be compared with %s.", ref_so_file);
 
   ref_difftest_init(port);
-  ref_difftest_memcpy(RESET_VECTOR, guest_to_host(RESET_VECTOR), img_size, DIFFTEST_TO_REF);
+  ref_difftest_memcpy(RESET_VECTOR, mrom, img_size, DIFFTEST_TO_REF);
   ref_difftest_regcpy(&cpu, DIFFTEST_TO_REF);
 }
 

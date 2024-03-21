@@ -49,16 +49,18 @@ static void trace_and_difftest(vaddr_t pc, vaddr_t dnpc) {
   decode_ftrace(cur_inst, cur_pc);
 #endif
   if (pre_wbu_valid) {
-    if (first_wbu_valid == false) {
-      IFDEF(CONFIG_DIFFTEST, difftest_step(pc, dnpc));
+    if (first_wbu_valid == true) {
+      first_wbu_valid = false;
+    } else if (first_wbu_valid == false) {
+      // Not first time wbu's valid_post_o == 1
+      difftest_step(pc, dnpc);
     }
-    first_wbu_valid = false;
   }
 }
 
 void exec_once() {
   single_cycle();
-  trace_and_difftest(pre_pc, cpu.pc);
+  IFDEF(CONFIG_DIFFTEST, trace_and_difftest(pre_pc, cpu.pc));
   IFDEF(CONFIG_DEVICE, device_update());
 }
 
