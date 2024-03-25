@@ -43,7 +43,10 @@ module lsu (
 
   /* Write operation */
 
-  assign awaddr_o   = ( rdata1_i + imm_i ) & (~(32'h7)); 
+  wire[31:0] addr = ( rdata1_i + imm_i );
+  wire in_uart = ( addr >= 32'h1000_0000 ) && ( addr < 32'h1000_00f0 );
+
+  assign awaddr_o   = in_uart ? ( rdata1_i + imm_i ) : ( rdata1_i + imm_i ) & (~(32'h7)); 
   assign awid_o     = 0;
   assign awlen_o    = 0;
   assign awsize_o   = ( lsu_op_i == `LSU_OP_SB ) ? 3'b000 :
@@ -118,7 +121,7 @@ module lsu (
   assign wlast_o = 1;
 
   /* Read operation */
-  assign araddr_o   = ( rdata1_i + imm_i ) & (~(32'h7)); 
+  assign araddr_o   = ( in_uart ) ? ( rdata1_i + imm_i ) : ( rdata1_i + imm_i ) & (~(32'h7)); 
   assign arid_o     = 0;
   assign arlen_o    = 0;
   assign arsize_o   = ( lsu_op_i == `LSU_OP_LB  ) ? 3'b000 :
