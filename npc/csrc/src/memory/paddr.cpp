@@ -42,6 +42,8 @@ void flash_read(uint32_t addr, uint32_t *data) {
 }
 
 extern "C" 
-void mrom_read(uint32_t addr, uint32_t *data) { 
-  *data = host_read(mrom + addr - MROM_BASE, 4);
+void mrom_read(uint32_t addr, uint32_t *low, uint32_t *high) { 
+  uint64_t rdata = *((uint64_t *)(mrom + addr - MROM_BASE));
+  *low = (uint32_t)((rdata << 32) >> 32);
+  *high = (uint32_t)(rdata >> 32);
 }
