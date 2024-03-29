@@ -77,7 +77,7 @@ static void reverse_str(char *left, char *right) {
 // It should be carefully selected
 
 int printf(const char *fmt, ...) {
-  char str[1024] = { 0 };
+  char str[128] = { 0 };
   const char *fp = fmt;
   char *p = str;
 
