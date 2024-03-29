@@ -174,7 +174,6 @@ module execute (
     .rdata_we_i   ( rdata_we     ),
 
     // form exu-regs
-    .inst_type_i  ( inst_type    ),
     .lsu_op_i     ( lsu_op       ),
     .imm_i        ( imm          ),
     .rdata1_i     ( rdata1       ),

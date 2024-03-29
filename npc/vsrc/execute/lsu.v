@@ -4,7 +4,6 @@ module lsu (
   input                      clock,
   input                      reset,
 
-  input [`INST_TYPE_BUS]     inst_type_i,
   input [`LSU_OP_BUS]        lsu_op_i,
 
   input [`REG_DATA_BUS]      imm_i,
@@ -39,14 +38,13 @@ module lsu (
   input  [`AXI4_RDATA_BUS]   rdata_i
 );
   
-  wire[31:0] byte_lane = ( rdata1_i + imm_i ) % 8;
+  wire[31:0] address = rdata1_i + imm_i;
+  
+  wire[31:0] byte_lane  = address % 8;
 
   /* Write operation */
 
-  wire[31:0] addr = ( rdata1_i + imm_i );
-  wire in_uart = ( addr >= 32'h1000_0000 ) && ( addr < 32'h1000_00f0 );
-
-  assign awaddr_o   = in_uart ? ( rdata1_i + imm_i ) : ( rdata1_i + imm_i ) & (~(32'h7)); 
+  assign awaddr_o   = address;
   assign awid_o     = 0;
   assign awlen_o    = 0;
   assign awsize_o   = ( lsu_op_i == `LSU_OP_SB ) ? 3'b000 :
@@ -121,7 +119,7 @@ module lsu (
   assign wlast_o = 1;
 
   /* Read operation */
-  assign araddr_o   = ( in_uart ) ? ( rdata1_i + imm_i ) : ( rdata1_i + imm_i ) & (~(32'h7)); 
+  assign araddr_o   = address;
   assign arid_o     = 0;
   assign arlen_o    = 0;
   assign arsize_o   = ( lsu_op_i == `LSU_OP_LB  ) ? 3'b000 :
