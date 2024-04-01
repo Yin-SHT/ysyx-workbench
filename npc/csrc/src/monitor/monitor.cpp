@@ -14,8 +14,7 @@ void init_disasm(const char *triple);
 void init_verilator(int argc, char **argv);
 void init_device();
 
-#define MROM_SIZE 0x1000
-extern uint8_t mrom[];
+extern uint8_t flash[8 * 1024 * 1024];
 
 static void welcome() {
   BLUE_BOLD_PRINT("Build time: %s, %s\n", __TIME__, __DATE__);
@@ -30,7 +29,6 @@ static char *flog_file = NULL;
 static char *elf_file = NULL;
 static char *diff_so_file = NULL;
 static char *img_file = NULL;
-static char *img_mrom_file = NULL;
 static int difftest_port = 1234;
 
 static long load_img() {
@@ -48,7 +46,7 @@ static long load_img() {
   Log("The image is %s, size = %ld", img_file, size);
 
   fseek(fp, 0, SEEK_SET);
-  int ret = fread(mrom, size, 1, fp);
+  int ret = fread(flash, size, 1, fp);
   assert(ret == 1);
 
   fclose(fp);
@@ -63,7 +61,6 @@ static int parse_args(int argc, char *argv[]) {
     {"elf"      , required_argument, NULL, 'e'},
     {"diff"     , required_argument, NULL, 'd'},
     {"port"     , required_argument, NULL, 'p'},
-    {"mrom"     , required_argument, NULL, 'm'},
     {"help"     , no_argument      , NULL, 'h'},
     {0          , 0                , NULL,  0 },
   };
@@ -76,7 +73,6 @@ static int parse_args(int argc, char *argv[]) {
       case 'f': flog_file = optarg; break;
       case 'e': elf_file = optarg; break;
       case 'd': diff_so_file = optarg; break;
-      case 'm': img_mrom_file = optarg; break;
       case 1: img_file = optarg; return 0;
       default:
         printf("Usage: %s [OPTION...] IMAGE [args]\n\n", argv[0]);
@@ -86,7 +82,6 @@ static int parse_args(int argc, char *argv[]) {
         printf("\t-e,--elf=FILE           read elf FILE\n");
         printf("\t-d,--diff=REF_SO        run DiffTest with reference REF_SO\n");
         printf("\t-p,--port=PORT          run DiffTest with port PORT\n");
-        printf("\t-m,--mrom=FILE          read mrom img file\n");
         printf("\n");
         exit(0);
     }

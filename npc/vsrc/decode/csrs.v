@@ -4,6 +4,9 @@
 `define MTVEC        32'h0000_0305
 `define MEPC         32'h0000_0341
 `define MCAUSE       32'h0000_0342
+`define MVENDORID    32'hffff_ff11
+`define MARCHID      32'hffff_ff12
+`define MCAUSE       32'h0000_0342
 `define ECALL_FROM_M 32'h0000_000b
 
 module csrs (
@@ -18,17 +21,21 @@ module csrs (
   output [`CSR_DATA_BUS] csr_pc_o
 );
 
-  reg [`CSR_DATA_BUS] mstatus = 32'h0000_0000;
-  reg [`CSR_DATA_BUS] mtvec   = 32'h0000_0000;
-  reg [`CSR_DATA_BUS] mepc    = 32'h0000_0000;
-  reg [`CSR_DATA_BUS] mcause  = 32'h0000_0000;
+  reg [`CSR_DATA_BUS] mstatus   = 32'h0000_0000;
+  reg [`CSR_DATA_BUS] mtvec     = 32'h0000_0000;
+  reg [`CSR_DATA_BUS] mepc      = 32'h0000_0000;
+  reg [`CSR_DATA_BUS] mcause    = 32'h0000_0000;
+  reg [`CSR_DATA_BUS] mvendorid = 32'h7973_7978;
+  reg [`CSR_DATA_BUS] marchid   = 32'd22060008;
 
   /* CSRRW & CSRRS */
-  assign  csr_o = (( reset == `RESET_DISABLE ) && (( csr_op_i == `CSR_OP_CSRRW ) || ( csr_op_i == `CSR_OP_CSRRS )) && ( imm_i == `MSTATUS )) ? mstatus       :
-                  (( reset == `RESET_DISABLE ) && (( csr_op_i == `CSR_OP_CSRRW ) || ( csr_op_i == `CSR_OP_CSRRS )) && ( imm_i == `MTVEC   )) ? mtvec         :
-                  (( reset == `RESET_DISABLE ) && (( csr_op_i == `CSR_OP_CSRRW ) || ( csr_op_i == `CSR_OP_CSRRS )) && ( imm_i == `MEPC    )) ? mepc          :
-                  (( reset == `RESET_DISABLE ) && (( csr_op_i == `CSR_OP_CSRRW ) || ( csr_op_i == `CSR_OP_CSRRS )) && ( imm_i == `MCAUSE  )) ? mcause        :
-                                                                                                                                               0             ;
+  assign  csr_o = (( reset == `RESET_DISABLE ) && (( csr_op_i == `CSR_OP_CSRRW ) || ( csr_op_i == `CSR_OP_CSRRS )) && ( imm_i == `MSTATUS   )) ? mstatus       :
+                  (( reset == `RESET_DISABLE ) && (( csr_op_i == `CSR_OP_CSRRW ) || ( csr_op_i == `CSR_OP_CSRRS )) && ( imm_i == `MTVEC     )) ? mtvec         :
+                  (( reset == `RESET_DISABLE ) && (( csr_op_i == `CSR_OP_CSRRW ) || ( csr_op_i == `CSR_OP_CSRRS )) && ( imm_i == `MEPC      )) ? mepc          :
+                  (( reset == `RESET_DISABLE ) && (( csr_op_i == `CSR_OP_CSRRW ) || ( csr_op_i == `CSR_OP_CSRRS )) && ( imm_i == `MCAUSE    )) ? mcause        :
+                  (( reset == `RESET_DISABLE ) && (( csr_op_i == `CSR_OP_CSRRW ) || ( csr_op_i == `CSR_OP_CSRRS )) && ( imm_i == `MVENDORID )) ? mvendorid     :
+                  (( reset == `RESET_DISABLE ) && (( csr_op_i == `CSR_OP_CSRRW ) || ( csr_op_i == `CSR_OP_CSRRS )) && ( imm_i == `MARCHID   )) ? marchid       :
+                                                                                                                                                 0             ;
   always @( * ) begin
     if (( reset == `RESET_DISABLE ) && ( csr_op_i == `CSR_OP_CSRRW )) begin
       case ( imm_i )

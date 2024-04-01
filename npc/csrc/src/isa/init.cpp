@@ -21,11 +21,11 @@ static const uint32_t img [] = {
   0x0000006f,   // j	20000030 <_trm_init+0x1c>
 };
 
-extern uint8_t mrom[CONFIG_MSIZE];
+extern uint8_t flash[8 * 1024 * 1024];
 
 static void restart() {
   /* Set the initial program counter. */
-  cpu.pc = RESET_VECTOR;
+  cpu.pc = 0x30000000;
 
   /* The zero register is always 0. */
   cpu.gpr[0] = 0;
@@ -33,7 +33,7 @@ static void restart() {
 
 void init_isa() {
   /* Load built-in image. */
-  memcpy(mrom, img, sizeof(img));
+  memcpy(flash, img, sizeof(img));
 
   /* Initialize this virtual computer system. */
   restart();
