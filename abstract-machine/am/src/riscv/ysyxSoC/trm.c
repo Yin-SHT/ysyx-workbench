@@ -1,4 +1,5 @@
 #include <am.h>
+#include <klib.h>
 #include <klib-macros.h>
 #include <riscv/riscv.h>
 
@@ -45,6 +46,7 @@ void halt(int code) {
 }
 
 void _trm_init() {
+  // Data copy
   char *src = &_rodata_end;
   char *dst = &_data_start;
 
@@ -55,6 +57,18 @@ void _trm_init() {
   for (dst = &_bss_start; dst < &_bss_end; dst++) {
     *dst = 0;
   }
+
+  // ID
+  uint32_t mvendorid = 0;
+  uint32_t marchid = 0;
+  __asm__ __volatile__(
+		"csrr %0, mvendorid;"
+    "csrr %1, marchid;" 
+		: "=r"(mvendorid), "=r"(marchid) ::               
+  );
+
+  printf("mvendorid: 0x%08x\n", mvendorid);
+  printf("marchid: %d\n", marchid);
 
   int ret = main(mainargs);
   halt(ret);
