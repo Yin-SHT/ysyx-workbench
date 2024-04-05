@@ -14,7 +14,7 @@ void init_disasm(const char *triple);
 void init_verilator(int argc, char **argv);
 void init_device();
 
-extern uint8_t flash[8 * 1024 * 1024];
+extern uint8_t flash[16 * 1024 * 1024];
 
 static void welcome() {
   BLUE_BOLD_PRINT("Build time: %s, %s\n", __TIME__, __DATE__);

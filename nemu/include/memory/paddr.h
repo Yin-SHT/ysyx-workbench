@@ -23,8 +23,8 @@
 #define RESET_VECTOR (PMEM_LEFT + CONFIG_PC_RESET_OFFSET)
 
 /* ysyxSoC  */
-#define MROM_SIZE 0x1000
-#define MROM_BASE 0x20000000
+#define FLASH_SIZE 0x1000000
+#define FLASH_BASE 0x30000000
 
 #define SRAM_SIZE 0x2000
 #define SRAM_BASE 0xf000000
@@ -39,10 +39,10 @@ static inline bool in_pmem(paddr_t addr) {
 }
 
 static inline bool in_ysyxSoC(paddr_t addr) {
-  bool in_mrom =  (addr >= MROM_BASE) && (addr < MROM_BASE + MROM_SIZE);
-  bool in_sram =  (addr >= SRAM_BASE) && (addr < SRAM_BASE + SRAM_SIZE);
+  bool in_flash =  (addr >= FLASH_BASE) && (addr < FLASH_BASE + FLASH_SIZE);
+  bool in_sram  =  (addr >= SRAM_BASE) && (addr < SRAM_BASE + SRAM_SIZE);
 
-  return in_mrom | in_sram;
+  return in_flash | in_sram;
 }
 
 word_t paddr_read(paddr_t addr, int len);

@@ -6,7 +6,9 @@
 //extern char _heap_start;
 int main(const char *args);
 
-Area heap = {.start = (void *)0x0f000000, .end = (void *)0xf002000}; // 8 KB
+extern char _heap_start;
+
+Area heap = {.start = (void *)&_heap_start, .end = (void *)0x0f002000}; 
 #ifndef MAINARGS
 #define MAINARGS ""
 #endif
@@ -46,18 +48,6 @@ void halt(int code) {
 }
 
 void _trm_init() {
-  // Data copy
-  char *src = &_rodata_end;
-  char *dst = &_data_start;
-
-  while (dst < &_data_end) {
-    *dst++ = *src++;
-  }
-
-  for (dst = &_bss_start; dst < &_bss_end; dst++) {
-    *dst = 0;
-  }
-
   // ID
 //  uint32_t mvendorid = 0;
 //  uint32_t marchid = 0;

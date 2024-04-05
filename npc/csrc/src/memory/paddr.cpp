@@ -4,14 +4,8 @@
 #include <map.h>
 #include <utils.h>
 
-#define MROM_BASE 0x20000000
-#define MROM_SIZE 0x1000
-
-#define FLASH_BASE 0x30000000
-#define FLASH_SIZE 0x10000000
-
 uint8_t pmem[CONFIG_MSIZE] PG_ALIGN = {};
-uint8_t flash[FLASH_SIZE] PG_ALIGN = {};
+uint8_t flash[16 * 1024 * 1024] PG_ALIGN = {};
 
 uint8_t* guest_to_host(paddr_t paddr) { return pmem + paddr - CONFIG_MBASE; }
 paddr_t host_to_guest(uint8_t *haddr) { return haddr - pmem + CONFIG_MBASE; }

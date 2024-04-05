@@ -24,7 +24,7 @@ static uint8_t *pmem = NULL;
 static uint8_t pmem[CONFIG_MSIZE] PG_ALIGN = {};
 #endif
 
-static uint8_t mrom[MROM_SIZE] PG_ALIGN = {};
+uint8_t flash[FLASH_SIZE] PG_ALIGN = {};
 static uint8_t sram[SRAM_SIZE] PG_ALIGN = {};
 
 uint8_t* guest_to_host(paddr_t paddr) { return pmem + paddr - CONFIG_MBASE; }
@@ -40,11 +40,11 @@ static void pmem_write(paddr_t addr, int len, word_t data) {
 }
 
 static word_t ysyxSoC_read(paddr_t addr, int len) {
-  bool in_mrom =  (addr >= MROM_BASE) && (addr < MROM_BASE + MROM_SIZE);
-  bool in_sram =  (addr >= SRAM_BASE) && (addr < SRAM_BASE + SRAM_SIZE);
+  bool in_flash =  (addr >= FLASH_BASE) && (addr < FLASH_BASE + FLASH_SIZE);
+  bool in_sram  =  (addr >= SRAM_BASE) && (addr < SRAM_BASE + SRAM_SIZE);
 
-  if (in_mrom) {
-    return host_read(mrom + addr - MROM_BASE, len);
+  if (in_flash) {
+    return host_read(flash + addr - FLASH_BASE, len);
   } else if (in_sram) {
     return host_read(sram + addr - SRAM_BASE, len);
   } 
@@ -54,11 +54,11 @@ static word_t ysyxSoC_read(paddr_t addr, int len) {
 }
 
 static void ysyxSoC_write(paddr_t addr, int len, word_t data) {
-  bool in_mrom =  (addr >= MROM_BASE) && (addr < MROM_BASE + MROM_SIZE);
-  bool in_sram =  (addr >= SRAM_BASE) && (addr < SRAM_BASE + SRAM_SIZE);
+  bool in_flash =  (addr >= FLASH_BASE) && (addr < FLASH_BASE + FLASH_SIZE);
+  bool in_sram  =  (addr >= SRAM_BASE) && (addr < SRAM_BASE + SRAM_SIZE);
 
-  if (in_mrom) {
-    host_write(mrom + addr - MROM_BASE, len, data);
+  if (in_flash) {
+    host_write(flash + addr - FLASH_BASE, len, data);
   } else if (in_sram) {
     host_write(sram + addr - SRAM_BASE, len, data);
   } 
