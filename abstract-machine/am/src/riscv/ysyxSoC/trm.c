@@ -3,19 +3,19 @@
 #include <klib-macros.h>
 #include <riscv/riscv.h>
 
-//extern char _heap_start;
+// Temp Device Addr, these will be changed in the future !!!
+#define SERIAL_PORT 0x10000000  // uart16550
+#define PSRAM_END   0x80400000  // psram
+
 int main(const char *args);
 
 extern char _heap_start;
 
-Area heap = {.start = (void *)&_heap_start, .end = (void *)0x80400000}; 
+Area heap = {.start = (void *)&_heap_start, .end = (void *)PSRAM_END}; 
 #ifndef MAINARGS
 #define MAINARGS ""
 #endif
 static const char mainargs[] = MAINARGS;
-
-// Temp Device Addr, these will be changed in the future !!!
-#define SERIAL_PORT 0x10000000  // uart16550
 
 void putch(char ch) {
   // Polling

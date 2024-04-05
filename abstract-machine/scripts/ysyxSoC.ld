@@ -1,4 +1,4 @@
-ENTRY(_loader)
+ENTRY(_fsbl)
 MEMORY {
   flash : ORIGIN = 0x30000000, LENGTH = 16M
   psram : ORIGIN = 0x80000000, LENGTH = 4M
@@ -7,9 +7,14 @@ MEMORY {
 
 SECTIONS {
   . = ORIGIN(flash);
-  .loader : {
-    *(bootloader)
+
+  .fsbl : {
+    *(fsbl)
   } > flash AT> flash 
+
+  .ssbl : ALIGN(8) {
+    *(ssbl)
+  } > sram AT> flash 
 
   .text : ALIGN(8) {
     *(entry)
@@ -40,6 +45,8 @@ SECTIONS {
   _heap_start = .;
   } > psram AT> flash 
 
+  _ssbl_start = LOADADDR(.ssbl);
+  _ssbl_end   = LOADADDR(.ssbl) + SIZEOF(.ssbl);
   _code_start = LOADADDR(.text);
   _code_end   = LOADADDR(.data) + SIZEOF(.data);
 }
