@@ -24,9 +24,6 @@ static uint8_t *pmem = NULL;
 static uint8_t pmem[CONFIG_MSIZE] PG_ALIGN = {};
 #endif
 
-uint8_t flash[FLASH_SIZE] PG_ALIGN = {};
-static uint8_t sram[SRAM_SIZE] PG_ALIGN = {};
-
 uint8_t* guest_to_host(paddr_t paddr) { return pmem + paddr - CONFIG_MBASE; }
 paddr_t host_to_guest(uint8_t *haddr) { return haddr - pmem + CONFIG_MBASE; }
 
@@ -37,31 +34,6 @@ static word_t pmem_read(paddr_t addr, int len) {
 
 static void pmem_write(paddr_t addr, int len, word_t data) {
   host_write(guest_to_host(addr), len, data);
-}
-
-static word_t ysyxSoC_read(paddr_t addr, int len) {
-  bool in_flash =  (addr >= FLASH_BASE) && (addr < FLASH_BASE + FLASH_SIZE);
-  bool in_sram  =  (addr >= SRAM_BASE) && (addr < SRAM_BASE + SRAM_SIZE);
-
-  if (in_flash) {
-    return host_read(flash + addr - FLASH_BASE, len);
-  } else if (in_sram) {
-    return host_read(sram + addr - SRAM_BASE, len);
-  } 
-
-  /* Should not run in here */
-  Assert(0, "0x%08x is illegal for read\n", addr);
-}
-
-static void ysyxSoC_write(paddr_t addr, int len, word_t data) {
-  bool in_flash =  (addr >= FLASH_BASE) && (addr < FLASH_BASE + FLASH_SIZE);
-  bool in_sram  =  (addr >= SRAM_BASE) && (addr < SRAM_BASE + SRAM_SIZE);
-
-  if (in_flash) {
-    host_write(flash + addr - FLASH_BASE, len, data);
-  } else if (in_sram) {
-    host_write(sram + addr - SRAM_BASE, len, data);
-  } 
 }
 
 static void out_of_bound(paddr_t addr) {
@@ -87,7 +59,6 @@ void init_mem() {
 word_t paddr_read(paddr_t addr, int len) {
   IFDEF(CONFIG_MTRACE, mtrace_write("%#08x: \tAddr: %#08x\tLen: %d\t Read\n", cpu.pc, addr, len));
   if (likely(in_pmem(addr))) return pmem_read(addr, len);
-  if (likely(in_ysyxSoC(addr))) return ysyxSoC_read(addr, len);
   IFDEF(CONFIG_DEVICE, return mmio_read(addr, len));
   out_of_bound(addr);
   return 0;
@@ -96,7 +67,6 @@ word_t paddr_read(paddr_t addr, int len) {
 void paddr_write(paddr_t addr, int len, word_t data) {
   IFDEF(CONFIG_MTRACE, mtrace_write("%#08x: \tAddr: %#08x\tLen: %d\t Write\n", cpu.pc, addr, len));
   if (likely(in_pmem(addr))) { pmem_write(addr, len, data); return; }
-  if (likely(in_ysyxSoC(addr))) { ysyxSoC_write(addr, len, data); return; }
   IFDEF(CONFIG_DEVICE, mmio_write(addr, len, data); return);
   out_of_bound(addr);
 }
