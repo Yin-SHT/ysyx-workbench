@@ -5,13 +5,13 @@
 
 // Temp Device Addr, these will be changed in the future !!!
 #define SERIAL_PORT 0x10000000  // uart16550
-#define PSRAM_END   0x80400000  // psram
+#define SDRAM_END   0xa8000000  // sdram
 
 int main(const char *args);
 
 extern char _heap_start;
 
-Area heap = {.start = (void *)&_heap_start, .end = (void *)PSRAM_END}; 
+Area heap = {.start = (void *)&_heap_start, .end = (void *)SDRAM_END}; 
 #ifndef MAINARGS
 #define MAINARGS ""
 #endif
