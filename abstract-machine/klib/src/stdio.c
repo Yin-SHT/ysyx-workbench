@@ -100,6 +100,11 @@ int printf(const char *fmt, ...) {
           d = va_arg(ap, int);
           p = itoa(d, p);
           break;
+        case 'l':
+          d = va_arg(ap, int);
+          p = itoa(d, p);
+          fp += 1;
+          break;
         case 'X':
         case 'p':
         case 'x':

@@ -41,17 +41,17 @@ void _trm_init() {
   outb(SERIAL_PORT + 0, 0x01);
   outb(SERIAL_PORT + 3, lcr & 0x7f);
 
-  // Identification
-  uint32_t mvendorid = 0;
-  uint32_t marchid = 0;
-  __asm__ __volatile__(
-		"csrr %0, mvendorid;"
-    "csrr %1, marchid;" 
-		: "=r"(mvendorid), "=r"(marchid) ::               
-  );
-
-  printf("mvendorid: 0x%08x\n", mvendorid);
-  printf("marchid:   %d\n", marchid);
+//  // Identification
+//  uint32_t mvendorid = 0;
+//  uint32_t marchid = 0;
+//  __asm__ __volatile__(
+//		"csrr %0, mvendorid;"
+//    "csrr %1, marchid;" 
+//		: "=r"(mvendorid), "=r"(marchid) ::               
+//  );
+//
+//  printf("mvendorid: 0x%08x\n", mvendorid);
+//  printf("marchid:   %d\n", marchid);
 
   int ret = main(mainargs);
   halt(ret);
