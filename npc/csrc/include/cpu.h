@@ -28,4 +28,14 @@ do { \
   } \
 } while(0)
 
+#define FORCETRAP(cur_pc, a0) \
+do { \
+  if(1) { \
+    clean_up(); \
+    difftest_skip_ref(); \
+    set_npc_state(NPC_END, cur_pc, a0); \
+    return; \
+  } \
+} while(0)
+
 #endif

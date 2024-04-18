@@ -1,3 +1,4 @@
+#include <nvboard.h>
 #include <common.h>
 #include <difftest.h>
 #include <utils.h>
@@ -7,6 +8,8 @@
 #include "verilated_vcd_c.h"
 #include "VysyxSoCFull__Dpi.h"
 #include "VysyxSoCFull___024root.h"
+
+void nvboard_bind_all_pins(VysyxSoCFull* ysyxSoCFull);
 
 static VerilatedContext* contextp;
 static VerilatedVcdC* tfp;
@@ -38,6 +41,8 @@ static void update_cpu(uint32_t next_pc) {
 }
 
 void single_cycle() {
+  IFDEF(CONFIG_NVBOARD, nvboard_update());
+
   ysyxSoCFull->clock = 0; ysyxSoCFull->eval(); IFDEF(CONFIG_WAVEFORM, tfp->dump(contextp->time())); contextp->timeInc(1);
   ysyxSoCFull->clock = 1; ysyxSoCFull->eval(); IFDEF(CONFIG_WAVEFORM, tfp->dump(contextp->time())); contextp->timeInc(1);
 
@@ -75,6 +80,10 @@ void init_verilator(int argc, char **argv) {
   const svScope scope_pd = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.decode0.u_decode");
   Assert(scope_pd, "scope_pd is null"); // Check for nullptr if scope not found
   svSetScope(scope_pd);
+
+  // Init nvboard
+  nvboard_bind_all_pins(ysyxSoCFull);
+  IFDEF(CONFIG_NVBOARD, nvboard_init());
 
   // Reset NPC Model
   void reset(int n);

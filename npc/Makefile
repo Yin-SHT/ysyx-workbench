@@ -1,4 +1,5 @@
 TOPNAME = ysyxSoCFull
+NXDC_FILES = constr/ysyxSoCFull.nxdc
 INC_PATH = $(NPC_HOME)/csrc/include
 
 VERILATOR = verilator
@@ -24,20 +25,29 @@ default: $(BIN)
 $(shell mkdir -p $(BUILD_DIR))
 $(shell mkdir -p $(BUILD_DIR)/output)
 
+# constraint file
+SRC_AUTO_BIND = $(abspath $(BUILD_DIR)/auto_bind.cpp)
+$(SRC_AUTO_BIND): $(NXDC_FILES)
+	python3 $(NVBOARD_HOME)/scripts/auto_pin_bind.py $^ $@
+
 # project source
 VSRCS = $(SOC_HOME)/generated/ysyxSoCFull.v
 VSRCS += $(shell find $(SOC_HOME)/perip -name "*.v")
 VSRCS += $(shell find $(NPC_HOME)/vsrc -name "*.v")
 
 CSRCS = $(shell find $(NPC_HOME)/csrc -name "*.c" -or -name "*.cc" -or -name "*.cpp")
+CSRCS += $(SRC_AUTO_BIND)
+
+# rules for NVBoard
+include $(NVBOARD_HOME)/scripts/nvboard.mk
 
 # rules for verilator
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CFLAGS = $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\"" \
 		 $(shell llvm-config --cxxflags) 
-LDFLAGS = -lreadline -lSDL2 $(shell llvm-config --libs)
+LDFLAGS = -lreadline -lSDL2 $(shell llvm-config --libs) -lSDL2 -lSDL2_image -lSDL2_ttf
 
-$(BIN): $(VSRCS) $(CSRCS) 
+$(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE)
 	@rm -rf $(OBJ_DIR)
 	$(VERILATOR) $(VERILATOR_FLAGS) \
 		--top-module $(TOPNAME) $^ \
