@@ -84,12 +84,22 @@ int printf(const char *fmt, ...) {
   va_list ap;
   int d;
   char *s;
+  char ch[2];
+  char cha;
 
   va_start(ap, fmt);
   while (*fp) {
     if (*fp == '%') {
       char next_ch = *(fp + 1);
       switch (next_ch) {
+        case 'c':
+          cha = va_arg(ap, int);
+          ch[0] = cha;
+          ch[1] = 0;
+          int _n_ = strlen(ch);
+          strcpy(p, ch);
+          p += _n_;
+          break;
         case 's': 
           s = va_arg(ap, char *);
           int n = strlen(s);
