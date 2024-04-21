@@ -451,7 +451,43 @@ module cpu (
     .exu_rlast_o   (  exu_rlast         ),
     .rid_i         (  io_master_rid     ),
     .ifu_rid_o     (  ifu_rid           ),
-    .exu_rid_o     (  exu_rid           )
+    .exu_rid_o     (  exu_rid           ),
+
+    .clint_araddr_o   (clint_araddr),
+    .clint_arvalid_o  (clint_arvalid),
+    .clint_arready_i  (clint_arready),
+    .clint_rresp_i    (clint_rresp),
+    .clint_rdata_i    (clint_rdata),
+    .clint_rlast_i    (clint_rlast),
+    .clint_rid_i      (clint_rid),
+    .clint_rvalid_i   (clint_rvalid),
+    .clint_rready_o   (clint_rready)
+  );
+
+  wire[31:0]  clint_araddr;
+  wire        clint_arvalid;
+  wire        clint_arready;
+  wire[1:0]   clint_rresp;
+  wire[63:0]  clint_rdata;
+  wire        clint_rlast;
+  wire[3:0]   clint_rid;
+  wire        clint_rvalid;
+  wire        clint_rready;
+
+  clint clint0 (
+    .clock (clock),
+    .reset (reset),
+
+    .araddr_i  (clint_araddr),
+    .arvalid_i (clint_arvalid),
+    .arready_o (clint_arready),
+
+    .rdata_o   (clint_rdata),
+    .rresp_o   (clint_rresp),
+    .rlast_o   (clint_rlast),
+    .rid_o     (clint_rid),
+    .rvalid_o  (clint_rvalid),
+    .rready_i  (clint_rready)
   );
 
   always @( posedge clock or negedge reset ) begin
