@@ -52,6 +52,6 @@ typedef uint16_t ioaddr_t;
 //#define CONFIG_WAVEFORM 1
 //#define CONFIG_DIFFTEST 1
 
-#define CONFIG_NVBOARD 1
+//#define CONFIG_NVBOARD 1
 
 #endif
