@@ -31,7 +31,7 @@ $(SRC_AUTO_BIND): $(NXDC_FILES)
 	python3 $(NVBOARD_HOME)/scripts/auto_pin_bind.py $^ $@
 
 # project source
-VSRCS = $(SOC_HOME)/generated/ysyxSoCFull.v
+VSRCS = $(SOC_HOME)/build/ysyxSoCFull.v
 VSRCS += $(shell find $(SOC_HOME)/perip -name "*.v")
 VSRCS += $(shell find $(NPC_HOME)/vsrc -name "*.v")
 

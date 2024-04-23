@@ -21,7 +21,7 @@ do { \
 do { \
   inst_ebreak(&_ebreak); \
   if(_ebreak) { \
-    clean_up(); \
+    simulation_quit(); \
     difftest_skip_ref(); \
     set_npc_state(NPC_END, cur_pc, a0); \
     return; \
@@ -31,7 +31,7 @@ do { \
 #define FORCETRAP(cur_pc, a0) \
 do { \
   if(1) { \
-    clean_up(); \
+    simulation_quit(); \
     difftest_skip_ref(); \
     set_npc_state(NPC_END, cur_pc, a0); \
     return; \

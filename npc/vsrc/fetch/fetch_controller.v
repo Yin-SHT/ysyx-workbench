@@ -25,6 +25,17 @@ module fetch_controller (
   input  [`AXI4_RID_BUS]     rid_i         
 );
 
+  /* Performance Event */
+  export "DPI-C" function fetch_event;
+  function fetch_event;
+      output int fetch_arvalid_o;
+      output int fetch_rvalid_i;
+      output int fetch_rready_o;
+      fetch_arvalid_o = {{31{1'b0}}, arvalid_o};
+      fetch_rready_o  = {{31{1'b0}}, rready_o};
+      fetch_rvalid_i  = {{31{1'b0}}, rvalid_i};
+  endfunction
+
   parameter idle         = 3'b000; 
   parameter wait_ready   = 3'b001; 
 

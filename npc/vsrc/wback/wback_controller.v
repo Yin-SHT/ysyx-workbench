@@ -13,6 +13,14 @@ module wback_controller (
   output   we_o
 );
 
+  export "DPI-C" function wback_event;
+  function wback_event;
+    output int wback_valid_post_o;
+    output int wback_ready_post_i;
+    wback_valid_post_o = { {31{1'b0}}, valid_post_o};
+    wback_ready_post_i = { {31{1'b0}}, ready_post_i};
+  endfunction
+
   parameter idle       = 2'b00;
   parameter wait_ready = 2'b01;
   parameter pre_start  = 2'b10;

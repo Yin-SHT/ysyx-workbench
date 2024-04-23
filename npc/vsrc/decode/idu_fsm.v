@@ -13,6 +13,15 @@ module idu_fsm (
   output we_o
 );
 
+  /* Performance Event */
+  export "DPI-C" function decode_event;
+  function decode_event;
+      output int decode_valid;
+      output int decode_ready;
+      decode_valid = {{31{1'b0}}, valid_pre_i};
+      decode_ready = {{31{1'b0}}, ready_pre_o};
+  endfunction
+
   parameter idle       = 2'b00;
   parameter wait_ready = 2'b01;
 

@@ -54,4 +54,6 @@ typedef uint16_t ioaddr_t;
 
 //#define CONFIG_NVBOARD 1
 
+#define CONFIG_PEREVENT 1
+
 #endif

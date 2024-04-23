@@ -36,6 +36,21 @@ module decode (
       _unknown = { {31{1'b0}}, unknown };
   endfunction
 
+  export "DPI-C" function type_event;
+  function type_event;
+      output int compute_inst;
+      output int branch_inst;
+      output int jump_inst;
+      output int load_inst;
+      output int store_inst;
+      output int csr_inst;
+      compute_inst = {31'h0, ((inst_type_o == `INST_RR) | (inst_type_o == `INST_RI)) | (inst_type_o == `INST_LUI)};
+      branch_inst  = {31'h0, ((inst_type_o == `INST_BRANCH))};
+      jump_inst    = {31'h0, ((inst_type_o == `INST_JAL) | (inst_type_o == `INST_JALR) | (inst_type_o == `INST_AUIPC))};
+      load_inst    = {31'h0, ((inst_type_o == `INST_LOAD))};
+      store_inst   = {31'h0, ((inst_type_o == `INST_STORE))};
+      csr_inst     = {31'h0, ((inst_type_o == `INST_CSRR))};
+  endfunction
   
   wire [11 : 0]   funct12 =   inst_i[31 : 20];
   wire [ 6 : 0]   funct7  =   inst_i[31 : 25];
