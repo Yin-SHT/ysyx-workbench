@@ -18,6 +18,12 @@ module regfile(
 	output  [`REG_DATA_BUS]   rdata2_o
 );
 
+  export "DPI-C" function regfile_event;
+  function regfile_event;
+    output int a0;
+    a0 = regs[10];
+  endfunction
+
   reg [`REG_DATA_BUS] regs[31 : 0];
 
   /* WRITE */

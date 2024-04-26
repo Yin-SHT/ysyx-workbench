@@ -23,8 +23,6 @@ module wback_controller (
 
   parameter idle       = 2'b00;
   parameter wait_ready = 2'b01;
-  parameter pre_start  = 2'b10;
-  parameter start      = 2'b11;
 
   reg [1:0] cur_state;
   reg [1:0] next_state;
@@ -32,17 +30,17 @@ module wback_controller (
   //-----------------------------------------------------------------
   // Outputs 
   //-----------------------------------------------------------------
-  assign we_o         = ( valid_pre_i && ready_pre_o );
-  assign ready_pre_o  = ( cur_state   == idle        );
-  assign valid_post_o = ( cur_state   == wait_ready  || cur_state == start );
+  assign we_o         = (valid_pre_i && ready_pre_o);
+  assign ready_pre_o  = (cur_state   == idle       );
+  assign valid_post_o = (cur_state   == wait_ready );
 
 
   //-----------------------------------------------------------------
   // Synchronous State - Transition always@ ( posedge Clock ) block
   //-----------------------------------------------------------------
-  always @( posedge clock or negedge reset ) begin
-    if ( reset == `RESET_ENABLE ) begin
-      cur_state <= pre_start;
+  always @(posedge clock) begin
+    if (reset) begin
+      cur_state <= idle;
     end else begin
       cur_state <= next_state;
     end
@@ -52,13 +50,11 @@ module wback_controller (
   //-----------------------------------------------------------------
   // Conditional State - Transition always@ ( * ) block
   //-----------------------------------------------------------------
-  always @( * ) begin
+  always @(*) begin
     next_state = cur_state;
-    case ( cur_state )
-      pre_start:  if ( reset == `RESET_DISABLE ) next_state = start;
-      start:                          next_state = idle;
-      idle:       if ( valid_pre_i  ) next_state = wait_ready;
-      wait_ready: if ( ready_post_i ) next_state = idle;
+    case (cur_state)
+      idle:       if (valid_pre_i)  next_state = wait_ready;
+      wait_ready: if (ready_post_i) next_state = idle;
       default: next_state = cur_state;
     endcase
   end

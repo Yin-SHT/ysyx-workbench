@@ -17,8 +17,8 @@ module wback_reg (
   output  reg [`REG_DATA_BUS]  wdata_o
 );
 
-  always @( posedge clock or negedge reset ) begin
-    if ( reset == `RESET_ENABLE ) begin
+  always @(posedge clock) begin
+    if (reset) begin
       wena_o     <= 0;
       waddr_o    <= 0;
       wdata_o    <= 0;
@@ -26,10 +26,10 @@ module wback_reg (
       wena_o     <= wena_o;
       waddr_o    <= waddr_o;
       wdata_o    <= wdata_o;
-      if ( we_i ) begin
+      if (we_i) begin
         wena_o     <= wena_i;
         waddr_o    <= waddr_i;
-        if ( wsel_i == `SEL_ALU_DATA ) begin
+        if (wsel_i == `SEL_ALU_DATA) begin
           wdata_o  <= alu_result_i;
         end else begin
           wdata_o  <= mem_result_i;   

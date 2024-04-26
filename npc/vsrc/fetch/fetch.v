@@ -79,12 +79,22 @@ module fetch (
   // AR: Address Read Channel
   assign araddr_o  = pc_o;
 
+  reg[127:0] fire;
+  wire       firing = (fire == 1);
+
+  always @(posedge clock) begin
+    if (reset) begin
+      fire <= 0;
+    end else begin
+      fire <= fire + 1;
+    end
+  end
 
   fetch_controller controller (
     .clock        (clock),
     .reset        (reset),
 
-    .valid_pre_i  (valid_pre_i),
+    .valid_pre_i  (valid_pre_i | firing),
     .ready_pre_o  (ready_pre_o),
     .valid_post_o (valid_post_o),
     .ready_post_i (ready_post_i),

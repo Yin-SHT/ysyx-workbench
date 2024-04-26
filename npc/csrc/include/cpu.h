@@ -6,19 +6,14 @@
 void cpu_exec(uint64_t n);
 
 void set_npc_state(int state, vaddr_t pc, int halt_ret);
-void invalid_inst(uint32_t inst, vaddr_t thispc);
 
-#define INV(cur_inst, cur_pc) \
-do { \
-  inst_invalid(&_invalid); \
-  if (_invalid) { \
-    invalid_inst(cur_inst, cur_pc); \
-    return; \
-  } \
-} while(0)
+void simulation_quit();
+void update_cpu(uint32_t next_pc);
 
 #define NPCTRAP(cur_pc, a0) \
 do { \
+  svSetScope(sp_decode); \
+  int _ebreak; \
   inst_ebreak(&_ebreak); \
   if(_ebreak) { \
     simulation_quit(); \
@@ -36,6 +31,11 @@ do { \
     set_npc_state(NPC_END, cur_pc, a0); \
     return; \
   } \
+} while(0)
+
+#define DUMPWAVE \
+do { \
+    IFDEF(CONFIG_WAVEFORM, tfp->dump(contextp->time())); contextp->timeInc(1); \
 } while(0)
 
 #endif

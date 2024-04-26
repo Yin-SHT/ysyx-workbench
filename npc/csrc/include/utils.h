@@ -37,26 +37,6 @@ extern NPCState npc_state;
 
 #define ANSI_FMT(str, fmt) fmt str ANSI_NONE
 
-// *** Log Write
-#define log_write(...)                          \
-  do {                                          \
-    extern FILE* log_fp;                        \
-    if (log_fp) {                               \
-      fprintf(log_fp, __VA_ARGS__);             \
-      fflush(log_fp);                           \
-    }                                           \
-  } while (0)                                   \
-
-// *** FLog Write
-#define flog_write(...)                         \
-  do {                                          \
-    extern FILE* flog_fp;                       \
-    if (log_fp) {                               \
-      fprintf(log_fp, __VA_ARGS__);             \
-      fflush(log_fp);                           \
-    }                                           \
-  } while (0)                                   \
-
 // ----------- Bold Color OUTPUT -----------
 #define COLOR_BOLD  "\e[1m"
 #define COLOR_OFF   "\e[m"
@@ -151,7 +131,6 @@ printf("\033[0m");
     if (!(cond)) { \
       MUXDEF(CONFIG_TARGET_AM, printf(ANSI_FMT(format, ANSI_FG_RED) "\n", ## __VA_ARGS__), \
         (fflush(stdout), fprintf(stderr, ANSI_FMT(format, ANSI_FG_RED) "\n", ##  __VA_ARGS__))); \
-      IFNDEF(CONFIG_TARGET_AM, extern FILE* log_fp; fflush(log_fp)); \
       assert(cond); \
     } \
   } while (0)
@@ -161,7 +140,6 @@ printf("\033[0m");
 #define _Log(...) \
   do { \
     printf(__VA_ARGS__); \
-    log_write(__VA_ARGS__); \
   } while (0)
 
 #define Log(format, ...) \

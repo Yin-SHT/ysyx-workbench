@@ -2,6 +2,7 @@
 #include <common.h>
 #include "VysyxSoCFull__Dpi.h"
 
+#ifdef CONFIG_PEREVENT
 extern bool perf_en;
 extern svScope sp_decode;
 extern svScope sp_decode_ctl;
@@ -23,7 +24,6 @@ static bool load_start = false;
 
 static bool inst_start = false;
 static uint32_t inst_cnt = 0;
-
 
 static uint64_t nr_compute;
 static uint64_t nr_branch;
@@ -157,3 +157,4 @@ void perf_display() {
                                                             nr_jump    ? (double)jump_total_cycles / nr_jump : 0, 
                                                             nr_csr     ? (double)csr_total_cycles / nr_csr : 0);
 }
+#endif

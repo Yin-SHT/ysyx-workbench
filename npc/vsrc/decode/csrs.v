@@ -21,6 +21,18 @@ module csrs (
   output [`CSR_DATA_BUS] csr_pc_o
 );
 
+  export "DPI-C" function csr_event;
+  function csr_event;
+    output int _mstatus_;
+    output int _mtvec_;
+    output int _mepc_;
+    output int _mcause_;
+    _mstatus_ = mstatus;
+    _mtvec_   = mtvec;
+    _mepc_    = mepc;
+    _mcause_  = mcause;
+  endfunction
+
   reg [`CSR_DATA_BUS] mstatus   = 32'h0000_0000;
   reg [`CSR_DATA_BUS] mtvec     = 32'h0000_0000;
   reg [`CSR_DATA_BUS] mepc      = 32'h0000_0000;

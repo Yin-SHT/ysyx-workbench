@@ -48,23 +48,23 @@ module fetch_controller (
   //-----------------------------------------------------------------
   // Outputs 
   //-----------------------------------------------------------------
-  assign pc_we_o      = ( valid_pre_i && ready_pre_o );
-  assign inst_we_o   =  ( rvalid_i    && rready_o    );
+  assign pc_we_o      = (valid_pre_i && ready_pre_o);
+  assign inst_we_o    = (rvalid_i    && rready_o   );
 
-  assign ready_pre_o  = ( cur_state   == idle       );
-  assign valid_post_o = ( cur_state   == wait_ready );
+  assign ready_pre_o  = (cur_state   == idle      );
+  assign valid_post_o = (cur_state   == wait_ready);
 
   // AR
-  assign arvalid_o    = ( cur_state   == wait_arready );    
+  assign arvalid_o    = (cur_state   == wait_arready);    
 
   //  R
-  assign rready_o     = ( cur_state   == wait_rvalid  );    
+  assign rready_o     = (cur_state   == wait_rvalid );    
 
   //-----------------------------------------------------------------
   // Synchronous State - Transition always@ ( posedge Clock ) block
   //-----------------------------------------------------------------
-  always @( posedge clock or negedge reset ) begin
-    if ( reset == `RESET_ENABLE ) begin
+  always @(posedge clock) begin
+    if (reset) begin
       cur_state <= idle;
     end else begin
       cur_state <= next_state;
@@ -75,16 +75,16 @@ module fetch_controller (
   // Conditional State - Transition always@ ( * ) block
   //-----------------------------------------------------------------
   always @( * ) begin
-    if ( reset == `RESET_ENABLE ) begin
+    if (reset) begin
       next_state = idle;  
     end else begin
         next_state = cur_state;
-        case ( cur_state )
-            idle:         if ( valid_pre_i  ) next_state = wait_arready;
-            wait_arready: if ( arready_i    ) next_state = wait_rvalid;  
-            wait_rvalid:  if ( rvalid_i     ) next_state = wait_ready; 
-            wait_ready:   if ( ready_post_i ) next_state = idle;
-          default:                            next_state = cur_state;
+        case (cur_state)
+            idle:         if (valid_pre_i)  next_state = wait_arready;
+            wait_arready: if (arready_i)    next_state = wait_rvalid;  
+            wait_rvalid:  if (rvalid_i)     next_state = wait_ready; 
+            wait_ready:   if (ready_post_i) next_state = idle;
+          default:                          next_state = cur_state;
         endcase
     end
   end
