@@ -40,7 +40,7 @@ void single_cycle() {
   ysyxSoCFull->clock = 0; CIRCUIT_EVAL(1);
   ysyxSoCFull->clock = 1; CIRCUIT_EVAL(1);
 
-  /* Check ebreak instruction */
+  /* Check ebreak or invalid instruction */
   int a0;
   svSetScope(sp_fetchreg); fetchreg_event((int *)&cur_pc);
   svSetScope(sp_regfile);  regfile_event(&a0);
@@ -54,6 +54,9 @@ void single_cycle() {
   if (pre_wbvalid) {PROCESSOR_ALIGN(cur_pc);}
   if (wbvalid) pre_pc = cur_pc;
 #endif
+
+  /* Update nvboard state */
+  IFDEF(CONFIG_NVBOARD, nvboard_update());
 }
 
 void init_verilator(int argc, char **argv) {
@@ -89,6 +92,7 @@ void init_verilator(int argc, char **argv) {
   assert(sp_fetchreg && sp_decode && sp_regfile && sp_csr && sp_wback);
 
   // Init nvboard
+  void nvboard_bind_all_pins(VysyxSoCFull* ysyxSoCFull);
   IFDEF(CONFIG_NVBOARD, nvboard_bind_all_pins(ysyxSoCFull));
   IFDEF(CONFIG_NVBOARD, nvboard_init());
 

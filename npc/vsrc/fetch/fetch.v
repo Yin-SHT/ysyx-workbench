@@ -118,6 +118,7 @@ module fetch (
     .clock        (clock),
     .reset        (reset),
 
+    .firing       (firing),
     .pc_we_i      (pc_we),
     .inst_we_i    (inst_we),
 

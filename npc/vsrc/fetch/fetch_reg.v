@@ -4,6 +4,7 @@ module fetch_reg (
   input                      clock,
   input                      reset,
 
+  input                      firing,
   input                      pc_we_i,       
   input                      inst_we_i,       
 
@@ -41,10 +42,12 @@ module fetch_reg (
   always @(posedge clock) begin
     pc_o <= pc_o;   // default
     if (reset) begin
-      pc_o <= `RESET_VECTOR - 4;
+      pc_o <= 0;
     end else if (pc_we_i) begin
-      if (branch_en_i) begin
-        pc_o <= dnpc_i; 
+      if (firing) begin
+        pc_o <= `RESET_VECTOR;
+      end else if (branch_en_i) begin
+        pc_o <= dnpc_i;
       end else begin
         pc_o <= pc_o + 4;
       end
