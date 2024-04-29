@@ -25,6 +25,8 @@ uint32_t pre_pc;
 int pre_wbvalid;
 static int wbvalid;
 
+static bool wave_start;
+
 void simulation_quit() {
 #ifdef CONFIG_WAVEFORM
   tfp->close();
@@ -57,6 +59,9 @@ void single_cycle() {
 
   /* Update nvboard state */
   IFDEF(CONFIG_NVBOARD, nvboard_update());
+
+  /* Miscellaneous */
+  IFDEF(CONFIG_SOC, {if (cur_pc == 0xa0000000) wave_start = true;});
 }
 
 void init_verilator(int argc, char **argv) {
@@ -95,6 +100,9 @@ void init_verilator(int argc, char **argv) {
   void nvboard_bind_all_pins(VysyxSoCFull* ysyxSoCFull);
   IFDEF(CONFIG_NVBOARD, nvboard_bind_all_pins(ysyxSoCFull));
   IFDEF(CONFIG_NVBOARD, nvboard_init());
+
+  // Miscellaneous
+  IFDEF(CONFIG_FUNC, wave_start = true);
 
   // Reset NPC Model
   RESET(10);

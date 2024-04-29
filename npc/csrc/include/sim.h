@@ -31,7 +31,7 @@ extern int pre_wbvalid;
   } while(0);
 
 #define CIRCUIT_EVAL(step) \
-  { ysyxSoCFull->eval(); IFDEF(CONFIG_WAVEFORM, tfp->dump(contextp->time())); contextp->timeInc(step); }
+  { ysyxSoCFull->eval(); IFDEF(CONFIG_WAVEFORM, if (wave_start) {tfp->dump(contextp->time());}); contextp->timeInc(step); }
 
 #define RESET(num) \
 do { \

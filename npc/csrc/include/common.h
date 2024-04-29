@@ -63,4 +63,8 @@ typedef uint16_t ioaddr_t;
 #define CONFIG_SOC 1
 //#define CONFIG_NVBOARD 1
 
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// Remember to change RESET_VECTOR in verilog
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 #endif
