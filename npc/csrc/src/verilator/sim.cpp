@@ -5,27 +5,13 @@
 #include <isa.h>
 #include <cpu.h>
 #include <sim.h>
-#include "VysyxSoCFull.h"
-#include "verilated_vcd_c.h"
-#include "VysyxSoCFull__Dpi.h"
-#include "VysyxSoCFull___024root.h"
 
 static VerilatedContext* contextp;
 static VerilatedVcdC* tfp;
 static VysyxSoCFull *ysyxSoCFull;
 
-svScope sp_fetchreg;
-svScope sp_decode;
-svScope sp_regfile;
-svScope sp_csr;
-svScope sp_wback;
-
-uint32_t cur_pc;
-uint32_t pre_pc;
-int pre_wbvalid;
-static int wbvalid;
-
-static bool wave_start;
+int cur_pc, pre_pc;
+int cur_wbvalid, pre_wbvalid;
 
 void simulation_quit() {
 #ifdef CONFIG_WAVEFORM
@@ -51,10 +37,10 @@ void single_cycle() {
   /* Update processor state */
 #ifdef CONFIG_DIFFTEST
   int wbready;
-  pre_wbvalid = wbvalid;
-  svSetScope(sp_wback); wback_event(&wbvalid, &wbready);
+  pre_wbvalid = cur_wbvalid;
+  svSetScope(sp_wback); wback_event(&cur_wbvalid, &wbready);
   if (pre_wbvalid) {PROCESSOR_ALIGN(cur_pc);}
-  if (wbvalid) pre_pc = cur_pc;
+  if (cur_wbvalid) pre_pc = cur_pc;
 #endif
 
   /* Update nvboard state */
@@ -62,6 +48,8 @@ void single_cycle() {
 
   /* Miscellaneous */
   IFDEF(CONFIG_SOC, {if (cur_pc == 0xa0000000) wave_start = true;});
+  IFDEF(CONFIG_SOC, {if (cur_pc == 0xa0000000) perf_start = true;});
+  IFDEF(CONFIG_SOC, IFDEF(CONFIG_PEREVENT, perf_update()));
 }
 
 void init_verilator(int argc, char **argv) {
@@ -86,15 +74,17 @@ void init_verilator(int argc, char **argv) {
   sp_decode   = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.u_decode");
   sp_regfile  = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.u_regfile");
   sp_csr      = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.u_csrs");
-  sp_wback    = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.wback0.controller");
-#else 
+  assert(sp_fetchreg && sp_decode && sp_regfile && sp_csr);
+#elif CONFIG_SOC
   sp_fetchreg = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.fetch0.u_reg");
   sp_decode   = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.decode0.u_decode");
   sp_regfile  = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.decode0.u_regfile");
-  sp_csr      = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.decode0.u_csrs");
-  sp_wback    = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.wback0.controller");
+  sp_fetch_ctl = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.fetch0.controller");
+  sp_decode_ctl = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.decode0.u_idu_fsm");
+  sp_execu_ctl = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.execute0.controller");
+  sp_wback_ctl = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.wback0.controller");
+  assert(sp_fetchreg && sp_decode && sp_regfile && sp_fetch_ctl && sp_decode_ctl && sp_execu_ctl && sp_wback_ctl);
 #endif
-  assert(sp_fetchreg && sp_decode && sp_regfile && sp_csr && sp_wback);
 
   // Init nvboard
   void nvboard_bind_all_pins(VysyxSoCFull* ysyxSoCFull);

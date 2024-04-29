@@ -2,15 +2,26 @@
 #include <common.h>
 #include "VysyxSoCFull__Dpi.h"
 
-#ifdef CONFIG_PEREVENT
-extern bool perf_en;
-extern svScope sp_decode;
-extern svScope sp_decode_ctl;
-extern svScope sp_fetch_ctl;
-extern svScope sp_execu_ctl;
-extern svScope sp_wback_ctl;
+#ifdef CONFIG_FUNC
+svScope sp_fetchreg;
+svScope sp_decode;
+svScope sp_regfile;
+svScope sp_csr;
+#elif CONFIG_SOC
+svScope sp_fetchreg;
+svScope sp_decode;
+svScope sp_regfile;
+svScope sp_fetch_ctl;
+svScope sp_decode_ctl;
+svScope sp_execu_ctl;
+svScope sp_wback_ctl;
+#endif
 
-uint64_t nr_cycles;
+bool wave_start;
+bool perf_start;
+
+#ifdef CONFIG_PEREVENT
+static uint64_t nr_cycles;
 
 static uint64_t nr_fetch;
 static uint64_t nr_fetch_cycles;
@@ -39,7 +50,9 @@ static uint64_t store_total_cycles;
 static uint64_t load_total_cycles;
 
 void perf_update() {
-  if (!perf_en) return;
+  if (!perf_start) return;
+
+  nr_cycles ++;
 
   int fetch_arvalid_o;
   int fetch_rready_o;
@@ -145,7 +158,7 @@ void perf_display() {
   printf("\n--------------- Perf Event ---------------\n");
   printf("Number of Fetch: %ld\n", nr_fetch);
   printf("Number of Cycles: %ld\n", nr_cycles);
-  printf("Instruction Per Cycle: %f\n", (double)nr_fetch / nr_cycles);
+  printf("IPC(Instruction Per Cycle): %f\n", (double)nr_fetch / nr_cycles);
   printf("Cycles to Fetch One Instruction: %ld\n", nr_fetch_cycles / nr_fetch);
   printf("Cycles to Load Data: %ld (%ld %ld)\n", nr_load_cycles / nr_load, nr_load_cycles, nr_load);
   printf("\nCompute\t\tStore\t\tLoad\t\tBranch\t\tJump\t\tCsr\t\tTotal\n");

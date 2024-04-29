@@ -1,16 +1,42 @@
 #ifndef __SIM_H__
 #define __SIM_H__
 
+#include "VysyxSoCFull.h"
+#include "verilated_vcd_c.h"
+#include "VysyxSoCFull__Dpi.h"
+#include "VysyxSoCFull___024root.h"
+
 void clean_up();
 word_t get_reg(int i);
 void isa_reg_display();
 void single_cycle();
 void init_verilator(int argc, char **argv);
 void inst_fetch();
+void perf_update();
+void perf_display();
 
-extern uint32_t cur_pc;
-extern uint32_t pre_pc;
+extern int cur_pc;
+extern int pre_pc;
 extern int pre_wbvalid;
+
+extern bool wave_start;
+extern bool perf_start;
+
+#ifdef CONFIG_FUNC
+extern svScope sp_fetchreg;
+extern svScope sp_decode;
+extern svScope sp_regfile;
+extern svScope sp_csr;
+#elif CONFIG_SOC
+extern svScope sp_fetchreg;
+extern svScope sp_decode;
+extern svScope sp_regfile;
+extern svScope sp_fetch_ctl;
+extern svScope sp_decode_ctl;
+extern svScope sp_execu_ctl;
+extern svScope sp_wback_ctl;
+#endif
+
 
 #define REGS(i) (ysyxSoCFull->rootp->ysyxSoCFull__DOT__cpu0__DOT__decode0__DOT__u_regfile__DOT__regs[i])
 
