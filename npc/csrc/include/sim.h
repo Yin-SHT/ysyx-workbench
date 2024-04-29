@@ -35,6 +35,7 @@ extern svScope sp_fetch_ctl;
 extern svScope sp_decode_ctl;
 extern svScope sp_execu_ctl;
 extern svScope sp_wback_ctl;
+extern svScope sp_icache;
 #endif
 
 

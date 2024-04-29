@@ -34,6 +34,17 @@ module icache (
   output [31:0] rdata_o
 );
   
+  /* Performance Event */
+  export "DPI-C" function icache_event;
+  function icache_event;
+    output int state;
+    output int hit;
+    output int master_rvalid;
+    state = {{29{1'b0}}, cur_state};
+    hit = {{31{1'b0}}, target_hit};
+    master_rvalid = {{31{1'b0}}, io_master_rvalid};
+  endfunction
+
   reg[31:0] araddr;
 
   wire [25:0] target_tag    = araddr[31:6];

@@ -15,6 +15,7 @@ svScope sp_fetch_ctl;
 svScope sp_decode_ctl;
 svScope sp_execu_ctl;
 svScope sp_wback_ctl;
+svScope sp_icache;
 #endif
 
 bool wave_start;
@@ -54,6 +55,15 @@ static uint64_t cycle_start;
 static uint64_t load_cycle_start;
 static uint64_t store_cycle_start;
 
+// Cache parameters
+static int access_time = 2;
+static int missing_penalty;
+static uint64_t access_cnt;
+static uint64_t hit_cnt;
+static bool icache_start;
+static int target_hit;
+static int icache_cycle_start;
+
 void perf_update() {
   if (!perf_start) return;
 
@@ -80,6 +90,10 @@ void perf_update() {
   int store_inst;
   int csr_inst;  
 
+  int state;
+  int master_rvalid;
+  int icache_hit;
+
   svSetScope(sp_fetch_ctl);
   fetch_event(&fetch_arvalid_o, &fetch_rvalid_i, &fetch_rready_o);
   svSetScope(sp_execu_ctl);
@@ -90,6 +104,8 @@ void perf_update() {
   decode_event(&decode_valid, &decode_ready);
   svSetScope(sp_decode);
   type_event(&compute_inst, &branch_inst, &jump_inst, &load_inst, &store_inst, &csr_inst);
+  svSetScope(sp_icache);
+  icache_event(&state, &icache_hit, &master_rvalid);
 
   if (fetch_arvalid_o && !inst_start && !fetch_start) {
     inst_start = true;
@@ -113,6 +129,28 @@ void perf_update() {
     else if (csr_inst)     {csr_total_cycles     += (nr_cycles - cycle_start + 1); nr_csr ++;    }
 
     inst_start = false;
+  }
+
+  // AMAT
+  if (state == 1 && !icache_start) {
+    // seek_block
+    access_cnt ++;
+    target_hit = icache_hit;
+    if (target_hit) hit_cnt ++;
+    icache_cycle_start = nr_cycles;
+
+    icache_start = true;
+  }
+
+  if (state == 4 && target_hit) {
+    // wait_rready
+    icache_start = false;
+  } 
+
+  if (state == 4 && !target_hit) {
+    // wait_rready
+    missing_penalty += (nr_cycles - icache_cycle_start + 1);
+    icache_start = false;
   }
 }
 
@@ -157,5 +195,16 @@ void perf_display() {
                                                                         nr_branch  ? (double)branch_total_cycles / nr_cycles : 0, 
                                                                         nr_jump    ? (double)jump_total_cycles / nr_cycles : 0, 
                                                                         nr_csr     ? (double)csr_total_cycles / nr_cycles : 0);
+
+  double average_missing_penalty = (double)missing_penalty / access_cnt;
+  double hit_ratio = (double)hit_cnt / access_cnt;
+
+  printf("\n--------------- Cache Perf Event ---------------\n");
+  printf("access_time: %d\n", 2);
+  printf("missing_penalty: %.2f\n", average_missing_penalty);
+  printf("access_cnt: %ld\n", access_cnt);
+  printf("hit_cnt: %ld\n", hit_cnt);
+  printf("hit ratio: %.2f\n", hit_ratio);
+  printf("AMAT: %.2f\n", 2 + (1 - hit_ratio) * average_missing_penalty);
 }
 #endif
