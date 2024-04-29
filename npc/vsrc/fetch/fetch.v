@@ -58,6 +58,13 @@ module fetch (
 
   wire pc_we;
   wire inst_we;
+  wire arvalid;
+  wire arready;
+
+  wire rvalid;
+  wire rready;
+  wire [31:0] rdata;
+
 
   // AW: Address Write Channel 
   assign awvalid_o = 0;
@@ -75,9 +82,6 @@ module fetch (
 
   //  B: Response Write Channel 
   assign bready_o  = 0;
-
-  // AR: Address Read Channel
-  assign araddr_o  = pc_o;
 
   reg[127:0] fire;
   wire       firing = (fire == 1);
@@ -103,15 +107,12 @@ module fetch (
     .inst_we_o    (inst_we),
 
     // AR,
-    .arready_i    (arready_i),
-    .arvalid_o    (arvalid_o),
+    .arready_i    (arready),
+    .arvalid_o    (arvalid),
 
     // R,
-    .rready_o     (rready_o),
-    .rvalid_i     (rvalid_i),
-    .rresp_i      (rresp_i),
-    .rlast_i      (rlast_i),
-    .rid_i        (rid_i)
+    .rready_o     (rready),
+    .rvalid_i     (rvalid)
   );
 
   fetch_reg u_reg (
@@ -128,13 +129,35 @@ module fetch (
     .pc_o         (pc_o),
     .inst_o       (inst_o),
 
-    .arid_o       (arid_o), 
-    .arlen_o      (arlen_o),   
-    .arsize_o     (arsize_o),   
-    .arburst_o    (arburst_o),
-
-    .rdata_i      (rdata_i)
+    .rdata_i      (rdata)
   );
 
+  icache u_icache (
+    .clock              (clock),                      
+    .reset              (reset),                      
+
+    .io_master_arready  (arready_i),                                  
+    .io_master_arvalid  (arvalid_o),                                  
+    .io_master_araddr   (araddr_o),                                  
+    .io_master_arid     (arid_o),                               
+    .io_master_arlen    (arlen_o),                                
+    .io_master_arsize   (arsize_o),                                 
+    .io_master_arburst  (arburst_o),                                  
+
+    .io_master_rready   (rready_o),                                 
+    .io_master_rvalid   (rvalid_i),                                 
+    .io_master_rresp    (rresp_i),                                
+    .io_master_rdata    (rdata_i),                                
+    .io_master_rlast    (rlast_i),                                
+    .io_master_rid      (rid_i),                              
+
+    .arready_o          (arready),                          
+    .arvalid_i          (arvalid),                          
+    .araddr_i           (pc_o),                         
+
+    .rready_i           (rready),                         
+    .rvalid_o           (rvalid),                         
+    .rdata_o            (rdata)                        
+  );
 
 endmodule

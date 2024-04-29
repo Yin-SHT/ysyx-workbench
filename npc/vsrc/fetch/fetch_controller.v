@@ -18,11 +18,8 @@ module fetch_controller (
   output   arvalid_o,
 
   //  R: Data Read Channel
-  output                     rready_o,
-  input                      rvalid_i,
-  input  [`AXI4_RRESP_BUS]   rresp_i,      
-  input                      rlast_i,      
-  input  [`AXI4_RID_BUS]     rid_i         
+  output   rready_o,
+  input    rvalid_i
 );
 
   /* Performance Event */

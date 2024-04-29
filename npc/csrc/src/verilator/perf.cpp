@@ -46,7 +46,7 @@ static uint64_t nr_csr = 1; // last ebreak instruction
 static uint64_t compute_total_cycles;
 static uint64_t branch_total_cycles;
 static uint64_t jump_total_cycles;
-static uint64_t csr_total_cycles = 32;  // last ebreak instruction
+static uint64_t csr_total_cycles = 35;  // last ebreak instruction
 static uint64_t store_total_cycles;
 static uint64_t load_total_cycles;
 
@@ -128,7 +128,8 @@ void perf_display() {
   printf("Number of Fetch: %ld\n", nr_fetch);
   printf("Number of Cycles: %ld\n", nr_cycles);
   printf("IPC(Instruction Per Cycle): %f\n", (double)nr_fetch / nr_cycles);
-  printf("Cycles to Fetch One Instruction: %ld\n\n", nr_fetch_cycles / nr_fetch);
+  printf("Cycles to Fetch One Instruction: %ld (%ld / %ld)\n", nr_fetch_cycles / nr_fetch, nr_fetch_cycles, nr_fetch);
+  printf("Fetch Cycle Percentage: %.2f\n\n", (double)nr_fetch_cycles / nr_cycles);
   printf("          %-10s%-10s%-10s%-10s%-10s%-10s%-10s\n",   "Compute", 
                                                       "Store", 
                                                       "Load", 
