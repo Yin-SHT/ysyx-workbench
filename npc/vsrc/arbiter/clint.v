@@ -18,7 +18,6 @@ module clint (
   input         rready_i
 );
 
-assign rlast_o = 1;
 assign rid_o   = 0;
 
 /* MTIME REGISTER */
@@ -64,6 +63,7 @@ assign rresp_o   = 0;
 assign rdata_o   = (cur_state == wait_rready) && (araddr[3:0] == 4'h0) ? {32'h0, mtime[31: 0]} :
                    (cur_state == wait_rready) && (araddr[3:0] == 4'h4) ? {32'h0, mtime[63:32]} : 0;
 assign rvalid_o  = cur_state == wait_rready;
+assign rlast_o   = cur_state == wait_rready;
 
 //-----------------------------------------------------------------
 // Synchronous State - Transition always@ ( posedge Clock ) block

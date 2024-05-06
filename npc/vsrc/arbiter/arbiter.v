@@ -252,9 +252,9 @@ module arbiter (
                 else if ( exu_arvalid_i && !in_clint )     next_state = exu_read;
                 else if ( exu_arvalid_i &&  in_clint )     next_state = clint_read;
                 else if ( exu_awvalid_i )                  next_state = exu_write;
-        ifu_read:    if ( ifu_rready_i && rvalid_i )       next_state = ifu_read_post;
-        exu_read:    if ( exu_rready_i && rvalid_i )       next_state = exu_read_post;
-        clint_read:  if ( exu_rready_i && clint_rvalid_i ) next_state = clint_read_post;
+        ifu_read:    if ( ifu_rready_i && rvalid_i && rlast_i)       next_state = ifu_read_post;
+        exu_read:    if ( exu_rready_i && rvalid_i && rlast_i)       next_state = exu_read_post;
+        clint_read:  if ( exu_rready_i && clint_rvalid_i && clint_rlast_i) next_state = clint_read_post;
         exu_write:   if ( exu_bready_i && bvalid_i )       next_state = exu_write_post;
         ifu_read_post:    next_state = idle;
         exu_read_post:    next_state = idle;
