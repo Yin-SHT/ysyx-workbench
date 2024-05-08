@@ -22,6 +22,12 @@ void putch(char ch) {
   uint8_t lsr = inb(SERIAL_PORT + 5);
   while (lsr & 0x02) {
     lsr = inb(SERIAL_PORT + 5);
+    //
+    // This for loop is a patch for uart.
+    //
+    for (int i = 0; i < 100; i ++) {
+      volatile int i __attribute_maybe_unused__ = 0;
+    }
   }
 
   outb(SERIAL_PORT, ch);
