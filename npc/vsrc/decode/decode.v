@@ -21,7 +21,9 @@ module decode (
   output                     rena1_o,
   output                     rena2_o,
   output  [`REG_ADDR_BUS]    raddr1_o,
-  output  [`REG_ADDR_BUS]    raddr2_o
+  output  [`REG_ADDR_BUS]    raddr2_o,
+
+  output  fencei_o
 );
 
   export "DPI-C" function inst_ebreak;
@@ -123,6 +125,9 @@ module decode (
   wire inst_divu  = ( opcode == `OPCODE_DIVU  ) & ( funct3 == `FUNCT3_DIVU ) & ( funct7 == `FUNCT7_DIVU  );
   wire inst_rem   = ( opcode == `OPCODE_REM   ) & ( funct3 == `FUNCT3_REM  ) & ( funct7 == `FUNCT7_REM   );
   wire inst_remu  = ( opcode == `OPCODE_REMU  ) & ( funct3 == `FUNCT3_REMU ) & ( funct7 == `FUNCT7_REMU  );
+
+  wire inst_fencei  = ( opcode == `OPCODE_FENCE_I ) & ( funct3 == `FUNCT3_FENCE_I  ) & ( funct12 == `FUNCT12_FENCE_I );
+  assign fencei_o = inst_fencei;
 
   // Check Unknown Instruction
   wire unknown    = !(

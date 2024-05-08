@@ -4,6 +4,8 @@ module fetch (
   input                      reset,
   input                      clock,
 
+  input                      flush_i,
+
   input                      valid_pre_i,
   output                     ready_pre_o,
 
@@ -135,6 +137,8 @@ module fetch (
   icache u_icache (
     .clock              (clock),                      
     .reset              (reset),                      
+
+    .flush_i            (flush_i),
 
     .io_master_arready  (arready_i),                                  
     .io_master_arvalid  (arvalid_o),                                  

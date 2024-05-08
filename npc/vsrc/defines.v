@@ -100,6 +100,13 @@
 `define INST_AUIPC         8'b0000_1011 
 `define INST_CSRR          8'b0000_1100
 
+`define INST_FENCE         8'b0000_1101
+
+// FENCE Instruction
+`define OPCODE_FENCE_I     7'b000_1111
+`define FUNCT3_FENCE_I     3'b001
+`define FUNCT12_FENCE_I    12'b0000_0000_0000
+
 // ***  Register-Register Instructions
 `define INST_RR            8'b0000_0001
 `define OPCODE_ADD         7'b011_0011

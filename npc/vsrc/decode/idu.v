@@ -34,7 +34,10 @@ module idu (
   
   // t: ifu
   output                      branch_en_o,
-  output  [`NPC_ADDR_BUS]     dnpc_o
+  output  [`NPC_ADDR_BUS]     dnpc_o,
+
+  // t: icache
+  output fencei_o
 );
 
   wire                  we;
@@ -71,6 +74,10 @@ module idu (
     .inst_o       ( inst         )
   );
    
+  wire fencei;
+
+  assign fencei_o = fencei & valid_post_o && ready_post_i;
+
   decode u_decode (
     .reset        ( reset        ),
     .pc_i         ( pc           ),
@@ -88,7 +95,8 @@ module idu (
     .rena1_o      ( rena1        ),
     .rena2_o      ( rena2        ),
     .raddr1_o     ( raddr1       ),
-    .raddr2_o     ( raddr2       )
+    .raddr2_o     ( raddr2       ),
+    .fencei_o     ( fencei )
   );
   
   regfile u_regfile (

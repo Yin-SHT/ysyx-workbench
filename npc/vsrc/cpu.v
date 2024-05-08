@@ -209,6 +209,8 @@ module cpu (
   	.reset        ( reset            ),
     .clock        ( clock            ),
 
+    .flush_i      (fencei            ),
+
     .valid_pre_i  ( valid_wbu_ifu    ),
     .ready_pre_o  ( ready_wbu_ifu    ),
     .valid_post_o ( valid_ifu_idu    ),
@@ -251,6 +253,8 @@ module cpu (
     .rid_i        ( ifu_rid          )
   );
   
+  wire fencei;
+
   idu decode0 (
   	.clock        ( clock         ),
     .reset        ( reset         ),
@@ -280,7 +284,9 @@ module cpu (
     .csr_o        ( csr           ),
 
     .branch_en_o  ( branch_en     ),
-    .dnpc_o       ( dnpc          ) 
+    .dnpc_o       ( dnpc          ),
+
+    .fencei_o     (fencei         )
   );
   
   execute execute0 (

@@ -4,6 +4,8 @@ module icache (
   input         clock,
   input         reset,
 
+  input         flush_i,
+
   /** MASTER */
   /* AR: Address Read Channel */
   input         io_master_arready,
@@ -248,6 +250,15 @@ module icache (
 
   always @(posedge clock) begin
     if (reset) begin
+      for (integer i = 0; i < 16; i = i + 1) begin
+        for (integer j = 0; j < 8; j = j + 1) begin
+          val[i][j] <= 0;
+          tag[i][j] <= 0;
+          dat[i][j] <= 0;
+        end
+      end
+    end else if (flush_i) begin
+      // Must in idle state !!!!!!!!
       for (integer i = 0; i < 16; i = i + 1) begin
         for (integer j = 0; j < 8; j = j + 1) begin
           val[i][j] <= 0;
