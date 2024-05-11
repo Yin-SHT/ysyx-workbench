@@ -60,6 +60,7 @@ module pmem (
 
   reg [31:0] araddr;
   reg [2:0]  arsize;
+  reg [7:0]  arlen;
   reg [63:0] rdata;
 
   reg [31:0] awaddr;
@@ -89,7 +90,7 @@ module pmem (
   assign rvalid_o  = (cur_state == wait_rready);
   assign rresp_o   = 0;
   assign rdata_o   = rdata;
-  assign rlast_o   = (cur_state == wait_rready) ? 1 : 0;
+  assign rlast_o   = (cur_state == wait_rready) && (arlen == 0);
   assign rid_o     = 0;
    
   //-----------------------------------------------------------------
@@ -110,16 +111,17 @@ module pmem (
     if (reset) begin
       next_state = idle;  
     end else begin
-        next_state = cur_state;
-        case (cur_state)
-          idle:       if (arvalid_i) next_state = wait_read;
-                 else if (awvalid_i) next_state = wait_write;
-          wait_read:                 next_state = wait_rready;
-          wait_rready: if (rready_i) next_state = idle;
-          wait_write:                next_state = wait_bready;
-          wait_bready: if (bready_i) next_state = idle;
-          default: next_state = cur_state;
-        endcase
+      next_state = cur_state;
+      case (cur_state)
+        idle:       if (arvalid_i) next_state = wait_read;
+                else if (awvalid_i) next_state = wait_write;
+        wait_read:                 next_state = wait_rready;
+        wait_rready: if (rready_i && (arlen != 0)) next_state = wait_read;
+                     else if (rready_i && (arlen == 0)) next_state = idle;
+        wait_write:                next_state = wait_bready;
+        wait_bready: if (bready_i) next_state = idle;
+        default: next_state = cur_state;
+      endcase
     end
   end
 
@@ -134,14 +136,21 @@ module pmem (
       wstrb  <= 0;
       araddr <= 0;
       arsize <= 0;
-    end else if (awvalid_i && wvalid_i) begin
+      arlen  <= 0;
+    end else if (cur_state == idle && awvalid_i && wvalid_i) begin
       awaddr <= awaddr_i;
       awsize <= awsize_i;
       wdata  <= wdata_i;
       wstrb  <= wstrb_i;
-    end else if (arvalid_i) begin
+    end else if (cur_state == idle && arvalid_i) begin
       araddr <= araddr_i;
       arsize <= arsize_i;
+      arlen  <= arlen_i;
+    end else if (cur_state == wait_rready && rready_i) begin
+      if (arlen > 0)
+        arlen  <= arlen - 1;
+    end else if (cur_state == wait_read) begin
+      araddr <= araddr + 4;
     end
   end
 

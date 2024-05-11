@@ -35,7 +35,7 @@ module icache (
   output        rvalid_o,
   output [31:0] rdata_o
 );
-  
+
   /* Performance Event */
   export "DPI-C" function icache_event;
   function icache_event;
@@ -43,98 +43,125 @@ module icache (
     output int hit;
     output int master_rvalid;
     state = {{29{1'b0}}, cur_state};
-    hit = {{31{1'b0}}, target_hit};
+    hit = {{31{1'b0}}, tar_hit};
     master_rvalid = {{31{1'b0}}, io_master_rvalid};
   endfunction
-
-  reg [31:0] araddr;
-  reg [2:0]  rand_num;
-  reg [2:0]  transfer_cnt;
-
-  wire [7:0]  hit;
-  wire [7:0]  vac; 
-  wire [2:0]  hit_idx;
-  wire [2:0]  vac_idx;
-  wire target_hit;
-  wire target_vac;
-  reg  record_vac;
-
-  wire [127:0] hit_block;
-  wire [31:0]  hit_rdata;
-
-  reg  [127:0] miss_block;
-  wire [31:0]  miss_rdata;
-
-  reg         val[15:0][7:0];   // valid
-  reg [23:0]  tag[15:0][7:0];   // tag
-  reg [127:0] dat[15:0][7:0];   // data (16 Bytes)
   
-  wire [23:0] target_tag    = araddr[31:8];
-  wire [3:0]  target_index  = araddr[7:4];
-  wire [3:0]  target_offset = araddr[3:0];
-  reg  [23:0] record_tag;
-  reg  [3:0]  record_offset;
+  /*
+   * Cache Configuration
+   *
+   * Block    : 16 Byte
+   * Way      : 8
+   * Group    : 16
+   * Capacity : 2048 Byte
+  */
 
-  assign hit[0] = val[target_index][0] && (tag[target_index][0] == target_tag);
-  assign hit[1] = val[target_index][1] && (tag[target_index][1] == target_tag);
-  assign hit[2] = val[target_index][2] && (tag[target_index][2] == target_tag);
-  assign hit[3] = val[target_index][3] && (tag[target_index][3] == target_tag);
-  assign hit[4] = val[target_index][4] && (tag[target_index][4] == target_tag);
-  assign hit[5] = val[target_index][5] && (tag[target_index][5] == target_tag);
-  assign hit[6] = val[target_index][6] && (tag[target_index][6] == target_tag);
-  assign hit[7] = val[target_index][7] && (tag[target_index][7] == target_tag);
+  reg         val[15:0][7:0];
+  reg [23:0]  tag[15:0][7:0];
+  reg [127:0] dat[15:0][7:0];
+  reg [127:0] buffer;
+  reg [7:0]   rec_cnt;     // receive count
 
-  assign vac[0] = ~val[target_index][0];
-  assign vac[1] = ~val[target_index][1];
-  assign vac[2] = ~val[target_index][2];
-  assign vac[3] = ~val[target_index][3];
-  assign vac[4] = ~val[target_index][4];
-  assign vac[5] = ~val[target_index][5];
-  assign vac[6] = ~val[target_index][6];
-  assign vac[7] = ~val[target_index][7];
+  wire [3:0]  tar_offset = araddr[3:0];
+  wire [3:0]  tar_index  = araddr[7:4];
+  wire [23:0] tar_tag    = araddr[31:8];
 
-  assign hit_idx =  hit[0] ? 0:
-                    hit[1] ? 1:
-                    hit[2] ? 2:
-                    hit[3] ? 3:
-                    hit[4] ? 4:
-                    hit[5] ? 5:
-                    hit[6] ? 6:
-                    hit[7] ? 7: 0;
+  //-----------------------------------------------------------------
+  // Caching Request Araddr 
+  //-----------------------------------------------------------------
+  reg [31:0] araddr;
 
-  assign vac_idx =  vac[0] ? 0:
-                    vac[1] ? 1:
-                    vac[2] ? 2:
-                    vac[3] ? 3:
-                    vac[4] ? 4:
-                    vac[5] ? 5:
-                    vac[6] ? 6:
-                    vac[7] ? 7: 0;
+  always @(posedge clock) begin
+    if (reset) begin
+      araddr <= 0;
+    end else if (cur_state == idle && arvalid_i) begin
+      araddr <= araddr_i;
+    end else if (cur_state == idle && !arvalid_i) begin
+      araddr <= 0;
+    end
+  end
 
-  assign target_hit = hit[0] | hit[1] | hit[2] | hit[3] | hit[4] | hit[5] | hit[6] | hit[7]; 
-  assign target_vac = vac[0] | vac[1] | vac[2] | vac[3] | vac[4] | vac[5] | vac[6] | vac[7]; 
+  //-----------------------------------------------------------------
+  // Request Data
+  //-----------------------------------------------------------------
+  always @(posedge clock) begin
+    if (reset) begin
+      buffer  <= 0;
+      rec_cnt <= 0;
+    end else if (cur_state == seek && tar_hit) begin
+      buffer <= dat[tar_index][hit_idx];   // Cacheb hit
+    end else if (cur_state == await) begin
+      if (io_master_rvalid && io_master_rready) begin
+        case (rec_cnt)
+          0: buffer[ 31: 0] <= io_master_rdata[31:0];
+          1: buffer[ 63:32] <= io_master_rdata[63:32];
+          2: buffer[ 95:64] <= io_master_rdata[31:0];
+          3: buffer[127:96] <= io_master_rdata[63:32];
+          default: buffer <= 0;
+        endcase
+        rec_cnt <= rec_cnt + 1;
+      end
+    end else if (cur_state == idle) begin
+      buffer  <= 0;
+      rec_cnt <= 0;
+    end
+  end
 
-  assign hit_block  = target_hit ? dat[target_index][hit_idx] : 0;
-  assign hit_rdata  = (target_offset == 4'd0 ) ? hit_block[31:0]   :
-                      (target_offset == 4'd4 ) ? hit_block[63:32]  :
-                      (target_offset == 4'd8 ) ? hit_block[95:64]  :
-                      (target_offset == 4'd12) ? hit_block[127:96] : 0;
+  //-----------------------------------------------------------------
+  // HIT Transaction
+  //-----------------------------------------------------------------
+  wire [2:0] hit_idx  = hit0 ? 0 : 
+                        hit1 ? 1 :
+                        hit2 ? 2 :
+                        hit3 ? 3 :
+                        hit4 ? 4 :
+                        hit5 ? 5 :
+                        hit6 ? 6 :
+                        hit7 ? 7 : 0;
 
-  assign miss_rdata = (record_offset == 4'd0 ) ? miss_block[31:0]   :
-                      (record_offset == 4'd4 ) ? miss_block[63:32]  :
-                      (record_offset == 4'd8 ) ? miss_block[95:64]  :
-                      (record_offset == 4'd12) ? miss_block[127:96] : 0;
+  wire tar_hit  = hit0 | hit1 | hit2 | hit3 | hit4 | hit5 | hit6 | hit7;
+
+  wire hit0 = (cur_state == seek) && (val[tar_index][0] == 1) && (tag[tar_index][0] == tar_tag);
+  wire hit1 = (cur_state == seek) && (val[tar_index][1] == 1) && (tag[tar_index][1] == tar_tag);
+  wire hit2 = (cur_state == seek) && (val[tar_index][2] == 1) && (tag[tar_index][2] == tar_tag);
+  wire hit3 = (cur_state == seek) && (val[tar_index][3] == 1) && (tag[tar_index][3] == tar_tag);
+  wire hit4 = (cur_state == seek) && (val[tar_index][4] == 1) && (tag[tar_index][4] == tar_tag);
+  wire hit5 = (cur_state == seek) && (val[tar_index][5] == 1) && (tag[tar_index][5] == tar_tag);
+  wire hit6 = (cur_state == seek) && (val[tar_index][6] == 1) && (tag[tar_index][6] == tar_tag);
+  wire hit7 = (cur_state == seek) && (val[tar_index][7] == 1) && (tag[tar_index][7] == tar_tag);
+
+  //-----------------------------------------------------------------
+  // Miss Transaction
+  //-----------------------------------------------------------------
+  reg [2:0]   rand_idx;
+
+  always @(posedge clock) begin
+    if (reset | flush_i) begin
+      for (integer i = 0; i < 16; i = i + 1) begin
+        for (integer j = 0; j < 8; j = j + 1) begin
+          val[i][j] <= 0;
+          tag[i][j] <= 0;
+          dat[i][j] <= 0;
+        end
+      end
+    end else if (cur_state == miss) begin
+      rand_idx <= {{$random()} % 8}[2:0];
+    end else if (cur_state == resp) begin
+      val[tar_index][rand_idx] <= 1;
+      tag[tar_index][rand_idx] <= tar_tag;
+      dat[tar_index][rand_idx] <= buffer;
+    end
+  end
 
   //-----------------------------------------------------------------
   // FSM
   //-----------------------------------------------------------------
-  parameter idle         = 3'b000; 
-  parameter seek_block   = 3'b001; 
-  parameter hit_rready   = 3'b010; 
-
-  parameter wait_arready = 3'b011; 
-  parameter wait_rvalid  = 3'b100; 
-  parameter miss_rready  = 3'b101; 
+  parameter idle  = 3'b000; 
+  parameter seek  = 3'b001; 
+  parameter hit   = 3'b010; 
+  parameter miss  = 3'b011; 
+  parameter await = 3'b100; 
+  parameter resp  = 3'b101;
 
   reg [2:0] cur_state;
   reg [2:0] next_state;
@@ -144,18 +171,23 @@ module icache (
   //-----------------------------------------------------------------
   // Slave
   assign arready_o = (cur_state == idle);
-  assign rvalid_o  = (cur_state == hit_rready) || (cur_state == miss_rready);
-  assign rdata_o   = (cur_state == hit_rready ) ? hit_rdata  :
-                     (cur_state == miss_rready) ? miss_rdata : 0;
+  assign rvalid_o  = (cur_state == hit ) || (cur_state == resp);
+  assign rdata_o   = (cur_state == hit ) || (cur_state == resp) ? 
+                     (
+                      tar_offset == 0  ? buffer[ 31: 0] :
+                      tar_offset == 4  ? buffer[ 63:32] :
+                      tar_offset == 8  ? buffer[ 95:64] :
+                      tar_offset == 12 ? buffer[127:96] : 0
+                     ) : 0;
 
   // Master
-  assign io_master_arvalid = (cur_state == wait_arready);
-  assign io_master_araddr  = (cur_state == wait_arready) ? (araddr & 32'hfffffff0) : 0;        
-  assign io_master_arid    = (cur_state == wait_arready) ? 0      : 0;
-  assign io_master_arlen   = (cur_state == wait_arready) ? 3      : 0;    // 16 Bytes (Bus width: 8 Bytes) ==> 4 Brust transfer
-  assign io_master_arsize  = (cur_state == wait_arready) ? 3'b010 : 0;    // 4 Bytes in a brust transfer
-  assign io_master_arburst = (cur_state == wait_arready) ? 2'b01  : 0;    // INCR
-  assign io_master_rready  = (cur_state == wait_rvalid);
+  assign io_master_arvalid = (cur_state == miss);
+  assign io_master_araddr  = (cur_state == miss) ? (araddr & 32'hfffffff0) : 0;    // Mask is related to block size
+  assign io_master_arid    = (cur_state == miss) ? 0 : 0;
+  assign io_master_arlen   = (cur_state == miss) ? 3 : 0;                          // Len is related to block size
+  assign io_master_arsize  = (cur_state == miss) ? 3'b010 : 0;                     // Size is related to word width
+  assign io_master_arburst = (cur_state == miss) ? 2'b01 : 0;
+  assign io_master_rready  = (cur_state == await);
 
   //-----------------------------------------------------------------
   // Synchronous State - Transition always@ (posedge clock) block
@@ -175,105 +207,17 @@ module icache (
     if (reset) begin
       next_state = idle;  
     end else begin
-        next_state = cur_state;
-        case (cur_state)
-            idle:         if (arvalid_i)  next_state = seek_block;
-            seek_block:   if (target_hit) next_state = hit_rready; 
-                          else next_state = wait_arready;
-            hit_rready:   if (rready_i) next_state = idle;
-            wait_arready: if (io_master_arready) next_state = wait_rvalid;
-            wait_rvalid:  if (io_master_rvalid && io_master_rlast) next_state = miss_rready;
-            miss_rready:  if (rready_i) next_state = idle;
-          default: next_state = cur_state;
-        endcase
-    end
-  end
-
-  //-----------------------------------------------------------------
-  // MISCELLANEOUS
-  //-----------------------------------------------------------------
-  always @(posedge clock) begin
-    if (reset) begin
-      araddr <= 0;   
-    end else if (arvalid_i) begin
-      araddr <= araddr_i;
-    end
-  end
-
-  always @(posedge clock) begin
-    if (reset) begin
-      record_vac    <= 0;
-      record_tag    <= 0;
-      record_offset <= 0;
-    end else if (cur_state == seek_block) begin
-      record_vac    <= target_vac;
-      record_tag    <= target_tag;
-      record_offset <= target_offset;
-    end
-  end
-
-  always @(posedge clock) begin
-    if (reset) begin
-      rand_num <= 0;
-    end else if (cur_state == wait_arready) begin
-      rand_num <= {{$random()} % 8}[2:0];
-    end
-  end
-
-  always @(posedge clock) begin
-    if (reset) begin
-      transfer_cnt <= 0;
-    end else if (io_master_rvalid && !io_master_rlast) begin
-      transfer_cnt <= transfer_cnt + 1;
-    end else if (io_master_rvalid &&  io_master_rlast) begin
-      transfer_cnt <= 0;
-    end
-  end
-
-  always @(posedge clock) begin
-    if (reset) begin
-      miss_block <= 0;
-    end else if (transfer_cnt == 0 && io_master_rvalid) begin
-      if (araddr % 8 == 0) miss_block[ 31: 0] <= io_master_rdata[31:0];
-      else if (araddr % 8 == 4) miss_block[ 31: 0] <= io_master_rdata[63:32];
-    end else if (transfer_cnt == 1 && io_master_rvalid) begin
-      if ((araddr + 4) % 8 == 0) miss_block[ 63:32] <= io_master_rdata[31:0];
-      else if ((araddr + 4) % 8 == 4) miss_block[ 63:32] <= io_master_rdata[63:32];
-    end else if (transfer_cnt == 2 && io_master_rvalid) begin
-      if ((araddr + 8)% 8 == 0) miss_block[ 95:64] <= io_master_rdata[31:0];
-      else if ((araddr + 8) % 8 == 4) miss_block[ 95:64] <= io_master_rdata[63:32];
-    end else if (transfer_cnt == 3 && io_master_rvalid) begin
-      if ((araddr + 12) % 8 == 0) miss_block[127:96] <= io_master_rdata[31:0];
-      else if ((araddr + 12) % 8 == 4) miss_block[127:96] <= io_master_rdata[63:32];
-    end
-  end
-
-  always @(posedge clock) begin
-    if (reset) begin
-      for (integer i = 0; i < 16; i = i + 1) begin
-        for (integer j = 0; j < 8; j = j + 1) begin
-          val[i][j] <= 0;
-          tag[i][j] <= 0;
-          dat[i][j] <= 0;
-        end
-      end
-    end else if (flush_i) begin
-      // Must in idle state !!!!!!!!
-      for (integer i = 0; i < 16; i = i + 1) begin
-        for (integer j = 0; j < 8; j = j + 1) begin
-          val[i][j] <= 0;
-          tag[i][j] <= 0;
-          dat[i][j] <= 0;
-        end
-      end
-    end else if (record_vac && cur_state == miss_rready && rready_i) begin
-      val[target_index][vac_idx]  <= 1;
-      tag[target_index][vac_idx]  <= record_tag;
-      dat[target_index][vac_idx]  <= miss_block;    
-    end else if (cur_state == miss_rready && rready_i) begin
-      val[target_index][rand_num] <= 1;
-      tag[target_index][rand_num] <= record_tag;
-      dat[target_index][rand_num] <= miss_block;     
+      next_state = cur_state;
+      case (cur_state)
+        idle: if (arvalid_i) next_state = seek;
+        seek: if (tar_hit) next_state = hit;
+              else next_state = miss;
+        hit:  if (rready_i) next_state = idle;
+        miss: if (io_master_arready) next_state = await;
+        await:if (io_master_rlast) next_state = resp;
+        resp: if (rready_i) next_state = idle;
+        default: next_state = cur_state;
+      endcase
     end
   end
 
