@@ -86,46 +86,60 @@ module cpu (
   output [3:0]  io_slave_rid
 );
 
-  wire  valid_wbu_ifu;
-  wire  ready_wbu_ifu;
+  wire valid_wbu_ifu;
+  wire ready_wbu_ifu;
 
-  wire  valid_ifu_idu;
-  wire  ready_ifu_idu;
+  wire valid_ifu_idu;
+  wire ready_ifu_idu;
 
-  wire  valid_idu_exu;
-  wire  ready_idu_exu;
+  wire valid_idu_exu;
+  wire ready_idu_exu;
 
-  wire  valid_exu_wbu;
-  wire  ready_exu_wbu;
+  wire valid_exu_wbu;
+  wire ready_exu_wbu;
 
-  /* BPU & IFU */
-  wire                    branch_en;
-  wire [`NPC_ADDR_BUS]    dnpc;
+  /* BPU --> IFU */
+  wire        branch_en;
+  wire [31:0] dnpc;
 
-  /* WBU & IDU */
-  wire                    wena;
-  wire  [`REG_ADDR_BUS]   waddr;
-  wire  [`REG_DATA_BUS]   wdata;
+  /* IFU --> IDU */
+  wire [31:0] instpc;
+  wire [31:0] inst;
 
-  /* IDU & EXU */
-  wire  [`INST_TYPE_BUS]  inst_type;
-  wire  [`ALU_OP_BUS]     alu_op;
-  wire  [`LSU_OP_BUS]     lsu_op;
-  wire                    wsel_idu_exu;
-  wire                    wena_idu_exu;
-  wire  [`REG_ADDR_BUS]   waddr_idu_exu;
-  wire  [`NPC_ADDR_BUS]   pc;
-  wire  [`REG_DATA_BUS]   imm;
-  wire  [`REG_DATA_BUS]   rdata1;
-  wire  [`REG_DATA_BUS]   rdata2;
-  wire  [`CSR_DATA_BUS]   csr;
+  /* WBU --> IDU */
+  wire        wena;
+  wire [4:0]  waddr;
+  wire [31:0] wdata;
+  wire        csr_wena;
+  wire [31:0] csr_waddr;
+  wire [31:0] csr_wdata;
 
-  /* EXU & WBU */
-  wire                    wsel_exu_wbu;
-  wire                    wena_exu_wbu;
-  wire  [`REG_ADDR_BUS]   waddr_exu_wbu;
-  wire  [`REG_DATA_BUS]   alu_result;
-  wire  [`REG_DATA_BUS]   mem_result;
+  /* IDU --> EXU */
+  wire [`INST_TYPE_BUS] inst_type;
+  wire [`ALU_OP_BUS]    alu_op;
+  wire [`LSU_OP_BUS]    lsu_op;
+  wire [`BPU_OP_BUS]    bpu_op;
+  wire [`CSR_OP_BUS]    csr_op;
+  wire                  wsel_idu_exu;
+  wire                  wena_idu_exu;
+  wire [4:0]            waddr_idu_exu;
+  wire                  csr_wena_idu_exu;
+  wire [31:0]           csr_waddr_idu_exu;
+  wire [31:0]           pc;
+  wire [31:0]           imm;
+  wire [31:0]           rdata1;
+  wire [31:0]           rdata2;
+  wire [31:0]           csr_rdata;
+
+  /* EXU --> WBU */
+  wire        wsel_exu_wbu;
+  wire        wena_exu_wbu;
+  wire [4:0]  waddr_exu_wbu;
+  wire [31:0] alu_result;
+  wire [31:0] mem_result;
+  wire        csr_wena_exu_wbu;
+  wire [31:0] csr_waddr_exu_wbu;
+  wire [31:0] csr_wdata_exu_wbu;
 
   /* IFU & ARBITER */
   wire        ifu_awready;
@@ -202,9 +216,6 @@ module cpu (
   assign io_slave_rlast   = 0;
   assign io_slave_rid     = 0;
 
-  wire [`NPC_ADDR_BUS] instpc;
-  wire [`NPC_DATA_BUS] inst;
-
   fetch fetch0 (
   	.reset        ( reset            ),
     .clock        ( clock            ),
@@ -255,66 +266,82 @@ module cpu (
   
   wire fencei;
 
-  idu decode0 (
-  	.clock        ( clock         ),
-    .reset        ( reset         ),
+  decode decode0 (
+  	.clock        (clock),
+    .reset        (reset),
 
-    .valid_pre_i  ( valid_ifu_idu ),
-    .ready_pre_o  ( ready_ifu_idu ),
-    .valid_post_o ( valid_idu_exu ),
-    .ready_post_i ( ready_idu_exu ),
+    .valid_pre_i  (valid_ifu_idu),
+    .ready_pre_o  (ready_ifu_idu),
+    .valid_post_o (valid_idu_exu),
+    .ready_post_i (ready_idu_exu),
 
-    .wena_i       ( wena          ),
-    .waddr_i      ( waddr         ),
-    .wdata_i      ( wdata         ),
+    .pc_i         (instpc),                 
+    .inst_i       (inst),                   
+                   
+    .inst_type_o  (inst_type),                        
+    .alu_op_o     (alu_op),                     
+    .lsu_op_o     (lsu_op),                     
+    .bpu_op_o     (bpu_op),                     
+    .csr_op_o     (csr_op),                     
+                   
+    .wsel_o       (wsel_idu_exu),                   
+    .wena_o       (wena_idu_exu),                   
+    .waddr_o      (waddr_idu_exu),                    
+    .csr_wena_o   (csr_wena_idu_exu),                       
+    .csr_waddr_o  (csr_waddr_idu_exu),                        
+                   
+    .pc_o         (pc),                 
+    .imm_o        (imm),                  
+    .rdata1_o     (rdata1),                     
+    .rdata2_o     (rdata2),                     
+    .csr_rdata_o  (csr_rdata),                        
 
-    .pc_i         ( instpc        ),
-    .inst_i       ( inst          ),
+    .fencei_o     (fencei),
 
-    .inst_type_o  ( inst_type     ),
-    .alu_op_o     ( alu_op        ),
-    .lsu_op_o     ( lsu_op        ),
-    .wsel_o       ( wsel_idu_exu  ),
-    .wena_o       ( wena_idu_exu  ),
-    .waddr_o      ( waddr_idu_exu ),
-    .pc_o         ( pc            ),
-    .imm_o        ( imm           ),
-    .rdata1_o     ( rdata1        ),
-    .rdata2_o     ( rdata2        ),
-    .csr_o        ( csr           ),
-
-    .branch_en_o  ( branch_en     ),
-    .dnpc_o       ( dnpc          ),
-
-    .fencei_o     (fencei         )
+    .wena_i       (wena),
+    .waddr_i      (waddr), 
+    .wdata_i      (wdata), 
+    
+    .csr_wena_i   (csr_wena),     
+    .csr_waddr_i  (csr_waddr),     
+    .csr_wdata_i  (csr_wdata)
   );
   
   execute execute0 (
-  	.clock        ( clock ),
-    .reset        ( reset ),
+  	.clock        (clock),
+    .reset        (reset),
 
-    .valid_pre_i  ( valid_idu_exu ),
-    .ready_pre_o  ( ready_idu_exu ),
-    .valid_post_o ( valid_exu_wbu ),
-    .ready_post_i ( ready_exu_wbu ),
+    .valid_pre_i  (valid_idu_exu),
+    .ready_pre_o  (ready_idu_exu),
+    .valid_post_o (valid_exu_wbu),
+    .ready_post_i (ready_exu_wbu),
 
-    .inst_type_i  ( inst_type     ),
-    .alu_op_i     ( alu_op        ),
-    .lsu_op_i     ( lsu_op        ),
-    .wsel_i       ( wsel_idu_exu  ),
-    .wena_i       ( wena_idu_exu  ),
-    .waddr_i      ( waddr_idu_exu ),
-    .pc_i         ( pc            ),
-    .imm_i        ( imm           ),
-    .rdata1_i     ( rdata1        ),
-    .rdata2_i     ( rdata2        ),
-    .csr_i        ( csr           ),
+    .inst_type_i  (inst_type),                        
+    .alu_op_i     (alu_op),                     
+    .lsu_op_i     (lsu_op),                     
+    .bpu_op_i     (bpu_op),                     
+    .csr_op_i     (csr_op),                     
+    .wsel_i       (wsel_idu_exu),                   
+    .wena_i       (wena_idu_exu),                   
+    .waddr_i      (waddr_idu_exu),                    
+    .csr_wena_i   (csr_wena_idu_exu),                       
+    .csr_waddr_i  (csr_waddr_idu_exu),                        
+    .pc_i         (pc),                 
+    .imm_i        (imm),                  
+    .rdata1_i     (rdata1),                     
+    .rdata2_i     (rdata2),                     
+    .csr_rdata_i  (csr_rdata),                        
 
-    .wsel_o       ( wsel_exu_wbu  ),
-    .wena_o       ( wena_exu_wbu  ),
-    .waddr_o      ( waddr_exu_wbu ),
-    .alu_result_o ( alu_result    ),
-    .mem_result_o ( mem_result    ),
+    .wsel_o       (wsel_exu_wbu),
+    .wena_o       (wena_exu_wbu),
+    .waddr_o      (waddr_exu_wbu),
+    .alu_result_o (alu_result),
+    .mem_result_o (mem_result),
+    .branch_en_o  (branch_en),  
+    .dnpc_o       (dnpc),
+    .csr_wena_o   (csr_wena_exu_wbu), 
+    .csr_waddr_o  (csr_waddr_exu_wbu),  
+    .csr_wdata_o  (csr_wdata_exu_wbu),  
 
     .awready_i    ( exu_awready   ),
     .awvalid_o    ( exu_awvalid   ),
@@ -348,23 +375,31 @@ module cpu (
   );
   
   wback wback0 (
-  	.clock        ( clock         ),
-    .reset        ( reset         ),
+  	.clock        (clock),
+    .reset        (reset),
 
-    .valid_pre_i  ( valid_exu_wbu ),
-    .ready_pre_o  ( ready_exu_wbu ),
-    .valid_post_o ( valid_wbu_ifu ),
-    .ready_post_i ( ready_wbu_ifu ),
+    .valid_pre_i  (valid_exu_wbu),
+    .ready_pre_o  (ready_exu_wbu),
+    .valid_post_o (valid_wbu_ifu),
+    .ready_post_i (ready_wbu_ifu),
 
-    .wsel_i       ( wsel_exu_wbu  ),
-    .wena_i       ( wena_exu_wbu  ),
-    .waddr_i      ( waddr_exu_wbu ),
-    .alu_result_i ( alu_result    ),
-    .mem_result_i ( mem_result    ),
+    .wsel_i       (wsel_exu_wbu),
+    .wena_i       (wena_exu_wbu),
+    .waddr_i      (waddr_exu_wbu),
+    .alu_result_i (alu_result),
+    .mem_result_i (mem_result),
 
-    .wena_o       ( wena          ),
-    .waddr_o      ( waddr         ),
-    .wdata_o      ( wdata         )
+    .csr_wena_i   (csr_wena_exu_wbu),
+    .csr_waddr_i  (csr_waddr_exu_wbu),
+    .csr_wdata_i  (csr_wdata_exu_wbu),
+
+    .wena_o       (wena),
+    .waddr_o      (waddr),
+    .wdata_o      (wdata),
+
+    .csr_wena_o   (csr_wena),
+    .csr_waddr_o  (csr_waddr),
+    .csr_wdata_o  (csr_wdata)
   );
 
   arbiter arbiter0 (

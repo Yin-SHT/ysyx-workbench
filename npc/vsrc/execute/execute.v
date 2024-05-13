@@ -13,21 +13,31 @@ module execute (
   input  [`INST_TYPE_BUS]    inst_type_i,
   input  [`ALU_OP_BUS]       alu_op_i,
   input  [`LSU_OP_BUS]       lsu_op_i,
+  input  [`BPU_OP_BUS]       bpu_op_i,
+  input  [`CSR_OP_BUS]       csr_op_i,
   input                      wsel_i,
   input                      wena_i,
   input  [`REG_ADDR_BUS]     waddr_i,
-
+  input                      csr_wena_i,
+  input [31:0]               csr_waddr_i,
   input  [`NPC_ADDR_BUS]     pc_i,
   input  [`REG_DATA_BUS]     imm_i,
   input  [`REG_DATA_BUS]     rdata1_i,
   input  [`REG_DATA_BUS]     rdata2_i,
-  input  [`CSR_DATA_BUS]     csr_i,
+  input  [`CSR_DATA_BUS]     csr_rdata_i,
   
   output                     wsel_o,
   output                     wena_o,
   output [`REG_ADDR_BUS]     waddr_o,
   output [`REG_DATA_BUS]     alu_result_o,
   output [`REG_DATA_BUS]     mem_result_o,
+
+  output                     branch_en_o,
+  output [`NPC_ADDR_BUS]     dnpc_o,
+
+  output                     csr_wena_o,
+  output [31:0]              csr_waddr_o,
+  output [`CSR_DATA_BUS]     csr_wdata_o,
 
   // AW: Address Write Channel 
   input                      awready_i,
@@ -74,47 +84,25 @@ module execute (
   wire [`INST_TYPE_BUS]   inst_type;
   wire [`ALU_OP_BUS]      alu_op;
   wire [`LSU_OP_BUS]      lsu_op;
+  wire [`BPU_OP_BUS]      bpu_op;
+  wire [`CSR_OP_BUS]      csr_op;
+  wire                    wsel;
+  wire                    wena;
+  wire [`REG_ADDR_BUS]    waddr;
+  wire                    csr_wena;
+  wire [31:0]             csr_waddr;
   wire [`NPC_ADDR_BUS]    pc;
   wire [`REG_DATA_BUS]    imm;
   wire [`REG_DATA_BUS]    rdata1;
   wire [`REG_DATA_BUS]    rdata2;
-  wire [`CSR_DATA_BUS]    csr;
-  
+  wire [`CSR_DATA_BUS]    csr_rdata;
 
-  execute_reg u_exu_reg (
-  	.clock        ( clock        ),
-    .reset        ( reset        ),
+  assign wsel_o      = wsel;
+  assign wena_o      = wena;
+  assign waddr_o     = waddr;
+  assign csr_wena_o  = csr_wena;
+  assign csr_waddr_o = csr_waddr;
 
-    // from fsm
-    .we_i         ( we           ),
-
-    // from idu
-    .inst_type_i  ( inst_type_i  ),
-    .alu_op_i     ( alu_op_i     ),
-    .lsu_op_i     ( lsu_op_i     ),
-    .wsel_i       ( wsel_i       ),
-    .wena_i       ( wena_i       ),
-    .waddr_i      ( waddr_i      ),
-    .pc_i         ( pc_i         ),
-    .imm_i        ( imm_i        ),
-    .rdata1_i     ( rdata1_i     ),
-    .rdata2_i     ( rdata2_i     ),
-    .csr_i        ( csr_i        ),
-
-    // to internal modules
-    .inst_type_o  ( inst_type    ),
-    .alu_op_o     ( alu_op       ),
-    .lsu_op_o     ( lsu_op       ),
-    .wsel_o       ( wsel_o       ),
-    .wena_o       ( wena_o       ),
-    .waddr_o      ( waddr_o      ),
-    .pc_o         ( pc           ),
-    .imm_o        ( imm          ),
-    .rdata1_o     ( rdata1       ),
-    .rdata2_o     ( rdata2       ),
-    .csr_o        ( csr          )
-  );
-  
   execute_controller controller (
   	.clock        ( clock        ),
     .reset        ( reset        ),
@@ -151,23 +139,65 @@ module execute (
     .rid_i        ( rid_i        )
   );
   
-  fu u_fu (
-  	.reset        ( reset        ),
+  execute_reg reg0 (
+    .clock       (clock),
+    .reset       (reset),
+                    
+    .we_i        (we),
+                    
+    .inst_type_i (inst_type_i),
+    .alu_op_i    (alu_op_i),
+    .lsu_op_i    (lsu_op_i),
+    .bpu_op_i    (bpu_op_i),
+    .csr_op_i    (csr_op_i),
+    .wsel_i      (wsel_i),
+    .wena_i      (wena_i),
+    .waddr_i     (waddr_i),
+    .csr_wena_i  (csr_wena_i),
+    .csr_waddr_i (csr_waddr_i),
+    .pc_i        (pc_i),
+    .imm_i       (imm_i),
+    .rdata1_i    (rdata1_i),
+    .rdata2_i    (rdata2_i),
+    .csr_rdata_i (csr_rdata_i),
 
-    // from exu-regs
-    .inst_type_i  ( inst_type    ),
-    .alu_op_i     ( alu_op       ),
-    .pc_i         ( pc           ),
-    .imm_i        ( imm          ),
-    .rdata1_i     ( rdata1       ),
-    .rdata2_i     ( rdata2       ),
-    .csr_i        ( csr          ),
-
-    // to wbu-regs
-    .alu_result_o ( alu_result_o )
+    .inst_type_o (inst_type),
+    .alu_op_o    (alu_op),
+    .lsu_op_o    (lsu_op),
+    .bpu_op_o    (bpu_op),
+    .csr_op_o    (csr_op),
+    .wsel_o      (wsel),
+    .wena_o      (wena),
+    .waddr_o     (waddr),
+    .csr_wena_o  (csr_wena),
+    .csr_waddr_o (csr_waddr),
+    .pc_o        (pc),
+    .imm_o       (imm),
+    .rdata1_o    (rdata1),
+    .rdata2_o    (rdata2),
+    .csr_rdata_o (csr_rdata)
   );
   
-  lsu u_lsu(
+  fu fu0 (
+    .reset          (reset),
+                    
+    .inst_type_i    (inst_type),
+    .alu_op_i       (alu_op),
+    .bpu_op_i       (bpu_op),
+    .csr_op_i       (csr_op),
+    .pc_i           (pc),
+    .imm_i          (imm),
+    .rdata1_i       (rdata1),
+    .rdata2_i       (rdata2),
+    .csr_rdata_i    (csr_rdata),
+                    
+    .alu_result_o   (alu_result_o),
+    .branch_en_o    (branch_en_o),
+    .dnpc_o         (dnpc_o),
+    .csr_wdata_o    (csr_wdata_o)
+  );
+  
+  lsu lsu0 (
     .clock        ( clock        ),
   	.reset        ( reset        ),
     
@@ -198,6 +228,5 @@ module execute (
     .arburst_o    ( arburst_o    ),
     .rdata_i      ( rdata_i      )
   );
-   
 
 endmodule

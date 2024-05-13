@@ -1,7 +1,7 @@
 // -------------------------------------------------
 // GLOBAL
 // -------------------------------------------------
-`define RESET_VECTOR       32'h8000_0000
+`define RESET_VECTOR       32'h3000_0000
 
 `define RESET_ENABLE       1'b1
 `define RESET_DISABLE      1'b0
@@ -38,6 +38,18 @@
 `define BPU_OP_BUS         7  : 0
 `define CSR_OP_BUS         7  : 0
 `define INST_TYPE_BUS      7  : 0
+
+// -------------------------------------------------
+// CSR Regisiter
+// -------------------------------------------------
+`define MSTATUS      32'h0000_0300
+`define MTVEC        32'h0000_0305
+`define MEPC         32'h0000_0341
+`define MCAUSE       32'h0000_0342
+`define MVENDORID    32'hffff_ff11
+`define MARCHID      32'hffff_ff12
+`define MCAUSE       32'h0000_0342
+`define ECALL_FROM_M 32'h0000_000b
 
 // -------------------------------------------------
 // PERIPHERAL

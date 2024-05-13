@@ -129,8 +129,8 @@ module lsu (
                       ( lsu_op_i == `LSU_OP_LW  ) ? 3'b010 : 0;
   assign arburst_o  = 2'b01;
 
-  always @( posedge clock or posedge reset ) begin
-    if ( reset == `RESET_ENABLE ) begin
+  always @(posedge clock) begin
+    if (reset) begin
       mem_result_o <= 0;
     end else if ( rdata_we_i ) begin
       if ( lsu_op_i == `LSU_OP_LB ) begin

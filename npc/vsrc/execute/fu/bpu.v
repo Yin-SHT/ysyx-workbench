@@ -10,7 +10,7 @@ module bpu (
   input [`REG_DATA_BUS]     imm_i,
   input [`REG_DATA_BUS]     rdata1_i,
   input [`REG_DATA_BUS]     rdata2_i,
-  input [`CSR_DATA_BUS]     csr_pc_i,
+  input [`CSR_DATA_BUS]     csr_rdata_i,
 
   output                    branch_en_o,
   output  [`NPC_ADDR_BUS]   dnpc_o
@@ -48,9 +48,35 @@ module bpu (
                         (( branch_en_o ) && ( bpu_op_i == `BPU_OP_BGEU  )) ? pc_i     + imm_i :  
                         (( branch_en_o ) && ( bpu_op_i == `BPU_OP_JAL   )) ? pc_i     + imm_i :
                         (( branch_en_o ) && ( bpu_op_i == `BPU_OP_JALR  )) ? rdata1_i + imm_i :
-                        (( branch_en_o ) && ( csr_op_i == `CSR_OP_ECALL )) ? csr_pc_i         :
-                        (( branch_en_o ) && ( csr_op_i == `CSR_OP_MRET  )) ? csr_pc_i         :
+                        (( branch_en_o ) && ( csr_op_i == `CSR_OP_ECALL )) ? csr_rdata_i      :
+                        (( branch_en_o ) && ( csr_op_i == `CSR_OP_MRET  )) ? csr_rdata_i      :
                         (( branch_en_o ) && ( bpu_op_i == `BPU_OP_JALR  )) ? rdata1_i + imm_i :
                                                                              pc_i     + 32'h4 ;
 
 endmodule
+
+module subtract (
+  input [`REG_DATA_BUS]     rdata1_i,
+  input [`REG_DATA_BUS]     rdata2_i,
+
+  output equal_o,
+  output signed_less_than_o, 
+  output unsigned_less_than_o
+);
+
+  wire cout;
+  wire [`REG_DATA_BUS] result;
+  wire Of, Cf, Sf, Zf; 
+
+  assign { cout, result } = { 1'b0, rdata1_i } + ({ 1'b0, ~rdata2_i }) + 1;
+  assign Of = ((  rdata1_i[31] ) & ( !rdata2_i[31] ) & ( !result[31] )) | 
+              (( !rdata1_i[31] ) & (  rdata2_i[31] ) & (  result[31] ));
+  assign Cf = cout ^ 1'b1;
+  assign Sf = result[31];
+  assign Zf =  ~(| result);
+
+  assign equal_o              = Zf;
+  assign signed_less_than_o   = Sf ^ Of;
+  assign unsigned_less_than_o = Cf;
+    
+endmodule // subtract 

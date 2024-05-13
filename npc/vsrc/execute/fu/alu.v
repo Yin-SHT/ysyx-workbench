@@ -1,6 +1,6 @@
 `include "defines.v"
 
-module fu (
+module alu (
   input                       reset,
 
   input   [`INST_TYPE_BUS]    inst_type_i,
@@ -9,7 +9,7 @@ module fu (
   input   [`REG_DATA_BUS]     imm_i,
   input   [`REG_DATA_BUS]     rdata1_i,
   input   [`REG_DATA_BUS]     rdata2_i,
-  input   [`CSR_DATA_BUS]     csr_i,
+  input   [`CSR_DATA_BUS]     csr_rdata_i,
 
   output  [`REG_DATA_BUS]     alu_result_o
 );
@@ -28,7 +28,7 @@ module fu (
                         ( inst_type_i == `INST_AUIPC ) ? pc_i          : 
                         ( inst_type_i == `INST_JAL   ) ? pc_i          : 
                         ( inst_type_i == `INST_JALR  ) ? pc_i          : 
-                        ( inst_type_i == `INST_CSRR  ) ? csr_i         : 32'h0000_0000;
+                        ( inst_type_i == `INST_CSRR  ) ? csr_rdata_i   : 32'h0000_0000;
 
   assign operand2     = ( 
                           ( reset       == `RESET_ENABLE ) || 
@@ -60,4 +60,4 @@ module fu (
                         ( alu_op_i == `ALU_OP_JUMP  )  ?  operand1  +  32'h4    : 
                         ( alu_op_i == `ALU_OP_CSRR  )  ?  operand1              : 32'h0000_0000;
 
-endmodule // fu 
+endmodule 

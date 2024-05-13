@@ -93,7 +93,7 @@ module execute_controller (
   //-----------------------------------------------------------------
   // Synchronous State - Transition always@ ( posedge Clock ) block
   //-----------------------------------------------------------------
-  always @( posedge clock or negedge reset ) begin
+  always @(posedge clock) begin
     if ( reset == `RESET_ENABLE ) begin
       cur_state <= idle;
     end else begin
@@ -105,8 +105,8 @@ module execute_controller (
   //-----------------------------------------------------------------
   // Conditional State - Transition always@ ( * ) block
   //-----------------------------------------------------------------
-  always @( * ) begin
-    if ( reset == `RESET_ENABLE ) begin
+  always @(*) begin
+    if (reset) begin
       next_state = idle;  
     end else begin
         next_state = cur_state;

@@ -1,31 +1,36 @@
 `include "defines.v"
 
 module wback_reg (
-  input                        clock,
-  input                        reset,
+  input             clock,
+  input             reset,
 
-  input                        we_i,
+  input             we_i,
 
-  input                        wena_i,
-  input                        wsel_i,
-  input   [`REG_ADDR_BUS]      waddr_i, 
-  input   [`REG_DATA_BUS]      alu_result_i,
-  input   [`REG_DATA_BUS]      mem_result_i,
+  input             wsel_i,
+  input             wena_i,
+  input [4:0]       waddr_i, 
+  input [31:0]      alu_result_i,
+  input [31:0]      mem_result_i,
 
-  output  reg                  wena_o,
-  output  reg [`REG_ADDR_BUS]  waddr_o, 
-  output  reg [`REG_DATA_BUS]  wdata_o
+  input             csr_wena_i,
+  input [31:0]      csr_waddr_i, 
+  input [31:0]      csr_wdata_i,
+
+  output reg        wena_o,
+  output reg [4:0]  waddr_o, 
+  output reg [31:0] wdata_o,
+
+  output reg        csr_wena_o,
+  output reg [31:0] csr_waddr_o, 
+  output reg [31:0] csr_wdata_o
 );
 
   always @(posedge clock) begin
     if (reset) begin
-      wena_o     <= 0;
-      waddr_o    <= 0;
-      wdata_o    <= 0;
+      wena_o  <= 0;
+      waddr_o <= 0;
+      wdata_o <= 0;
     end else begin
-      wena_o     <= wena_o;
-      waddr_o    <= waddr_o;
-      wdata_o    <= wdata_o;
       if (we_i) begin
         wena_o     <= wena_i;
         waddr_o    <= waddr_i;
@@ -34,12 +39,11 @@ module wback_reg (
         end else begin
           wdata_o  <= mem_result_i;   
         end
-      end else begin
-        wena_o     <= wena_o;
-        waddr_o    <= waddr_o;
-        wdata_o    <= wdata_o;
+        csr_wena_o  <= csr_wena_i;
+        csr_waddr_o <= csr_waddr_i;
+        csr_wdata_o <= csr_wdata_i;
       end     
     end
   end
     
-endmodule //wb_reg 
+endmodule 

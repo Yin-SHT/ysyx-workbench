@@ -1,24 +1,16 @@
 `include "defines.v"
 
-`define MSTATUS      32'h0000_0300
-`define MTVEC        32'h0000_0305
-`define MEPC         32'h0000_0341
-`define MCAUSE       32'h0000_0342
-`define MVENDORID    32'hffff_ff11
-`define MARCHID      32'hffff_ff12
-`define MCAUSE       32'h0000_0342
-`define ECALL_FROM_M 32'h0000_000b
-
 module csrs (
-  input                  reset,
+  input         clock,
+  input         reset,
 
-  input [`CSR_OP_BUS]    csr_op_i,
-  input [`NPC_ADDR_BUS]  pc_i,
-  input [`REG_DATA_BUS]  imm_i,
-  input [`REG_DATA_BUS]  rdata1_i,
-  
-  output [`CSR_DATA_BUS] csr_o,
-  output [`CSR_DATA_BUS] csr_pc_o
+  input         csr_rena_i,
+  input  [31:0] csr_raddr_i,
+  output [31:0] csr_rdata_o,
+
+  input         csr_wena_i,
+  input  [31:0] csr_waddr_i,
+  input  [31:0] csr_wdata_i
 );
 
   export "DPI-C" function csr_event;
@@ -33,46 +25,36 @@ module csrs (
     _mcause_  = mcause;
   endfunction
 
-  reg [`CSR_DATA_BUS] mstatus   = 32'h0000_0000;
-  reg [`CSR_DATA_BUS] mtvec     = 32'h0000_0000;
-  reg [`CSR_DATA_BUS] mepc      = 32'h0000_0000;
-  reg [`CSR_DATA_BUS] mcause    = 32'h0000_0000;
-  reg [`CSR_DATA_BUS] mvendorid = 32'h7973_7978;
-  reg [`CSR_DATA_BUS] marchid   = 32'd22060008;
+  reg [31:0] mstatus;
+  reg [31:0] mtvec;
+  reg [31:0] mepc;
+  reg [31:0] mcause;
+  reg [31:0] mvendorid;
+  reg [31:0] marchid;
 
-  /* CSRRW & CSRRS */
-  assign  csr_o = (( reset == `RESET_DISABLE ) && (( csr_op_i == `CSR_OP_CSRRW ) || ( csr_op_i == `CSR_OP_CSRRS )) && ( imm_i == `MSTATUS   )) ? mstatus       :
-                  (( reset == `RESET_DISABLE ) && (( csr_op_i == `CSR_OP_CSRRW ) || ( csr_op_i == `CSR_OP_CSRRS )) && ( imm_i == `MTVEC     )) ? mtvec         :
-                  (( reset == `RESET_DISABLE ) && (( csr_op_i == `CSR_OP_CSRRW ) || ( csr_op_i == `CSR_OP_CSRRS )) && ( imm_i == `MEPC      )) ? mepc          :
-                  (( reset == `RESET_DISABLE ) && (( csr_op_i == `CSR_OP_CSRRW ) || ( csr_op_i == `CSR_OP_CSRRS )) && ( imm_i == `MCAUSE    )) ? mcause        :
-                  (( reset == `RESET_DISABLE ) && (( csr_op_i == `CSR_OP_CSRRW ) || ( csr_op_i == `CSR_OP_CSRRS )) && ( imm_i == `MVENDORID )) ? mvendorid     :
-                  (( reset == `RESET_DISABLE ) && (( csr_op_i == `CSR_OP_CSRRW ) || ( csr_op_i == `CSR_OP_CSRRS )) && ( imm_i == `MARCHID   )) ? marchid       :
-                                                                                                                                                 0             ;
-  always @( * ) begin
-    if (( reset == `RESET_DISABLE ) && ( csr_op_i == `CSR_OP_CSRRW )) begin
-      case ( imm_i )
-        `MSTATUS: mstatus = rdata1_i;
-        `MTVEC:   mtvec   = rdata1_i;
-        `MEPC:    mepc    = rdata1_i;
-        `MCAUSE:  mcause  = rdata1_i;
+  always @(posedge clock) begin
+    if (reset) begin
+      mstatus   <= 32'h0000_0000;
+      mtvec     <= 32'h0000_0000;
+      mepc      <= 32'h0000_0000;
+      mcause    <= 32'h0000_0000;
+      mvendorid <= 32'h7973_7978;
+      marchid   <= 32'd22060008;
+    end else if (csr_wena_i) begin
+      case (csr_waddr_i)
+        `MSTATUS: mstatus <= csr_wdata_i;
+        `MTVEC:   mtvec   <= csr_wdata_i;
+        `MEPC:    mepc    <= csr_wdata_i;
+        `MCAUSE:  mcause  <= csr_wdata_i;
       endcase     
-    end else if (( reset == `RESET_DISABLE ) && ( csr_op_i == `CSR_OP_CSRRW )) begin
-      case ( imm_i )
-        `MSTATUS: mstatus = rdata1_i | mstatus;
-        `MTVEC:   mtvec   = rdata1_i | mtvec;
-        `MEPC:    mepc    = rdata1_i | mepc;
-        `MCAUSE:  mcause  = rdata1_i | mcause;
-      endcase     
-    end else if (( reset == `RESET_DISABLE ) && ( csr_op_i == `CSR_OP_ECALL )) begin
-        mepc    = pc_i;
-        mcause  = 11;
-    end 
+    end
   end
 
-  /* ECALL */
-  assign csr_pc_o = ( reset == `RESET_DISABLE ) && ( csr_op_i == `CSR_OP_ECALL ) ?  mtvec         :
-                    ( reset == `RESET_DISABLE ) && ( csr_op_i == `CSR_OP_MRET  ) ?  mepc          :
-                                                                                    0             ;
- 
-
+  assign  csr_rdata_o = csr_rena_i ? ((csr_raddr_i == `MSTATUS  ) ? mstatus   :
+                                      (csr_raddr_i == `MTVEC    ) ? mtvec     :
+                                      (csr_raddr_i == `MEPC     ) ? mepc      :
+                                      (csr_raddr_i == `MCAUSE   ) ? mcause    :
+                                      (csr_raddr_i == `MVENDORID) ? mvendorid :
+                                      (csr_raddr_i == `MARCHID  ) ? marchid   : 0) : 0;
+                                                                             
 endmodule
