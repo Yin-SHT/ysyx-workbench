@@ -4,20 +4,18 @@ module fetch_controller (
   input    clock,
   input    reset,
 
-  input    valid_pre_i,
-  output   ready_pre_o,
-
   output   valid_post_o,
   input    ready_post_i,
 
+  input    firing,
+
+  // controller -> reg
   output   pc_we_o,
   output   inst_we_o,
 
-  // AR: Address Read Channel 
+  // controller -> icache
   input    arready_i,
   output   arvalid_o,
-
-  //  R: Data Read Channel
   output   rready_o,
   input    rvalid_i
 );
@@ -45,17 +43,13 @@ module fetch_controller (
   //-----------------------------------------------------------------
   // Outputs 
   //-----------------------------------------------------------------
-  assign pc_we_o      = (valid_pre_i && ready_pre_o);
-  assign inst_we_o    = (rvalid_i    && rready_o   );
+  assign valid_post_o = cur_state == wait_ready;
 
-  assign ready_pre_o  = (cur_state   == idle      );
-  assign valid_post_o = (cur_state   == wait_ready);
+  assign pc_we_o      = valid_post_o && ready_post_i;
+  assign inst_we_o    = rvalid_i && rready_o   ;
 
-  // AR
-  assign arvalid_o    = (cur_state   == wait_arready);    
-
-  //  R
-  assign rready_o     = (cur_state   == wait_rvalid );    
+  assign arvalid_o    = cur_state == wait_arready;    
+  assign rready_o     = cur_state == wait_rvalid ;    
 
   //-----------------------------------------------------------------
   // Synchronous State - Transition always@ ( posedge Clock ) block
@@ -77,10 +71,10 @@ module fetch_controller (
     end else begin
         next_state = cur_state;
         case (cur_state)
-            idle:         if (valid_pre_i)  next_state = wait_arready;
+            idle:         if (firing)       next_state = wait_arready;
             wait_arready: if (arready_i)    next_state = wait_rvalid;  
             wait_rvalid:  if (rvalid_i)     next_state = wait_ready; 
-            wait_ready:   if (ready_post_i) next_state = idle;
+            wait_ready:   if (ready_post_i) next_state = wait_arready;
           default:                          next_state = cur_state;
         endcase
     end

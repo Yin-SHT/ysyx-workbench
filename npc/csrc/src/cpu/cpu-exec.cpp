@@ -8,14 +8,14 @@
 CPU_state cpu = {};
 
 static void trace_and_difftest(vaddr_t pc, vaddr_t dnpc) {
-  if (pre_wbvalid) {
+  if (diff_execu) {
     difftest_step(pc, dnpc);
   }
 }
 
 void exec_once() {
   single_cycle();
-  IFDEF(CONFIG_DIFFTEST, trace_and_difftest(pre_pc, cpu.pc));
+  IFDEF(CONFIG_DIFFTEST, trace_and_difftest(0, cpu.pc));
   IFDEF(CONFIG_DEVICE, device_update());
 }
 

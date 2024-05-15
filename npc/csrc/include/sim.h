@@ -16,8 +16,7 @@ void perf_update();
 void perf_display();
 
 extern int cur_pc;
-extern int pre_pc;
-extern int pre_wbvalid;
+extern int diff_execu;
 
 extern bool wave_start;
 extern bool perf_start;
@@ -27,6 +26,7 @@ extern svScope sp_fetchreg;
 extern svScope sp_decode;
 extern svScope sp_regfile;
 extern svScope sp_csr;
+extern svScope sp_commit;
 #elif CONFIG_SOC
 extern svScope sp_fetchreg;
 extern svScope sp_decode;
@@ -39,22 +39,13 @@ extern svScope sp_icache;
 #endif
 
 
-#define REGS(i) (ysyxSoCFull->rootp->ysyxSoCFull__DOT__cpu0__DOT__decode0__DOT__u_regfile__DOT__regs[i])
+#define REGS(i) (ysyxSoCFull->rootp->ysyxSoCFull__DOT__cpu0__DOT__decode0__DOT__regfile0__DOT__regs[i])
 
 #define PROCESSOR_ALIGN(_pc_) \
   do { \
-    uint32_t pc = _pc_; \
     for (int i = 0; i < MUXDEF(CONFIG_RVE, 16, 32); i++) { \
       cpu.gpr[i] = REGS(i); \
     } \
-    cpu.pc = pc; \
-    int mstatus, mcause, mtvec, mepc; \
-    svSetScope(sp_csr);  \
-    csr_event(&mstatus, &mtvec, &mepc, &mcause); \
-    cpu.mstatus = mstatus; \
-    cpu.mcause  = mtvec; \
-    cpu.mtvec   = mepc; \
-    cpu.mepc    = mcause; \
   } while(0);
 
 #define CIRCUIT_EVAL(step) \

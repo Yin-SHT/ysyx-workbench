@@ -1,14 +1,11 @@
 `include "defines.v"
 
-module wback (
+module commit (
   input         clock,
   input         reset,
 
   input         valid_pre_i,
   output        ready_pre_o,
-
-  output        valid_post_o,
-  input         ready_post_i,
 
   input         wsel_i,
   input         wena_i,
@@ -31,19 +28,17 @@ module wback (
 
   wire we;
 
-  wback_controller controller (
+  commit_controller controller (
   	.clock        (clock),
     .reset        (reset),
 
     .valid_pre_i  (valid_pre_i),
-    .valid_post_o (valid_post_o),
-    .ready_post_i (ready_post_i),
     .ready_pre_o  (ready_pre_o),
 
     .we_o         (we)
   );
   
-  wback_reg reg0 (
+  commit_reg reg0 (
     .clock        (clock),           
     .reset        (reset),           
                      

@@ -6,9 +6,6 @@ module fetch (
 
   input                      flush_i,
 
-  input                      valid_pre_i,
-  output                     ready_pre_o,
-
   output                     valid_post_o,
   input                      ready_post_i,
 
@@ -100,10 +97,10 @@ module fetch (
     .clock        (clock),
     .reset        (reset),
 
-    .valid_pre_i  (valid_pre_i | firing),
-    .ready_pre_o  (ready_pre_o),
     .valid_post_o (valid_post_o),
     .ready_post_i (ready_post_i),
+
+    .firing       (firing),
 
     .pc_we_o      (pc_we),
     .inst_we_o    (inst_we),

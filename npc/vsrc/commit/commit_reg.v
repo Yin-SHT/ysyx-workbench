@@ -1,6 +1,6 @@
 `include "defines.v"
 
-module wback_reg (
+module commit_reg (
   input             clock,
   input             reset,
 

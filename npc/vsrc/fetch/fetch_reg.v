@@ -24,10 +24,9 @@ module fetch_reg (
   endfunction
 
   always @(posedge clock) begin
-    pc_o <= pc_o;   // default
     if (reset) begin
       pc_o <= 0;
-    end else if (pc_we_i) begin
+    end else if (pc_we_i | firing) begin
       if (firing) begin
         pc_o <= `RESET_VECTOR;
       end else if (branch_en_i) begin
@@ -39,7 +38,6 @@ module fetch_reg (
   end
 
   always @(posedge clock) begin
-    inst_o <= inst_o;   // default
     if (reset) begin
       inst_o <= `NPC_ZERO_DATA;
     end else if (inst_we_i) begin
@@ -47,4 +45,4 @@ module fetch_reg (
     end 
   end
 
-endmodule // pc_reg
+endmodule 
