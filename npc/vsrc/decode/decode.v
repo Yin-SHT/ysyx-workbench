@@ -13,10 +13,10 @@ module decode (
   input   [`NPC_ADDR_BUS]     pc_i,
   input   [`NPC_DATA_BUS]     inst_i,
 
+  // decode -> execute
   output  [`INST_TYPE_BUS]    inst_type_o,
   output  [`ALU_OP_BUS]       alu_op_o,
   output  [`LSU_OP_BUS]       lsu_op_o,
-  output  [`BPU_OP_BUS]       bpu_op_o,
   output  [`CSR_OP_BUS]       csr_op_o,
 
   output                      wsel_o,
@@ -31,8 +31,12 @@ module decode (
   output  [`REG_DATA_BUS]     rdata2_o,
   output  [`CSR_DATA_BUS]     csr_rdata_o,
   
+  // decode -> fetch
   output                      fencei_o,
+  output                      branch_en_o,
+  output  [`NPC_ADDR_BUS]     dnpc_o,
 
+  // commit -> decode
   input                       wena_i,
   input   [`REG_ADDR_BUS]     waddr_i,
   input   [`REG_DATA_BUS]     wdata_i,
@@ -43,6 +47,7 @@ module decode (
 );
 
   wire                  fencei;
+  wire [`BPU_OP_BUS]    bpu_op;
   wire                  we;
   wire [`NPC_ADDR_BUS]  pc;
   wire [`NPC_DATA_BUS]  inst;
@@ -67,7 +72,7 @@ module decode (
     .we_o         (we)
   );
 
-  decode_reg decode_reg0 (
+  decode_reg reg0 (
   	.clock        (clock),
     .reset        (reset),
     .we_i         (we),
@@ -84,7 +89,7 @@ module decode (
     .inst_type_o  (inst_type_o),
     .alu_op_o     (alu_op_o),
     .lsu_op_o     (lsu_op_o),
-    .bpu_op_o     (bpu_op_o),
+    .bpu_op_o     (bpu_op),
     .csr_op_o     (csr_op_o),
     .pc_o         (pc_o),
     .imm_o        (imm_o),
@@ -106,6 +111,22 @@ module decode (
     .fencei_o     (fencei)
   );
   
+  branch_log branch_log0 (
+    .reset         (reset),                           
+
+    .bpu_op_i      (bpu_op),                     
+    .csr_op_i      (csr_op_o),                     
+
+    .pc_i          (pc_o),                   
+    .imm_i         (imm_o),                   
+    .rdata1_i      (rdata1_o),                     
+    .rdata2_i      (rdata2_o),                     
+    .csr_rdata_i   (csr_rdata_o),                         
+
+    .branch_en_o   (branch_en_o),                         
+    .dnpc_o        (dnpc_o)                   
+  );
+
   regfile regfile0 (
   	.clock        (clock),
     .reset        (reset),

@@ -1,6 +1,6 @@
 `include "defines.v"
 
-module bpu (
+module branch_log (
   input reset,
 
   input [`BPU_OP_BUS]       bpu_op_i,

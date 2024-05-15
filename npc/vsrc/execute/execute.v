@@ -13,7 +13,6 @@ module execute (
   input  [`INST_TYPE_BUS]    inst_type_i,
   input  [`ALU_OP_BUS]       alu_op_i,
   input  [`LSU_OP_BUS]       lsu_op_i,
-  input  [`BPU_OP_BUS]       bpu_op_i,
   input  [`CSR_OP_BUS]       csr_op_i,
   input                      wsel_i,
   input                      wena_i,
@@ -31,9 +30,6 @@ module execute (
   output [`REG_ADDR_BUS]     waddr_o,
   output [`REG_DATA_BUS]     alu_result_o,
   output [`REG_DATA_BUS]     mem_result_o,
-
-  output                     branch_en_o,
-  output [`NPC_ADDR_BUS]     dnpc_o,
 
   output                     csr_wena_o,
   output [31:0]              csr_waddr_o,
@@ -84,7 +80,6 @@ module execute (
   wire [`INST_TYPE_BUS]   inst_type;
   wire [`ALU_OP_BUS]      alu_op;
   wire [`LSU_OP_BUS]      lsu_op;
-  wire [`BPU_OP_BUS]      bpu_op;
   wire [`CSR_OP_BUS]      csr_op;
   wire                    wsel;
   wire                    wena;
@@ -148,7 +143,6 @@ module execute (
     .inst_type_i (inst_type_i),
     .alu_op_i    (alu_op_i),
     .lsu_op_i    (lsu_op_i),
-    .bpu_op_i    (bpu_op_i),
     .csr_op_i    (csr_op_i),
     .wsel_i      (wsel_i),
     .wena_i      (wena_i),
@@ -164,7 +158,6 @@ module execute (
     .inst_type_o (inst_type),
     .alu_op_o    (alu_op),
     .lsu_op_o    (lsu_op),
-    .bpu_op_o    (bpu_op),
     .csr_op_o    (csr_op),
     .wsel_o      (wsel),
     .wena_o      (wena),
@@ -183,7 +176,6 @@ module execute (
                     
     .inst_type_i    (inst_type),
     .alu_op_i       (alu_op),
-    .bpu_op_i       (bpu_op),
     .csr_op_i       (csr_op),
     .pc_i           (pc),
     .imm_i          (imm),
@@ -192,8 +184,6 @@ module execute (
     .csr_rdata_i    (csr_rdata),
                     
     .alu_result_o   (alu_result_o),
-    .branch_en_o    (branch_en_o),
-    .dnpc_o         (dnpc_o),
     .csr_wdata_o    (csr_wdata_o)
   );
   

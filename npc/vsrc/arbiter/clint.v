@@ -23,7 +23,7 @@ assign rid_o   = 0;
 /* MTIME REGISTER */
 reg[63:0] mtime;
 
-always @(posedge clock or negedge reset) begin
+always @(posedge clock) begin
   if (reset) begin
     mtime <= 0;
   end else begin
@@ -42,7 +42,7 @@ reg[2:0] next_state;
 
 reg[31:0] araddr;
 
-always @(posedge clock or negedge reset) begin
+always @(posedge clock) begin
   if (reset) begin
     araddr <= 0;
   end else begin
@@ -68,7 +68,7 @@ assign rlast_o   = cur_state == wait_rready;
 //-----------------------------------------------------------------
 // Synchronous State - Transition always@ ( posedge Clock ) block
 //-----------------------------------------------------------------
-always @(posedge clock or negedge reset) begin
+always @(posedge clock) begin
   if (reset) begin
     cur_state <= idle;
   end else begin

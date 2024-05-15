@@ -117,7 +117,7 @@ module fetch (
     .rvalid_i     (rvalid)
   );
 
-  fetch_reg u_reg (
+  fetch_reg reg0 (
     .clock        (clock),
     .reset        (reset),
 
@@ -134,7 +134,7 @@ module fetch (
     .rdata_i      (rdata)
   );
 
-  icache u_icache (
+  icache icache0 (
     .clock              (clock),                      
     .reset              (reset),                      
 

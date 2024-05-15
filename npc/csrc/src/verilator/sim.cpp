@@ -70,10 +70,10 @@ void init_verilator(int argc, char **argv) {
 
   // Prepare for DPI-C
 #ifdef CONFIG_FUNC
-  sp_fetchreg = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.fetch0.u_reg");
-  sp_decode   = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.u_decode");
-  sp_regfile  = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.u_regfile");
-  sp_csr      = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.u_csrs");
+  sp_fetchreg = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.fetch0.reg0");
+  sp_decode   = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.decode_log0");
+  sp_regfile  = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.regfile0");
+  sp_csr      = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.csrs0");
   assert(sp_fetchreg && sp_decode && sp_regfile && sp_csr);
 #elif CONFIG_SOC
   sp_fetchreg   = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.fetch0.u_reg");

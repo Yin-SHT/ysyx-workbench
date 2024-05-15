@@ -9,7 +9,6 @@ module execute_reg (
   input [`INST_TYPE_BUS]       inst_type_i,
   input [`ALU_OP_BUS]          alu_op_i,
   input [`LSU_OP_BUS]          lsu_op_i,
-  input [`BPU_OP_BUS]          bpu_op_i,
   input [`CSR_OP_BUS]          csr_op_i,
   input                        wsel_i,
   input                        wena_i,
@@ -25,7 +24,6 @@ module execute_reg (
   output reg [`INST_TYPE_BUS]  inst_type_o,
   output reg [`ALU_OP_BUS]     alu_op_o,
   output reg [`LSU_OP_BUS]     lsu_op_o,
-  output reg [`BPU_OP_BUS]     bpu_op_o,
   output reg [`CSR_OP_BUS]     csr_op_o,
   output reg                   wsel_o,
   output reg                   wena_o,
@@ -44,7 +42,6 @@ module execute_reg (
       inst_type_o <= 0;               
       alu_op_o    <= 0;            
       lsu_op_o    <= 0;            
-      bpu_op_o    <= 0;            
       csr_op_o    <= 0;            
       wsel_o      <= 0;          
       wena_o      <= 0;          
@@ -60,7 +57,6 @@ module execute_reg (
       inst_type_o <= inst_type_i;               
       alu_op_o    <= alu_op_i;            
       lsu_op_o    <= lsu_op_i;            
-      bpu_op_o    <= bpu_op_i;            
       csr_op_o    <= csr_op_i;            
       wsel_o      <= wsel_i;          
       wena_o      <= wena_i;          

@@ -98,7 +98,7 @@ module cpu (
   wire valid_exu_wbu;
   wire ready_exu_wbu;
 
-  /* BPU --> IFU */
+  /* IDU --> IFU */
   wire        branch_en;
   wire [31:0] dnpc;
 
@@ -118,7 +118,6 @@ module cpu (
   wire [`INST_TYPE_BUS] inst_type;
   wire [`ALU_OP_BUS]    alu_op;
   wire [`LSU_OP_BUS]    lsu_op;
-  wire [`BPU_OP_BUS]    bpu_op;
   wire [`CSR_OP_BUS]    csr_op;
   wire                  wsel_idu_exu;
   wire                  wena_idu_exu;
@@ -281,7 +280,6 @@ module cpu (
     .inst_type_o  (inst_type),                        
     .alu_op_o     (alu_op),                     
     .lsu_op_o     (lsu_op),                     
-    .bpu_op_o     (bpu_op),                     
     .csr_op_o     (csr_op),                     
                    
     .wsel_o       (wsel_idu_exu),                   
@@ -297,6 +295,8 @@ module cpu (
     .csr_rdata_o  (csr_rdata),                        
 
     .fencei_o     (fencei),
+    .branch_en_o  (branch_en),  
+    .dnpc_o       (dnpc),
 
     .wena_i       (wena),
     .waddr_i      (waddr), 
@@ -319,7 +319,6 @@ module cpu (
     .inst_type_i  (inst_type),                        
     .alu_op_i     (alu_op),                     
     .lsu_op_i     (lsu_op),                     
-    .bpu_op_i     (bpu_op),                     
     .csr_op_i     (csr_op),                     
     .wsel_i       (wsel_idu_exu),                   
     .wena_i       (wena_idu_exu),                   
@@ -337,8 +336,6 @@ module cpu (
     .waddr_o      (waddr_exu_wbu),
     .alu_result_o (alu_result),
     .mem_result_o (mem_result),
-    .branch_en_o  (branch_en),  
-    .dnpc_o       (dnpc),
     .csr_wena_o   (csr_wena_exu_wbu), 
     .csr_waddr_o  (csr_waddr_exu_wbu),  
     .csr_wdata_o  (csr_wdata_exu_wbu),  
@@ -530,10 +527,5 @@ module cpu (
     .rvalid_o  (clint_rvalid),
     .rready_i  (clint_rready)
   );
-
-  always @( posedge clock or negedge reset ) begin
-    if ( reset == `RESET_DISABLE ) begin
-    end
-  end
 
 endmodule
