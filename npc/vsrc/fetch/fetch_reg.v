@@ -6,18 +6,18 @@ module fetch_reg (
 
   input             firing,
 
-  input  [2:0]      state_i,
+  input [2:0]       state_i,
   input             pc_we_i,       
   input             inst_we_i,       
 
   input             branch_valid_i,
   input             branch_en_i, 
-  input  [31:0]     dnpc_i,
+  input [31:0]      dnpc_i,
+
+  input [31:0]      rdata_i,
 
   output reg [31:0] pc_o,
-  output reg [31:0] inst_o,
-
-  input [31:0]      rdata_i
+  output reg [31:0] inst_o
 );
 
   export "DPI-C" function fetchreg_event;

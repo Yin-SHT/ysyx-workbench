@@ -66,6 +66,7 @@ module fetch (
   wire [31:0] rdata;
 
   wire branch_inst;
+  wire [2:0] state;
 
   // AW: Address Write Channel 
   assign awvalid_o = 0;
@@ -86,7 +87,6 @@ module fetch (
 
   reg[127:0] fire;
   wire       firing = (fire == 1);
-  wire [2:0] state;
 
   always @(posedge clock) begin
     if (reset) begin
@@ -97,51 +97,50 @@ module fetch (
   end
 
   fetch_controller controller (
-    .clock        (clock),
-    .reset        (reset),
+    .clock          (clock),
+    .reset          (reset),
 
-    .valid_post_o (valid_post_o),
-    .ready_post_i (ready_post_i),
+    .valid_post_o   (valid_post_o),
+    .ready_post_i   (ready_post_i),
 
     .branch_valid_i (branch_valid_i),
+    .branch_inst_i  (branch_inst),
 
-    .branch_inst_i (branch_inst),
+    .state_o        (state),
+    .pc_we_o        (pc_we),
+    .inst_we_o      (inst_we),
 
-    .state_o      (state),
-    .pc_we_o      (pc_we),
-    .inst_we_o    (inst_we),
+    .arready_i      (arready),
+    .arvalid_o      (arvalid),
+    .rready_o       (rready),
+    .rvalid_i       (rvalid),
 
-    .arready_i    (arready),
-    .arvalid_o    (arvalid),
-    .rready_o     (rready),
-    .rvalid_i     (rvalid),
-
-    .firing       (firing)
+    .firing         (firing)
   );
 
   fetch_reg reg0 (
-    .clock        (clock),
-    .reset        (reset),
+    .clock          (clock),
+    .reset          (reset),
 
-    .firing       (firing),
+    .firing         (firing),
 
-    .state_i      (state),
-    .pc_we_i      (pc_we),
-    .inst_we_i    (inst_we),
+    .state_i        (state),
+    .pc_we_i        (pc_we),
+    .inst_we_i      (inst_we),
 
     .branch_valid_i (branch_valid_i),
-    .branch_en_i  (branch_en_i),
-    .dnpc_i       (dnpc_i),
+    .branch_en_i    (branch_en_i),
+    .dnpc_i         (dnpc_i),
 
-    .pc_o         (pc_o),
-    .inst_o       (inst_o),
+    .rdata_i        (rdata),
 
-    .rdata_i      (rdata)
+    .pc_o           (pc_o),
+    .inst_o         (inst_o)
   );
 
   pre_decode pre_decode0 (
-    .inst_i (inst_o),
-    .branch_inst_o (branch_inst)
+    .inst_i         (inst_o),
+    .branch_inst_o  (branch_inst)
   );
 
   icache icache0 (

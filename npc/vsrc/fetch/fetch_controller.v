@@ -1,30 +1,25 @@
 `include "defines.v"
 
 module fetch_controller (
-  input    clock,
-  input    reset,
+  input         clock,
+  input         reset,
 
-  output   valid_post_o,
-  input    ready_post_i,
+  output        valid_post_o,
+  input         ready_post_i,
 
-  // decode -> controller
-  input    branch_valid_i,
+  input         branch_valid_i,
+  input         branch_inst_i,
 
-  // reg -> controller
-  input    branch_inst_i,
+  output [2:0]  state_o,
+  output        pc_we_o,
+  output        inst_we_o,
 
-  // controller -> reg
-  output [2:0] state_o,
-  output   pc_we_o,
-  output   inst_we_o,
+  input         arready_i,
+  output        arvalid_o,
+  output        rready_o,
+  input         rvalid_i,
 
-  // controller -> icache
-  input    arready_i,
-  output   arvalid_o,
-  output   rready_o,
-  input    rvalid_i,
-
-  input    firing
+  input         firing
 );
 
   /* Performance Event */
@@ -51,13 +46,11 @@ module fetch_controller (
   // Outputs 
   //-----------------------------------------------------------------
   assign valid_post_o = cur_state == wait_ready;
-
-  assign state_o = cur_state;
-  assign pc_we_o      = valid_post_o && ready_post_i && !branch_inst_i;
   assign inst_we_o    = rvalid_i && rready_o;
-
   assign arvalid_o    = cur_state == wait_arready;    
   assign rready_o     = cur_state == wait_rvalid ;    
+  assign state_o      = cur_state;
+  assign pc_we_o      = valid_post_o && ready_post_i && !branch_inst_i; // decode stage recive non-branch instruction
 
   //-----------------------------------------------------------------
   // Synchronous State - Transition always@ ( posedge Clock ) block
@@ -77,21 +70,21 @@ module fetch_controller (
     if (reset) begin
       next_state = idle;  
     end else begin
-        next_state = cur_state;
-        case (cur_state)
-            idle:         if (firing) next_state = wait_arready;
-            wait_arready: if (arready_i) next_state = wait_rvalid;  
-            wait_rvalid:  if (rvalid_i) next_state = wait_ready; 
-            wait_ready:   if (ready_post_i) begin
-                            if (branch_inst_i) 
-                              next_state = wait_branch;
-                            else 
-                              next_state = wait_arready;
-                          end   
-            wait_branch:  if (branch_valid_i) next_state = wait_arready;
-          default: next_state = cur_state;
-        endcase
+      next_state = cur_state;
+      case (cur_state)
+        idle:         if (firing)    next_state = wait_arready;
+        wait_arready: if (arready_i) next_state = wait_rvalid;  
+        wait_rvalid:  if (rvalid_i)  next_state = wait_ready; 
+        wait_ready:   if (ready_post_i) begin
+                        if (branch_inst_i) 
+                          next_state = wait_branch;  // decode stage receive branch instruction
+                        else 
+                          next_state = wait_arready; // decode stage receive non-branch instruction
+                      end   
+        wait_branch:  if (branch_valid_i) next_state = wait_arready;
+        default: next_state = cur_state;
+      endcase
     end
   end
 
-endmodule // ifu_fsm
+endmodule 
