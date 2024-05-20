@@ -9,6 +9,7 @@ module fetch (
   output                     valid_post_o,
   input                      ready_post_i,
 
+  input                      branch_valid_i,
   input                      branch_en_i,
   input  [`NPC_ADDR_BUS]     dnpc_i,
 
@@ -64,6 +65,7 @@ module fetch (
   wire rready;
   wire [31:0] rdata;
 
+  wire branch_inst;
 
   // AW: Address Write Channel 
   assign awvalid_o = 0;
@@ -100,18 +102,19 @@ module fetch (
     .valid_post_o (valid_post_o),
     .ready_post_i (ready_post_i),
 
-    .firing       (firing),
+    .branch_valid_i (branch_valid_i),
+
+    .branch_inst_i (branch_inst),
 
     .pc_we_o      (pc_we),
     .inst_we_o    (inst_we),
 
-    // AR,
     .arready_i    (arready),
     .arvalid_o    (arvalid),
-
-    // R,
     .rready_o     (rready),
-    .rvalid_i     (rvalid)
+    .rvalid_i     (rvalid),
+
+    .firing       (firing)
   );
 
   fetch_reg reg0 (
@@ -129,6 +132,11 @@ module fetch (
     .inst_o       (inst_o),
 
     .rdata_i      (rdata)
+  );
+
+  pre_decode pre_decode0 (
+    .inst_i (inst_o),
+    .branch_inst_o (branch_inst)
   );
 
   icache icache0 (

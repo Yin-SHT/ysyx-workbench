@@ -26,11 +26,11 @@ module fetch_reg (
   always @(posedge clock) begin
     if (reset) begin
       pc_o <= 0;
+    end else if (branch_en_i) begin
+        pc_o <= dnpc_i;
     end else if (pc_we_i | firing) begin
       if (firing) begin
         pc_o <= `RESET_VECTOR;
-      end else if (branch_en_i) begin
-        pc_o <= dnpc_i;
       end else begin
         pc_o <= pc_o + 4;
       end

@@ -33,6 +33,7 @@ module decode (
   
   // decode -> fetch
   output                      fencei_o,
+  output                      branch_valid_o,
   output                      branch_en_o,
   output  [`NPC_ADDR_BUS]     dnpc_o,
 
@@ -69,7 +70,9 @@ module decode (
     .ready_post_i (ready_post_i),
     .ready_pre_o  (ready_pre_o),
 
-    .we_o         (we)
+    .we_o         (we),
+
+    .branch_valid_o (branch_valid_o)
   );
 
   decode_reg reg0 (

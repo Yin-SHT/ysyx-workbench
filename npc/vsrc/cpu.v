@@ -96,6 +96,8 @@ module cpu (
   wire ready_exu_wbu;
 
   /* IDU --> IFU */
+  wire        fencei;
+  wire        branch_valid;
   wire        branch_en;
   wire [31:0] dnpc;
 
@@ -104,6 +106,7 @@ module cpu (
   wire [31:0] inst;
 
   /* WBU --> IDU */
+  wire        commit_valid;
   wire        wena;
   wire [4:0]  waddr;
   wire [31:0] wdata;
@@ -221,6 +224,7 @@ module cpu (
     .valid_post_o (valid_ifu_idu),
     .ready_post_i (ready_ifu_idu),
 
+    .branch_valid_i (branch_valid),
     .branch_en_i  (branch_en),
     .dnpc_i       (dnpc),
 
@@ -258,8 +262,6 @@ module cpu (
     .rid_i        (ifu_rid)
   );
   
-  wire fencei;
-
   decode decode0 (
   	.clock        (clock),
     .reset        (reset),
@@ -290,6 +292,7 @@ module cpu (
     .csr_rdata_o  (csr_rdata),                        
 
     .fencei_o     (fencei),
+    .branch_valid_o (branch_valid),
     .branch_en_o  (branch_en),  
     .dnpc_o       (dnpc),
 

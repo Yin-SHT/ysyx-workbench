@@ -7,7 +7,11 @@ module fetch_controller (
   output   valid_post_o,
   input    ready_post_i,
 
-  input    firing,
+  // decode -> controller
+  input    branch_valid_i,
+
+  // reg -> controller
+  input    branch_inst_i,
 
   // controller -> reg
   output   pc_we_o,
@@ -17,7 +21,9 @@ module fetch_controller (
   input    arready_i,
   output   arvalid_o,
   output   rready_o,
-  input    rvalid_i
+  input    rvalid_i,
+
+  input    firing
 );
 
   /* Performance Event */
@@ -33,9 +39,9 @@ module fetch_controller (
 
   parameter idle         = 3'b000; 
   parameter wait_ready   = 3'b001; 
-
   parameter wait_arready = 3'b010; 
   parameter wait_rvalid  = 3'b011; 
+  parameter wait_branch  = 3'b100; 
 
   reg [2:0] cur_state;
   reg [2:0] next_state;
@@ -71,10 +77,12 @@ module fetch_controller (
     end else begin
         next_state = cur_state;
         case (cur_state)
-            idle:         if (firing)       next_state = wait_arready;
-            wait_arready: if (arready_i)    next_state = wait_rvalid;  
-            wait_rvalid:  if (rvalid_i)     next_state = wait_ready; 
-            wait_ready:   if (ready_post_i) next_state = wait_arready;
+            idle:         if (firing) next_state = wait_arready;
+            wait_arready: if (arready_i) next_state = wait_rvalid;  
+            wait_rvalid:  if (rvalid_i) next_state = wait_ready; 
+            wait_ready:   if (ready_post_i && !branch_inst_i) next_state = wait_arready;
+                          else if (ready_post_i && branch_inst_i) next_state = wait_branch;
+            wait_branch:  if (branch_valid_i) next_state = wait_arready;
           default:                          next_state = cur_state;
         endcase
     end

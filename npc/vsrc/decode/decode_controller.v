@@ -10,7 +10,10 @@ module decode_controller (
   input  ready_post_i,
   output ready_pre_o,
 
-  output we_o
+  output we_o,
+
+  // decode -> fetch
+  output branch_valid_o  // This signal indicate bpu has been got the result
 );
 
   /* Performance Event */
@@ -23,7 +26,7 @@ module decode_controller (
   endfunction
 
   parameter idle       = 2'b00;
-  parameter wait_ready = 2'b01;
+  parameter wait_ready = 2'b01;  // wait both data and execute ready
 
   reg [1:0] cur_state;
   reg [1:0] next_state;
@@ -32,9 +35,10 @@ module decode_controller (
   // Outputs 
   //-----------------------------------------------------------------
   assign we_o         = (valid_pre_i && ready_pre_o);
-  assign ready_pre_o  = (cur_state == idle         );
-  assign valid_post_o = (cur_state == wait_ready   );
+  assign ready_pre_o  = (cur_state == idle);
+  assign valid_post_o = (cur_state == wait_ready);
 
+  assign branch_valid_o = valid_post_o;
 
   //-----------------------------------------------------------------
   // Synchronous State - Transition always@ ( posedge Clock ) block
