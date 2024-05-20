@@ -262,6 +262,10 @@ module cpu (
     .rid_i        (ifu_rid)
   );
   
+  wire [31:0] inst_idu_exu;
+  wire [31:0] pc_exu_wbu;
+  wire [31:0] inst_exu_wbu;
+
   decode decode0 (
   	.clock        (clock),
     .reset        (reset),
@@ -288,6 +292,7 @@ module cpu (
     .csr_waddr_o  (csr_waddr_idu_exu),                        
                    
     .pc_o         (pc),                 
+    .inst_o       (inst_idu_exu),
     .imm_o        (imm),                  
     .rdata1_o     (rdata1),                     
     .rdata2_o     (rdata2),                     
@@ -326,11 +331,14 @@ module cpu (
     .csr_wena_i   (csr_wena_idu_exu),                       
     .csr_waddr_i  (csr_waddr_idu_exu),                        
     .pc_i         (pc),                 
+    .inst_i       (inst_idu_exu),                 
     .imm_i        (imm),                  
     .rdata1_i     (rdata1),                     
     .rdata2_i     (rdata2),                     
     .csr_rdata_i  (csr_rdata),                        
 
+    .pc_o         (pc_exu_wbu),                 
+    .inst_o       (inst_exu_wbu),                 
     .wsel_o       (wsel_exu_wbu),
     .wena_o       (wena_exu_wbu),
     .waddr_o      (waddr_exu_wbu),
@@ -380,6 +388,8 @@ module cpu (
 
     .commit_valid_o (commit_valid),
 
+    .pc_i         (pc_exu_wbu),                 
+    .inst_i       (inst_exu_wbu),                 
     .wsel_i       (wsel_exu_wbu),
     .wena_i       (wena_exu_wbu),
     .waddr_i      (waddr_exu_wbu),

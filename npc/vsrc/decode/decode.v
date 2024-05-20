@@ -28,6 +28,7 @@ module decode (
   output  [31:0]              csr_waddr_o,
 
   output  [`NPC_ADDR_BUS]     pc_o,
+  output  [`NPC_ADDR_BUS]     inst_o,
   output  [`REG_DATA_BUS]     imm_o,
   output  [`REG_DATA_BUS]     rdata1_o,
   output  [`REG_DATA_BUS]     rdata2_o,
@@ -63,6 +64,7 @@ module decode (
   wire [31:0]           csr_raddr;
 
   assign fencei_o = fencei & valid_post_o && ready_post_i;
+  assign inst_o = inst;
 
   decode_controller controller (
     .clock        (clock),

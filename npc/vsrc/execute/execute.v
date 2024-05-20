@@ -18,13 +18,16 @@ module execute (
   input                      wena_i,
   input  [`REG_ADDR_BUS]     waddr_i,
   input                      csr_wena_i,
-  input [31:0]               csr_waddr_i,
+  input  [31:0]              csr_waddr_i,
   input  [`NPC_ADDR_BUS]     pc_i,
+  input  [`NPC_ADDR_BUS]     inst_i,
   input  [`REG_DATA_BUS]     imm_i,
   input  [`REG_DATA_BUS]     rdata1_i,
   input  [`REG_DATA_BUS]     rdata2_i,
   input  [`CSR_DATA_BUS]     csr_rdata_i,
   
+  output  [`NPC_ADDR_BUS]    pc_o,
+  output  [`NPC_ADDR_BUS]    inst_o,
   output                     wsel_o,
   output                     wena_o,
   output [`REG_ADDR_BUS]     waddr_o,
@@ -150,6 +153,7 @@ module execute (
     .csr_wena_i  (csr_wena_i),
     .csr_waddr_i (csr_waddr_i),
     .pc_i        (pc_i),
+    .inst_i      (inst_i),
     .imm_i       (imm_i),
     .rdata1_i    (rdata1_i),
     .rdata2_i    (rdata2_i),
@@ -165,12 +169,15 @@ module execute (
     .csr_wena_o  (csr_wena),
     .csr_waddr_o (csr_waddr),
     .pc_o        (pc),
+    .inst_o      (inst_o),
     .imm_o       (imm),
     .rdata1_o    (rdata1),
     .rdata2_o    (rdata2),
     .csr_rdata_o (csr_rdata)
   );
   
+  assign pc_o = pc;
+
   fu fu0 (
     .reset          (reset),
                     

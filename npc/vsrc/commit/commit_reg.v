@@ -6,6 +6,8 @@ module commit_reg (
 
   input             we_i,
 
+  input  [31:0]     pc_i,
+  input  [31:0]     inst_i,
   input             wsel_i,
   input             wena_i,
   input [4:0]       waddr_i, 
@@ -25,13 +27,20 @@ module commit_reg (
   output reg [31:0] csr_wdata_o
 );
 
+  reg [31:0] pc;
+  reg [31:0] inst;
+
   always @(posedge clock) begin
     if (reset) begin
+      pc      <= 0;
+      inst    <= 0;
       wena_o  <= 0;
       waddr_o <= 0;
       wdata_o <= 0;
     end else begin
       if (we_i) begin
+        pc         <= pc_i;
+        inst       <= inst_i;
         wena_o     <= wena_i;
         waddr_o    <= waddr_i;
         if (wsel_i == `SEL_ALU_DATA) begin

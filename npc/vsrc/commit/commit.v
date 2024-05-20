@@ -9,6 +9,8 @@ module commit (
 
   output        commit_valid_o,
 
+  input  [31:0] pc_i,
+  input  [31:0] inst_i,
   input         wsel_i,
   input         wena_i,
   input  [4:0]  waddr_i, 
@@ -48,6 +50,8 @@ module commit (
                      
     .we_i         (we),          
                      
+    .pc_i         (pc_i),
+    .inst_i       (inst_i),
     .wsel_i       (wsel_i),            
     .wena_i       (wena_i),            
     .waddr_i      (waddr_i),              
