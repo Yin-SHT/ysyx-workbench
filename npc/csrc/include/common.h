@@ -61,8 +61,8 @@ typedef uint16_t ioaddr_t;
 //#define CONFIG_NVBOARD 1
 
 /* Trace Defines */
-#define CONFIG_WAVEFORM 1
-#define CONFIG_DIFFTEST 1
+//#define CONFIG_WAVEFORM 1
+//#define CONFIG_DIFFTEST 1
 
 /* THESE BELOW MICRO ALWAYS RELATED WITH FUNCTIONAL VALIDATION */
 /* Device Defines */

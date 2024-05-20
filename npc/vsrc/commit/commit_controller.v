@@ -7,6 +7,8 @@ module commit_controller (
   input    valid_pre_i,
   output   ready_pre_o,
 
+  output   commit_valid_o,
+
   output   we_o
 );
 
@@ -27,7 +29,7 @@ module commit_controller (
   //-----------------------------------------------------------------
   assign we_o = valid_pre_i && ready_pre_o;
   assign ready_pre_o = cur_state == idle;
-
+  assign commit_valid_o = cur_state == await;
 
   //-----------------------------------------------------------------
   // Synchronous State - Transition always@ ( posedge Clock ) block

@@ -4,6 +4,8 @@ module decode (
   input                       clock,
   input                       reset,
 
+  input                       commit_valid_i,
+
   input                       valid_pre_i,
   output                      ready_pre_o,
 
@@ -47,6 +49,7 @@ module decode (
   input   [31:0]              csr_wdata_i
 );
 
+  wire                  raw;
   wire                  fencei;
   wire [`BPU_OP_BUS]    bpu_op;
   wire                  we;
@@ -64,6 +67,8 @@ module decode (
   decode_controller controller (
     .clock        (clock),
     .reset        (reset),
+
+    .raw_i        (raw),
 
     .valid_pre_i  (valid_pre_i),
     .valid_post_o (valid_post_o),
@@ -134,9 +139,17 @@ module decode (
   	.clock        (clock),
     .reset        (reset),
 
-    .wena_i       (wena_i),
-    .waddr_i      (waddr_i),
-    .wdata_i      (wdata_i),
+    .raw_o        (raw),
+
+    .commit_valid_i (commit_valid_i),
+    .commit_wena_i  (wena_i),
+    .commit_waddr_i (waddr_i),
+    .commit_wdata_i (wdata_i),
+
+    .decode_valid_post (valid_post_o),
+    .decode_ready_post (ready_post_i),
+    .decode_wena_i  (wena_o),
+    .decode_waddr_i (waddr_o),
 
     .rena1_i      (rena1),
     .raddr1_i     (raddr1),

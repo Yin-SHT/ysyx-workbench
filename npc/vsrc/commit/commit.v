@@ -7,6 +7,8 @@ module commit (
   input         valid_pre_i,
   output        ready_pre_o,
 
+  output        commit_valid_o,
+
   input         wsel_i,
   input         wena_i,
   input  [4:0]  waddr_i, 
@@ -34,6 +36,8 @@ module commit (
 
     .valid_pre_i  (valid_pre_i),
     .ready_pre_o  (ready_pre_o),
+
+    .commit_valid_o (commit_valid_o),
 
     .we_o         (we)
   );

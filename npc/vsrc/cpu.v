@@ -266,6 +266,8 @@ module cpu (
   	.clock        (clock),
     .reset        (reset),
 
+    .commit_valid_i (commit_valid),
+
     .valid_pre_i  (valid_ifu_idu),
     .ready_pre_o  (ready_ifu_idu),
     .valid_post_o (valid_idu_exu),
@@ -375,6 +377,8 @@ module cpu (
 
     .valid_pre_i  (valid_exu_wbu),
     .ready_pre_o  (ready_exu_wbu),
+
+    .commit_valid_o (commit_valid),
 
     .wsel_i       (wsel_exu_wbu),
     .wena_i       (wena_exu_wbu),
