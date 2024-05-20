@@ -1,19 +1,19 @@
 `include "defines.v"
 
 module branch_log (
-  input reset,
+  input               reset,
 
-  input [`BPU_OP_BUS]       bpu_op_i,
-  input [`ALU_OP_BUS]       csr_op_i,
+  input [`BPU_OP_BUS] bpu_op_i,
+  input [`ALU_OP_BUS] csr_op_i,
 
-  input [`NPC_ADDR_BUS]     pc_i, 
-  input [`REG_DATA_BUS]     imm_i,
-  input [`REG_DATA_BUS]     rdata1_i,
-  input [`REG_DATA_BUS]     rdata2_i,
-  input [`CSR_DATA_BUS]     csr_rdata_i,
+  input [31:0]        pc_i, 
+  input [31:0]        imm_i,
+  input [31:0]        rdata1_i,
+  input [31:0]        rdata2_i,
+  input [31:0]        csr_rdata_i,
 
-  output                    branch_en_o,
-  output  [`NPC_ADDR_BUS]   dnpc_o
+  output              branch_en_o,
+  output [31:0]       dnpc_o
 );
 
   wire equal, signed_less_than, unsigned_less_than;

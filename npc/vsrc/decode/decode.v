@@ -51,6 +51,7 @@ module decode (
 );
 
   wire                  raw;
+  wire [1:0]            state;
   wire                  fencei;
   wire [`BPU_OP_BUS]    bpu_op;
   wire                  we;
@@ -71,6 +72,7 @@ module decode (
     .reset        (reset),
 
     .raw_i        (raw),
+    .state_o      (state),
 
     .valid_pre_i  (valid_pre_i),
     .valid_post_o (valid_post_o),
@@ -138,28 +140,29 @@ module decode (
   );
 
   regfile regfile0 (
-  	.clock        (clock),
-    .reset        (reset),
+  	.clock              (clock),
+    .reset              (reset),
 
-    .raw_o        (raw),
+    .raw_o              (raw),
+    .state_i            (state),
 
-    .commit_valid_i (commit_valid_i),
-    .commit_wena_i  (wena_i),
-    .commit_waddr_i (waddr_i),
-    .commit_wdata_i (wdata_i),
+    .commit_valid_i     (commit_valid_i),
+    .commit_wena_i      (wena_i),
+    .commit_waddr_i     (waddr_i),
+    .commit_wdata_i     (wdata_i),
 
-    .decode_valid_post (valid_post_o),
-    .decode_ready_post (ready_post_i),
-    .decode_wena_i  (wena_o),
-    .decode_waddr_i (waddr_o),
+    .decode_valid_post  (valid_post_o),
+    .decode_ready_post  (ready_post_i),
+    .decode_wena_i      (wena_o),
+    .decode_waddr_i     (waddr_o),
 
-    .rena1_i      (rena1),
-    .raddr1_i     (raddr1),
-    .rdata1_o     (rdata1_o),
+    .rena1_i            (rena1),
+    .raddr1_i           (raddr1),
+    .rdata1_o           (rdata1_o),
 
-    .rena2_i      (rena2),
-    .raddr2_i     (raddr2),
-    .rdata2_o     (rdata2_o)
+    .rena2_i            (rena2),
+    .raddr2_i           (raddr2),
+    .rdata2_o           (rdata2_o)
   );
 
   csrs csrs0 (

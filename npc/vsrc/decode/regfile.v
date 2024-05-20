@@ -5,6 +5,7 @@ module regfile(
   input         reset,
 
   output        raw_o,
+  input [1:0]   state_i,
 
   input         commit_valid_i,
 	input   		  commit_wena_i,
@@ -73,6 +74,6 @@ module regfile(
   assign rdata1_o = rena1_i ? regs[raddr1_i] : 0;
   assign rdata2_o = rena2_i ? regs[raddr2_i] : 0;
 
-  assign raw_o = (rena1_i && Busy[raddr1_i]) || (rena2_i && Busy[raddr2_i]);
+  assign raw_o = ((state_i == 2'b01) && rena1_i && Busy[raddr1_i]) || ((state_i == 2'b01) && rena2_i && Busy[raddr2_i]);  // 2'b01 == wait_ready
 
 endmodule

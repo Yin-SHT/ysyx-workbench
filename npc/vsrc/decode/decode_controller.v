@@ -5,6 +5,7 @@ module decode_controller (
   input  reset,
 
   input  raw_i,
+  output [1:0] state_o,
 
   input  valid_pre_i,
   output valid_post_o,
@@ -38,9 +39,10 @@ module decode_controller (
   //-----------------------------------------------------------------
   assign we_o         = (valid_pre_i && ready_pre_o);
   assign ready_pre_o  = (cur_state == idle);
-  assign valid_post_o = (cur_state == wait_ready) && !raw_i;
+  assign valid_post_o = (cur_state == wait_ready) && !raw_i;  // data is ready
 
   assign branch_valid_o = valid_post_o;
+  assign state_o = cur_state;
 
   //-----------------------------------------------------------------
   // Synchronous State - Transition always@ ( posedge Clock ) block
