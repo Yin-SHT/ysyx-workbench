@@ -86,6 +86,7 @@ module fetch (
 
   reg[127:0] fire;
   wire       firing = (fire == 1);
+  wire [2:0] state;
 
   always @(posedge clock) begin
     if (reset) begin
@@ -106,6 +107,7 @@ module fetch (
 
     .branch_inst_i (branch_inst),
 
+    .state_o      (state),
     .pc_we_o      (pc_we),
     .inst_we_o    (inst_we),
 
@@ -122,9 +124,12 @@ module fetch (
     .reset        (reset),
 
     .firing       (firing),
+
+    .state_i      (state),
     .pc_we_i      (pc_we),
     .inst_we_i    (inst_we),
 
+    .branch_valid_i (branch_valid_i),
     .branch_en_i  (branch_en_i),
     .dnpc_i       (dnpc_i),
 

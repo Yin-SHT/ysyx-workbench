@@ -38,9 +38,9 @@ module decode_controller (
   //-----------------------------------------------------------------
   assign we_o         = (valid_pre_i && ready_pre_o);
   assign ready_pre_o  = (cur_state == idle);
-  assign valid_post_o = (cur_state == wait_ready);
+  assign valid_post_o = (cur_state == wait_ready) && !raw_i;
 
-  assign branch_valid_o = (cur_state == wait_ready) && !raw_i;
+  assign branch_valid_o = valid_post_o;
 
   //-----------------------------------------------------------------
   // Synchronous State - Transition always@ ( posedge Clock ) block

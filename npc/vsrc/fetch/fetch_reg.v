@@ -5,9 +5,12 @@ module fetch_reg (
   input             reset,
 
   input             firing,
+
+  input  [2:0]      state_i,
   input             pc_we_i,       
   input             inst_we_i,       
 
+  input             branch_valid_i,
   input             branch_en_i, 
   input  [31:0]     dnpc_i,
 
@@ -26,12 +29,17 @@ module fetch_reg (
   always @(posedge clock) begin
     if (reset) begin
       pc_o <= 0;
-    end else if (branch_en_i) begin
-        pc_o <= dnpc_i;
-    end else if (pc_we_i | firing) begin
-      if (firing) begin
-        pc_o <= `RESET_VECTOR;
-      end else begin
+    end else if (firing) begin
+      pc_o <= `RESET_VECTOR;
+    end else if (state_i == 3'b100) begin  // wait_branch
+      if (branch_valid_i) begin
+        if (branch_en_i) 
+          pc_o <= dnpc_i;
+        else 
+          pc_o <= pc_o + 4;
+      end
+    end else if (state_i == 3'b001) begin  // wait_ready
+      if (pc_we_i) begin
         pc_o <= pc_o + 4;
       end
     end 

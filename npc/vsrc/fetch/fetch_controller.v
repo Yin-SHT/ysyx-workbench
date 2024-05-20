@@ -14,6 +14,7 @@ module fetch_controller (
   input    branch_inst_i,
 
   // controller -> reg
+  output [2:0] state_o,
   output   pc_we_o,
   output   inst_we_o,
 
@@ -51,8 +52,9 @@ module fetch_controller (
   //-----------------------------------------------------------------
   assign valid_post_o = cur_state == wait_ready;
 
-  assign pc_we_o      = valid_post_o && ready_post_i;
-  assign inst_we_o    = rvalid_i && rready_o   ;
+  assign state_o = cur_state;
+  assign pc_we_o      = valid_post_o && ready_post_i && !branch_inst_i;
+  assign inst_we_o    = rvalid_i && rready_o;
 
   assign arvalid_o    = cur_state == wait_arready;    
   assign rready_o     = cur_state == wait_rvalid ;    
@@ -80,10 +82,14 @@ module fetch_controller (
             idle:         if (firing) next_state = wait_arready;
             wait_arready: if (arready_i) next_state = wait_rvalid;  
             wait_rvalid:  if (rvalid_i) next_state = wait_ready; 
-            wait_ready:   if (ready_post_i && !branch_inst_i) next_state = wait_arready;
-                          else if (ready_post_i && branch_inst_i) next_state = wait_branch;
+            wait_ready:   if (ready_post_i) begin
+                            if (branch_inst_i) 
+                              next_state = wait_branch;
+                            else 
+                              next_state = wait_arready;
+                          end   
             wait_branch:  if (branch_valid_i) next_state = wait_arready;
-          default:                          next_state = cur_state;
+          default: next_state = cur_state;
         endcase
     end
   end
