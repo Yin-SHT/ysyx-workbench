@@ -41,17 +41,6 @@ module execute_controller (
   input  [`AXI4_RID_BUS]     rid_i       // don't use
 );
 
-  /* Performance Event */
-  export "DPI-C" function lsu_event;
-  function lsu_event;
-    output int lsu_arvalid_o;
-    output int lsu_rready_o;
-    output int lsu_rvalid_i;
-    lsu_arvalid_o = {{31{1'b0}}, arvalid_o};
-    lsu_rready_o  = {{31{1'b0}}, rready_o};
-    lsu_rvalid_i  = {{31{1'b0}}, rvalid_i};
-  endfunction
-
   parameter idle         = 3'b000;  
   parameter wait_ready   = 3'b001;  
 

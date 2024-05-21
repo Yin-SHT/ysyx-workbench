@@ -27,14 +27,6 @@ module commit_reg (
   output reg [31:0] csr_wdata_o
 );
 
-  export "DPI-C" function commit_reg_event;
-  function commit_reg_event;
-    output int commit_pc;
-    output int commit_inst;
-    commit_pc = pc;
-    commit_inst = inst;
-  endfunction
-
   reg [31:0] pc;
   reg [31:0] inst;
 

@@ -12,12 +12,6 @@ module commit_controller (
   output   we_o
 );
 
-  export "DPI-C" function commit_event;
-  function commit_event;
-    output int commit;
-    commit = {31'h0, commit_valid_o};
-  endfunction
-
   parameter idle  = 2'b00;
   parameter await = 2'b01;
 
