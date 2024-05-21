@@ -12,10 +12,10 @@ module commit_controller (
   output   we_o
 );
 
-  export "DPI-C" function wback_event;
-  function wback_event;
+  export "DPI-C" function commit_event;
+  function commit_event;
     output int commit;
-    commit = {31'h0, valid_pre_i & ready_pre_o};
+    commit = {31'h0, commit_valid_o};
   endfunction
 
   parameter idle  = 2'b00;

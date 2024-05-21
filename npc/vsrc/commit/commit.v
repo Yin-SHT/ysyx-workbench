@@ -33,15 +33,15 @@ module commit (
   wire we;
 
   commit_controller controller (
-  	.clock        (clock),
-    .reset        (reset),
+  	.clock          (clock),
+    .reset          (reset),
 
-    .valid_pre_i  (valid_pre_i),
-    .ready_pre_o  (ready_pre_o),
+    .valid_pre_i    (valid_pre_i),
+    .ready_pre_o    (ready_pre_o),
 
     .commit_valid_o (commit_valid_o),
 
-    .we_o         (we)
+    .we_o           (we)
   );
   
   commit_reg reg0 (

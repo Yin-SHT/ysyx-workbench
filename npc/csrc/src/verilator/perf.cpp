@@ -7,6 +7,7 @@ svScope sp_fetchreg;
 svScope sp_decode;
 svScope sp_regfile;
 svScope sp_commit;
+svScope sp_commit_reg;
 #elif CONFIG_SOC
 svScope sp_fetchreg;
 svScope sp_decode;

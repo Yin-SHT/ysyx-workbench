@@ -95,6 +95,7 @@ module execute (
   wire [`REG_DATA_BUS]    rdata2;
   wire [`CSR_DATA_BUS]    csr_rdata;
 
+  assign pc_o        = pc;
   assign wsel_o      = wsel;
   assign wena_o      = wena;
   assign waddr_o     = waddr;
@@ -102,39 +103,39 @@ module execute (
   assign csr_waddr_o = csr_waddr;
 
   execute_controller controller (
-  	.clock        ( clock        ),
-    .reset        ( reset        ),
+  	.clock        (clock),
+    .reset        (reset),
 
-    .valid_pre_i  ( valid_pre_i  ),
-    .ready_pre_o  ( ready_pre_o  ),
-    .valid_post_o ( valid_post_o ),
-    .ready_post_i ( ready_post_i ),
+    .valid_pre_i  (valid_pre_i),
+    .ready_pre_o  (ready_pre_o),
+    .valid_post_o (valid_post_o),
+    .ready_post_i (ready_post_i),
 
-    .inst_type_i  ( inst_type_i  ),
+    .inst_type_i  (inst_type_i),
 
-    .we_o         ( we           ),
-    .rdata_we_o   ( rdata_we     ),
+    .we_o         (we),
+    .rdata_we_o   (rdata_we),
 
     // AXI4 interface
-    .awready_i    ( awready_i    ),
-    .awvalid_o    ( awvalid_o    ),
+    .awready_i    (awready_i),
+    .awvalid_o    (awvalid_o),
 
-    .wready_i     ( wready_i     ),
-    .wvalid_o     ( wvalid_o     ),
+    .wready_i     (wready_i),
+    .wvalid_o     (wvalid_o),
 
-    .bready_o     ( bready_o     ),
-    .bvalid_i     ( bvalid_i     ),
-    .bresp_i      ( bresp_i      ),
-    .bid_i        ( bid_i        ),
+    .bready_o     (bready_o),
+    .bvalid_i     (bvalid_i),
+    .bresp_i      (bresp_i),
+    .bid_i        (bid_i),
 
-    .arready_i    ( arready_i    ),
-    .arvalid_o    ( arvalid_o    ),
+    .arready_i    (arready_i),
+    .arvalid_o    (arvalid_o),
 
-    .rready_o     ( rready_o     ),
-    .rvalid_i     ( rvalid_i     ),
-    .rresp_i      ( rresp_i      ),
-    .rlast_i      ( rlast_i      ),
-    .rid_i        ( rid_i        )
+    .rready_o     (rready_o),
+    .rvalid_i     (rvalid_i),
+    .rresp_i      (rresp_i),
+    .rlast_i      (rlast_i),
+    .rid_i        (rid_i)
   );
   
   execute_reg reg0 (
@@ -175,8 +176,6 @@ module execute (
     .rdata2_o    (rdata2),
     .csr_rdata_o (csr_rdata)
   );
-  
-  assign pc_o = pc;
 
   fu fu0 (
     .reset          (reset),

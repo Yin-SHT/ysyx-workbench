@@ -129,6 +129,7 @@ module cpu (
   wire [31:0]           rdata1;
   wire [31:0]           rdata2;
   wire [31:0]           csr_rdata;
+  wire [31:0]           inst_idu_exu;
 
   /* EXU --> WBU */
   wire        wsel_exu_wbu;
@@ -139,6 +140,9 @@ module cpu (
   wire        csr_wena_exu_wbu;
   wire [31:0] csr_waddr_exu_wbu;
   wire [31:0] csr_wdata_exu_wbu;
+  wire [31:0] pc_exu_wbu;
+  wire [31:0] inst_exu_wbu;
+
 
   /* IFU & ARBITER */
   wire        ifu_awready;
@@ -262,10 +266,6 @@ module cpu (
     .rid_i        (ifu_rid)
   );
   
-  wire [31:0] inst_idu_exu;
-  wire [31:0] pc_exu_wbu;
-  wire [31:0] inst_exu_wbu;
-
   decode decode0 (
   	.clock        (clock),
     .reset        (reset),

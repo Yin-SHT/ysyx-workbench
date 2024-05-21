@@ -11,7 +11,8 @@ static VerilatedVcdC* tfp;
 static VysyxSoCFull *ysyxSoCFull;
 
 int cur_pc;
-int cur_commit, pre_commit, diff_execu;
+int cur_commit, cur_commit_pc, cur_commit_inst;
+int pre_commit, pre_commit_pc, pre_commit_inst;
 
 void simulation_quit() {
 #ifdef CONFIG_WAVEFORM
@@ -36,10 +37,12 @@ void single_cycle() {
 
   /* Update processor state */
 #ifdef CONFIG_DIFFTEST
-  diff_execu = pre_commit;
   pre_commit = cur_commit;
-  if (diff_execu) {PROCESSOR_ALIGN(cur_pc);}
-  svSetScope(sp_commit); wback_event(&cur_commit);
+  pre_commit_pc = cur_commit_pc;
+  pre_commit_inst = cur_commit_inst;
+  if (pre_commit) {PROCESSOR_ALIGN(cur_commit_pc);}
+  svSetScope(sp_commit); commit_event(&cur_commit);
+  svSetScope(sp_commit_reg); commit_reg_event(&cur_commit_pc, &cur_commit_inst);
 #endif
 
   /* Update nvboard state */
@@ -73,7 +76,8 @@ void init_verilator(int argc, char **argv) {
   sp_decode   = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.decode_log0");
   sp_regfile  = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.regfile0");
   sp_commit   = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.commit0.controller");
-  assert(sp_fetchreg && sp_decode && sp_regfile && sp_commit);
+  sp_commit_reg = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.commit0.reg0");
+  assert(sp_fetchreg && sp_decode && sp_regfile && sp_commit && sp_commit_reg);
 #elif CONFIG_SOC
   sp_fetchreg   = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.fetch0.reg0");
   sp_decode     = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.decode0.decode_log0");

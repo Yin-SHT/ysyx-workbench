@@ -6,8 +6,8 @@ module commit_reg (
 
   input             we_i,
 
-  input  [31:0]     pc_i,
-  input  [31:0]     inst_i,
+  input [31:0]      pc_i,
+  input [31:0]      inst_i,
   input             wsel_i,
   input             wena_i,
   input [4:0]       waddr_i, 
@@ -27,16 +27,27 @@ module commit_reg (
   output reg [31:0] csr_wdata_o
 );
 
+  export "DPI-C" function commit_reg_event;
+  function commit_reg_event;
+    output int commit_pc;
+    output int commit_inst;
+    commit_pc = pc;
+    commit_inst = inst;
+  endfunction
+
   reg [31:0] pc;
   reg [31:0] inst;
 
   always @(posedge clock) begin
     if (reset) begin
-      pc      <= 0;
-      inst    <= 0;
-      wena_o  <= 0;
-      waddr_o <= 0;
-      wdata_o <= 0;
+      pc          <= 0;
+      inst        <= 0;
+      wena_o      <= 0;
+      waddr_o     <= 0;
+      wdata_o     <= 0;
+      csr_wena_o  <= 0;
+      csr_waddr_o <= 0;
+      csr_wdata_o <= 0;
     end else begin
       if (we_i) begin
         pc         <= pc_i;
