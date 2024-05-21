@@ -20,8 +20,8 @@ module fetch_reg (
   output reg [31:0] inst_o
 );
 
-  export "DPI-C" function fetchreg_event;
-  function fetchreg_event;
+  export "DPI-C" function fetch_reg_event;
+  function fetch_reg_event;
     output int pc;
     pc = pc_o;
   endfunction

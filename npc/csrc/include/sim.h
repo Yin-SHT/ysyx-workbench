@@ -15,7 +15,6 @@ void inst_fetch();
 void perf_update();
 void perf_display();
 
-extern int cur_pc;
 extern int pre_commit, pre_commit_pc;
 
 extern bool wave_start;
@@ -28,13 +27,10 @@ extern svScope sp_regfile;
 extern svScope sp_commit;
 extern svScope sp_commit_reg;
 #elif CONFIG_SOC
-extern svScope sp_fetchreg;
+extern svScope sp_fetch_reg;
 extern svScope sp_decode;
 extern svScope sp_regfile;
-extern svScope sp_fetch_ctl;
 extern svScope sp_decode_ctl;
-extern svScope sp_execu_ctl;
-extern svScope sp_wback_ctl;
 extern svScope sp_icache;
 #endif
 

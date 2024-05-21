@@ -29,16 +29,16 @@ module decode_log (
   output  fencei_o
 );
 
-  export "DPI-C" function inst_ebreak;
-  function inst_ebreak;
+  export "DPI-C" function check_inst;
+  function check_inst;
+      output int _pc;
+      output int _inst;
       output int _ebreak;
-      _ebreak = { {31{1'b0}}, ebreak };
-  endfunction
-
-  export "DPI-C" function inst_invalid;
-  function inst_invalid;
       output int _unknown;
-      _unknown = { {31{1'b0}}, unknown };
+      _pc = pc_i;
+      _inst = inst_i;
+      _ebreak = { {31{1'b0}}, ebreak};
+      _unknown = { {31{1'b0}}, unknown};
   endfunction
 
   export "DPI-C" function type_event;

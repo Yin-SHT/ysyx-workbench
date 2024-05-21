@@ -12,3 +12,4 @@
 build/
 /obj_dir
 !*scala
+!README
