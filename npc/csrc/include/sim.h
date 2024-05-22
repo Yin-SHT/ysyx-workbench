@@ -23,6 +23,7 @@ extern bool perf_start;
 #ifdef CONFIG_FUNC
 extern svScope sp_fetchreg;
 extern svScope sp_decode;
+extern svScope sp_decode_ctl;
 extern svScope sp_regfile;
 extern svScope sp_commit;
 extern svScope sp_commit_reg;

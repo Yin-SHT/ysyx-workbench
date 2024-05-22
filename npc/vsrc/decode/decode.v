@@ -12,6 +12,7 @@ module decode (
   output                      valid_post_o,
   input                       ready_post_i,
 
+  // fetch -> decode
   input   [`NPC_ADDR_BUS]     pc_i,
   input   [`NPC_DATA_BUS]     inst_i,
 

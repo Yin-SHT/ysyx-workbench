@@ -4,20 +4,21 @@ module fetch (
   input                      reset,
   input                      clock,
 
-  input                      flush_i,
-
   output                     valid_post_o,
   input                      ready_post_i,
 
-  input                      branch_valid_i,
-  input                      branch_en_i,
-  input  [`NPC_ADDR_BUS]     dnpc_i,
+  // decode -> fetch
+  input                      flush_i,       // don't use  
+  input                      branch_valid_i, // don't use  
+  input                      branch_en_i,    // don't use  
+  input  [`NPC_ADDR_BUS]     dnpc_i,         // don't use  
 
+  // fetch -> decode
   output [`NPC_ADDR_BUS]     pc_o,
   output [`NPC_DATA_BUS]     inst_o,
 
   // AW: Address Write Channel 
-  input                      awready_i,     // don't use
+  input                      awready_i,      // don't use
   output                     awvalid_o,
   output [`AXI4_AWADDR_BUS]  awaddr_o,
   output [`AXI4_AWID_BUS]    awid_o,
@@ -26,7 +27,7 @@ module fetch (
   output [`AXI4_AWBURST_BUS] awburst_o,
 
   //  W: Data Write Channel 
-  input                      wready_i,      // don't use
+  input                      wready_i,       // don't use
   output                     wvalid_o,
   output [`AXI4_WDATA_BUS]   wdata_o,
   output [`AXI4_WSTRB_BUS]   wstrb_o,
@@ -34,9 +35,9 @@ module fetch (
 
   //  B: Response Write Channel 
   output                     bready_o,
-  input                      bvalid_i,      // don't use 
-  input  [`AXI4_BRESP_BUS]   bresp_i,       // don't use
-  input  [`AXI4_BID_BUS]     bid_i,         // don't use
+  input                      bvalid_i,       // don't use 
+  input  [`AXI4_BRESP_BUS]   bresp_i,        // don't use
+  input  [`AXI4_BID_BUS]     bid_i,          // don't use
 
   // AR: Address Read Channel
   input                      arready_i,
@@ -56,18 +57,6 @@ module fetch (
   input  [`AXI4_RID_BUS]     rid_i
 );
 
-  wire pc_we;
-  wire inst_we;
-  wire arvalid;
-  wire arready;
-
-  wire rvalid;
-  wire rready;
-  wire [31:0] rdata;
-
-  wire branch_inst;
-  wire [2:0] state;
-
   // AW: Address Write Channel 
   assign awvalid_o = 0;
   assign awaddr_o  = 0;
@@ -85,69 +74,78 @@ module fetch (
   //  B: Response Write Channel 
   assign bready_o  = 0;
 
-  reg[127:0] fire;
-  wire       firing = (fire == 1);
+  wire         valid_addr_access;
+  wire         ready_addr_access;
+  wire         valid_access_drive;
+  wire         ready_access_drive;
 
-  always @(posedge clock) begin
-    if (reset) begin
-      fire <= 0;
-    end else begin
-      fire <= fire + 1;
-    end
-  end
+  wire [31:0]  pc;
+  wire         wen;
+  wire [3:0]   windex;
+  wire [2:0]   wway;
+  wire [23:0]  wtag;
+  wire [127:0] wdata;
 
-  fetch_controller controller (
-    .clock          (clock),
-    .reset          (reset),
+  wire         tar_hit;
+  wire [31:0]  araddr;
+  wire [127:0] buffer;
 
-    .valid_post_o   (valid_post_o),
-    .ready_post_i   (ready_post_i),
 
-    .branch_valid_i (branch_valid_i),
-    .branch_inst_i  (branch_inst),
+  addr_calculate addr_calculate0 (
+    .clock        (clock),
+    .reset        (reset),
 
-    .state_o        (state),
-    .pc_we_o        (pc_we),
-    .inst_we_o      (inst_we),
+    .valid_post_o (valid_addr_access),
+    .ready_post_i (ready_addr_access),
 
-    .arready_i      (arready),
-    .arvalid_o      (arvalid),
-    .rready_o       (rready),
-    .rvalid_i       (rvalid),
-
-    .firing         (firing)
+    .pc_o         (pc)
   );
 
-  fetch_reg reg0 (
-    .clock          (clock),
-    .reset          (reset),
+  cache_access cache_access0 (
+    .clock        (clock),
+    .reset        (reset),
 
-    .firing         (firing),
+    .valid_pre_i  (valid_addr_access),                     
+    .ready_pre_o  (ready_addr_access),                 
 
-    .state_i        (state),
-    .pc_we_i        (pc_we),
-    .inst_we_i      (inst_we),
+    .valid_post_o (valid_access_drive),
+    .ready_post_i (ready_access_drive),                
 
-    .branch_valid_i (branch_valid_i),
-    .branch_en_i    (branch_en_i),
-    .dnpc_i         (dnpc_i),
+    .wen_i        (wen),        
+    .windex_i     (windex),             
+    .wway_i       (wway),          
+    .wtag_i       (wtag),          
+    .wdata_i      (wdata),            
 
-    .rdata_i        (rdata),
+    .araddr_i     (pc),                 
 
-    .pc_o           (pc_o),
-    .inst_o         (inst_o)
+    .tar_hit_o    (tar_hit),
+    .araddr_o     (araddr),            
+    .buffer_o     (buffer)            
   );
 
-  pre_decode pre_decode0 (
-    .inst_i         (inst_o),
-    .branch_inst_o  (branch_inst)
-  );
-
-  icache icache0 (
+  result_drive result_drive0 (
     .clock              (clock),                      
     .reset              (reset),                      
 
-    .flush_i            (flush_i),
+    .valid_pre_i        (valid_access_drive),                        
+    .ready_pre_o        (ready_access_drive),                
+                         
+    .valid_post_o       (valid_post_o),                        
+    .ready_post_i       (ready_post_i),                
+
+    .tar_hit_i          (tar_hit),
+    .araddr_i           (araddr),
+    .buffer_i           (buffer),
+                         
+    .wen_o              (wen),
+    .windex_o           (windex),
+    .wway_o             (wway),
+    .wtag_o             (wtag),
+    .wdata_o            (wdata),
+                         
+    .pc_o               (pc_o),
+    .inst_o             (inst_o),
 
     .io_master_arready  (arready_i),                                  
     .io_master_arvalid  (arvalid_o),                                  
@@ -162,15 +160,7 @@ module fetch (
     .io_master_rresp    (rresp_i),                                
     .io_master_rdata    (rdata_i),                                
     .io_master_rlast    (rlast_i),                                
-    .io_master_rid      (rid_i),                              
-
-    .arready_o          (arready),                          
-    .arvalid_i          (arvalid),                          
-    .araddr_i           (pc_o),                         
-
-    .rready_i           (rready),                         
-    .rvalid_o           (rvalid),                         
-    .rdata_o            (rdata)                        
+    .io_master_rid      (rid_i)
   );
 
 endmodule

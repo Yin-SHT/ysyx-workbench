@@ -46,8 +46,8 @@ void single_cycle() {
 
   /* Miscellaneous */
   int pc;
-  svSetScope(sp_fetch_reg);
-  fetch_reg_event(&pc);
+//  svSetScope(sp_fetch_reg);
+//  fetch_reg_event(&pc);
   IFDEF(CONFIG_SOC, {if (pc == 0xa0000000) wave_start = true;});
   IFDEF(CONFIG_SOC, {if (pc == 0xa0000000) perf_start = true;});
   IFDEF(CONFIG_SOC, IFDEF(CONFIG_PEREVENT, perf_update()));
@@ -71,12 +71,10 @@ void init_verilator(int argc, char **argv) {
 
   // Prepare for DPI-C
 #ifdef CONFIG_FUNC
-  sp_fetchreg = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.fetch0.reg0");
-  sp_decode   = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.decode_log0");
-  sp_regfile  = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.regfile0");
-  sp_commit   = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.commit0.controller");
-  sp_commit_reg = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.commit0.reg0");
-  assert(sp_fetchreg && sp_decode && sp_regfile && sp_commit && sp_commit_reg);
+  sp_regfile    = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.regfile0");
+  sp_decode     = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.decode_log0");
+  sp_decode_ctl = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.controller");
+  assert(sp_decode && sp_regfile);
 #elif CONFIG_SOC
   sp_fetch_reg  = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.fetch0.reg0");
   sp_decode     = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.decode0.decode_log0");

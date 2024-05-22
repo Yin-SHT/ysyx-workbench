@@ -4,6 +4,7 @@
 
 #ifdef CONFIG_FUNC
 svScope sp_fetchreg;
+svScope sp_decode_ctl;
 svScope sp_decode;
 svScope sp_regfile;
 svScope sp_commit;

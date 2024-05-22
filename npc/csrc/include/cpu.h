@@ -39,6 +39,7 @@ void update_cpu(uint32_t next_pc);
     if (pre_receive) { \
       if (unknown) { \
         RED_BOLD_PRINT("Unknown 0x%08x at pc 0x%08x\n", inst, pc); \
+        simulation_quit();  \
         set_npc_state(NPC_QUIT, pc, a0);  \
         return; \
       } \
