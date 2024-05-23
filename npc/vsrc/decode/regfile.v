@@ -17,6 +17,15 @@ module regfile(
 	input   		  decode_wena_i,
 	input  [4:0]  decode_waddr_i,
 
+  output        fetch_raw_o,
+  input  [2:0]  fetch_state_i,
+	input   		  fetch_rena1_i,
+	input  [4:0]  fetch_raddr1_i,
+	output [31:0] fetch_rdata1_o,
+	input   		  fetch_rena2_i,
+	input  [4:0]  fetch_raddr2_i,
+	output [31:0] fetch_rdata2_o,
+
 	input   		  rena1_i,
 	input  [4:0]  raddr1_i,
 	output [31:0] rdata1_o,
@@ -75,5 +84,11 @@ module regfile(
   assign rdata2_o = rena2_i ? regs[raddr2_i] : 0;
 
   assign raw_o = ((state_i == 2'b01) && rena1_i && Busy[raddr1_i]) || ((state_i == 2'b01) && rena2_i && Busy[raddr2_i]);  // 2'b01 == wait_ready
+
+  assign fetch_rdata1_o = (!fetch_raw_o && fetch_rena1_i) ? regs[fetch_raddr1_i] : 0;
+  assign fetch_rdata2_o = (!fetch_raw_o && fetch_rena2_i) ? regs[fetch_raddr2_i] : 0;
+
+  assign fetch_raw_o = (((fetch_state_i == 3'b011) || (fetch_state_i == 3'b100)) && fetch_rena1_i && Busy[fetch_raddr1_i]) ||  // 3'b011 == wait_ready
+                       (((fetch_state_i == 3'b011) || (fetch_state_i == 3'b100)) && fetch_rena2_i && Busy[fetch_raddr2_i]);    // 3'b100 == read_end
 
 endmodule

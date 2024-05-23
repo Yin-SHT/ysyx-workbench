@@ -76,7 +76,7 @@ module icache (
       araddr <= 0;
     end else if (cur_state == idle && arvalid_i) begin
       araddr <= araddr_i;
-    end else if (cur_state == idle && !arvalid_i) begin
+    end else if (cur_state == idle && !arvalid_i) begin         // 有问题 !!!
       araddr <= 0;
     end
   end
@@ -101,7 +101,7 @@ module icache (
         endcase
         rec_cnt <= rec_cnt + 1;
       end
-    end else if (cur_state == idle) begin
+    end else if (cur_state == idle) begin         // 有问题 !!!
       buffer  <= 0;
       rec_cnt <= 0;
     end

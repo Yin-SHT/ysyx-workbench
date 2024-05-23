@@ -7,13 +7,19 @@ module fetch (
   output                     valid_post_o,
   input                      ready_post_i,
 
-  // decode -> fetch
-  input                      flush_i,       // don't use  
-  input                      branch_valid_i, // don't use  
-  input                      branch_en_i,    // don't use  
-  input  [`NPC_ADDR_BUS]     dnpc_i,         // don't use  
-
   // fetch -> decode
+  output [2:0]               fetch_state_o,
+  input                      fetch_raw_i,
+
+	output                     fetch_rena1_o,
+	output [4:0]               fetch_raddr1_o,
+	input  [31:0]              fetch_rdata1_i,
+
+	output                     fetch_rena2_o,
+	output [4:0]               fetch_raddr2_o,
+	input  [31:0]              fetch_rdata2_i,
+
+
   output [`NPC_ADDR_BUS]     pc_o,
   output [`NPC_DATA_BUS]     inst_o,
 
@@ -91,12 +97,21 @@ module fetch (
   wire [127:0] buffer;
 
 
+  wire         flush;
+  wire [31:0]  dnpc;
+  wire         is_branch;
+  wire         taken;
+
+
   addr_calculate addr_calculate0 (
     .clock        (clock),
     .reset        (reset),
 
     .valid_post_o (valid_addr_access),
     .ready_post_i (ready_addr_access),
+
+    .flush_i      (flush),
+    .dnpc_i       (dnpc),
 
     .pc_o         (pc)
   );
@@ -110,6 +125,8 @@ module fetch (
 
     .valid_post_o (valid_access_drive),
     .ready_post_i (ready_access_drive),                
+
+    .flush_i      (flush),
 
     .wen_i        (wen),        
     .windex_i     (windex),             
@@ -134,6 +151,8 @@ module fetch (
     .valid_post_o       (valid_post_o),                        
     .ready_post_i       (ready_post_i),                
 
+    .flush_o            (flush),
+
     .tar_hit_i          (tar_hit),
     .araddr_i           (araddr),
     .buffer_i           (buffer),
@@ -146,6 +165,11 @@ module fetch (
                          
     .pc_o               (pc_o),
     .inst_o             (inst_o),
+
+    .fetch_state_o      (fetch_state_o),                             
+    .fetch_raw_i        (fetch_raw_i),                      
+    .is_branch_i        (is_branch),                      
+    .taken_i            (taken),                  
 
     .io_master_arready  (arready_i),                                  
     .io_master_arvalid  (arvalid_o),                                  
@@ -161,6 +185,23 @@ module fetch (
     .io_master_rdata    (rdata_i),                                
     .io_master_rlast    (rlast_i),                                
     .io_master_rid      (rid_i)
+  );
+
+  branch_log branch_log0 (
+    .pc_i               (pc_o),              
+    .inst_i             (inst_o),                
+
+  	.fetch_rena1_o      (fetch_rena1_o),                       
+  	.fetch_raddr1_o     (fetch_raddr1_o),                       
+  	.fetch_rdata1_i     (fetch_rdata1_i),                       
+                        
+  	.fetch_rena2_o      (fetch_rena2_o),                       
+  	.fetch_raddr2_o     (fetch_raddr2_o),                       
+  	.fetch_rdata2_i     (fetch_rdata2_i),                       
+
+    .is_branch_o        (is_branch),                      
+    .taken_o            (taken),                  
+    .dnpc_o             (dnpc)                
   );
 
 endmodule

@@ -10,6 +10,8 @@ module result_drive (
   output        valid_post_o,
   input         ready_post_i,
 
+  output        flush_o,
+
   input         tar_hit_i,
   input [31:0]  araddr_i,
   input [127:0] buffer_i,
@@ -22,6 +24,11 @@ module result_drive (
 
   output [31:0] pc_o,
   output [31:0] inst_o,
+
+  output [2:0]  fetch_state_o,
+  input         fetch_raw_i,
+  input         is_branch_i,
+  input         taken_i,      // 0: not-taken 1: taken
 
   // AR: Address Read Channel 
   input         io_master_arready,
@@ -97,13 +104,17 @@ module result_drive (
   // Outputs 
   //-----------------------------------------------------------------
   assign ready_pre_o  = cur_state == idle;
-  assign valid_post_o = cur_state == wait_ready || cur_state == read_end;
+  assign valid_post_o = (cur_state == wait_ready || cur_state == read_end) ? (is_branch_i ? !fetch_raw_i : 1) : 0;
+
+  assign flush_o = valid_post_o && ready_post_i && is_branch_i && taken_i;  // decode stage receives a taken instruction
 
   assign wen_o    = cur_state == read_end && valid_post_o && ready_post_i;
   assign windex_o = tar_index;
   assign wway_o   = rand_way;
   assign wtag_o   = tar_tag;
   assign wdata_o  = buffer;
+
+  assign fetch_state_o = cur_state;  
 
   assign pc_o   = araddr;
   assign inst_o = tar_offset == 0  ? buffer[ 31: 0] :
@@ -141,16 +152,32 @@ module result_drive (
     end else begin
       next_state = cur_state;
       case (cur_state)
-        idle: if (valid_pre_i) begin
-                if (tar_hit_i)
-                  next_state = wait_ready;
-                else 
-                  next_state = wait_arready;
-              end
-        wait_ready:   if (ready_post_i)      next_state = idle;
+        idle:         if (valid_pre_i) begin
+                        if (tar_hit_i)
+                          next_state = wait_ready;
+                        else 
+                          next_state = wait_arready;
+                      end
+        wait_ready:   if (is_branch_i) begin
+                        if (!fetch_raw_i && ready_post_i) begin
+                          next_state = idle;        
+                        end
+                      end else begin
+                        if (ready_post_i) begin
+                          next_state = idle;
+                        end
+                      end
         wait_arready: if (io_master_arready) next_state = wait_rvalid;
         wait_rvalid:  if (io_master_rlast)   next_state = read_end;
-        read_end:     if (ready_post_i)      next_state = idle;
+        read_end:     if (is_branch_i) begin
+                        if (!fetch_raw_i && ready_post_i) begin
+                          next_state = idle;        
+                        end
+                      end else begin
+                        if (ready_post_i) begin
+                          next_state = idle;
+                        end
+                      end
         default: next_state = cur_state;
       endcase
     end

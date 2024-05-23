@@ -1,11 +1,14 @@
 `include "defines.v"
 
 module addr_calculate (
-  input  clock,
-  input  reset,
+  input         clock,
+  input         reset,
 
-  output valid_post_o,
-  input  ready_post_i,
+  output        valid_post_o,
+  input         ready_post_i,
+
+  input         flush_i,       // pc receive new correct address, fsm reset to correct state when flush_i is 1
+  input  [31:0] dnpc_i,
 
   output [31:0] pc_o
 );
@@ -22,6 +25,8 @@ module addr_calculate (
       pc <= 0; 
     end else if (firing) begin
       pc <= `RESET_VECTOR;
+    end else if (flush_i) begin
+      pc <= dnpc_i;
     end else if (cur_state == calculate) begin
       pc <= pc + 4; 
     end
@@ -48,6 +53,8 @@ module addr_calculate (
   always @(posedge clock) begin
     if (reset) begin
       cur_state <= init;
+    end else if (flush_i) begin
+      cur_state <= wait_ready;
     end else begin
       cur_state <= next_state;
     end

@@ -13,10 +13,7 @@ module decode_controller (
   input  ready_post_i,
   output ready_pre_o,
 
-  output we_o,
-
-  // decode -> fetch
-  output branch_valid_o  // This signal indicate bpu has been got the result
+  output we_o
 );
 
   /* Performance Event */
@@ -41,7 +38,6 @@ module decode_controller (
   assign ready_pre_o  = (cur_state == idle);
   assign valid_post_o = (cur_state == wait_ready) && !raw_i;  // data is ready
 
-  assign branch_valid_o = valid_post_o;
   assign state_o = cur_state;
 
   //-----------------------------------------------------------------

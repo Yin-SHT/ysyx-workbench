@@ -16,6 +16,15 @@ module decode (
   input   [`NPC_ADDR_BUS]     pc_i,
   input   [`NPC_DATA_BUS]     inst_i,
 
+  output                      fetch_raw_o,
+  input  [2:0]                fetch_state_i,
+	input   		                fetch_rena1_i,
+	input  [4:0]                fetch_raddr1_i,
+	output [31:0]               fetch_rdata1_o,
+	input   		                fetch_rena2_i,
+	input  [4:0]                fetch_raddr2_i,
+	output [31:0]               fetch_rdata2_o,
+
   // decode -> execute
   output  [`INST_TYPE_BUS]    inst_type_o,
   output  [`ALU_OP_BUS]       alu_op_o,
@@ -36,10 +45,6 @@ module decode (
   output  [`CSR_DATA_BUS]     csr_rdata_o,
   
   // decode -> fetch
-  output                      fencei_o,
-  output                      branch_valid_o,
-  output                      branch_en_o,
-  output  [`NPC_ADDR_BUS]     dnpc_o,
 
   // commit -> decode
   input                       wena_i,
@@ -53,8 +58,6 @@ module decode (
 
   wire                  raw;
   wire [1:0]            state;
-  wire                  fencei;
-  wire [`BPU_OP_BUS]    bpu_op;
   wire                  we;
   wire [`NPC_ADDR_BUS]  pc;
   wire [`NPC_DATA_BUS]  inst;
@@ -65,7 +68,6 @@ module decode (
   wire                  csr_rena;
   wire [31:0]           csr_raddr;
 
-  assign fencei_o = fencei & valid_post_o && ready_post_i;
   assign inst_o = inst;
 
   decode_controller controller (
@@ -80,9 +82,7 @@ module decode (
     .ready_post_i (ready_post_i),
     .ready_pre_o  (ready_pre_o),
 
-    .we_o         (we),
-
-    .branch_valid_o (branch_valid_o)
+    .we_o         (we)
   );
 
   decode_reg reg0 (
@@ -102,7 +102,6 @@ module decode (
     .inst_type_o  (inst_type_o),
     .alu_op_o     (alu_op_o),
     .lsu_op_o     (lsu_op_o),
-    .bpu_op_o     (bpu_op),
     .csr_op_o     (csr_op_o),
     .pc_o         (pc_o),
     .imm_o        (imm_o),
@@ -119,27 +118,9 @@ module decode (
     .raddr2_o     (raddr2),
 
     .csr_rena_o   (csr_rena),
-    .csr_raddr_o  (csr_raddr),
-
-    .fencei_o     (fencei)
+    .csr_raddr_o  (csr_raddr)
   );
   
-  branch_log branch_log0 (
-    .reset         (reset),                           
-
-    .bpu_op_i      (bpu_op),                     
-    .csr_op_i      (csr_op_o),                     
-
-    .pc_i          (pc_o),                   
-    .imm_i         (imm_o),                   
-    .rdata1_i      (rdata1_o),                     
-    .rdata2_i      (rdata2_o),                     
-    .csr_rdata_i   (csr_rdata_o),                         
-
-    .branch_en_o   (branch_en_o),                         
-    .dnpc_o        (dnpc_o)                   
-  );
-
   regfile regfile0 (
   	.clock              (clock),
     .reset              (reset),
@@ -156,6 +137,15 @@ module decode (
     .decode_ready_post  (ready_post_i),
     .decode_wena_i      (wena_o),
     .decode_waddr_i     (waddr_o),
+
+    .fetch_raw_o        (fetch_raw_o),                
+    .fetch_state_i      (fetch_state_i),                  
+	  .fetch_rena1_i      (fetch_rena1_i),                  
+	  .fetch_raddr1_i     (fetch_raddr1_i),                  
+	  .fetch_rdata1_o     (fetch_rdata1_o),                  
+	  .fetch_rena2_i      (fetch_rena2_i),                  
+	  .fetch_raddr2_i     (fetch_raddr2_i),                  
+	  .fetch_rdata2_o     (fetch_rdata2_o),                  
 
     .rena1_i            (rena1),
     .raddr1_i           (raddr1),

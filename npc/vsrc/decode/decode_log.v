@@ -7,7 +7,6 @@ module decode_log (
   output  [`INST_TYPE_BUS]   inst_type_o,
   output  [`ALU_OP_BUS]      alu_op_o,
   output  [`LSU_OP_BUS]      lsu_op_o,
-  output  [`BPU_OP_BUS]      bpu_op_o,
   output  [`CSR_OP_BUS]      csr_op_o,
   output  [`NPC_ADDR_BUS]    pc_o,
   output  [`REG_DATA_BUS]    imm_o,
@@ -24,9 +23,7 @@ module decode_log (
   output  [`REG_ADDR_BUS]    raddr2_o,
 
   output                     csr_rena_o,
-  output  [31:0]             csr_raddr_o,
-
-  output  fencei_o
+  output  [31:0]             csr_raddr_o
 );
 
   export "DPI-C" function check_inst;
@@ -128,9 +125,6 @@ module decode_log (
   wire inst_rem   = ( opcode == `OPCODE_REM   ) & ( funct3 == `FUNCT3_REM  ) & ( funct7 == `FUNCT7_REM   );
   wire inst_remu  = ( opcode == `OPCODE_REMU  ) & ( funct3 == `FUNCT3_REMU ) & ( funct7 == `FUNCT7_REMU  );
 
-  wire inst_fencei  = ( opcode == `OPCODE_FENCE_I ) & ( funct3 == `FUNCT3_FENCE_I  ) & ( funct12 == `FUNCT12_FENCE_I );
-  assign fencei_o = inst_fencei;
-
   wire unknown    = !(
                       inst_add   | inst_sub   | inst_xor   | inst_or    | inst_and   | 
                       inst_sll   | inst_srl   | inst_sra   | inst_slt   | inst_sltu  |
@@ -193,15 +187,6 @@ module decode_log (
                         inst_sb  ? `LSU_OP_SB    :
                         inst_sh  ? `LSU_OP_SH    :
                         inst_sw  ? `LSU_OP_SW    : `LSU_OP_NOP;
-
-  assign  bpu_op_o    = inst_beq  ? `BPU_OP_BEQ   :
-                        inst_bne  ? `BPU_OP_BNE   :
-                        inst_blt  ? `BPU_OP_BLT   :
-                        inst_bge  ? `BPU_OP_BGE   :
-                        inst_bltu ? `BPU_OP_BLTU  :
-                        inst_bgeu ? `BPU_OP_BGEU  :
-                        inst_jal  ? `BPU_OP_JAL   :
-                        inst_jalr ? `BPU_OP_JALR  : `BPU_OP_NOP;
 
   assign  csr_op_o    = inst_csrrw ? `CSR_OP_CSRRW :
                         inst_csrrs ? `CSR_OP_CSRRS :

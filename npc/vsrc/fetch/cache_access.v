@@ -10,6 +10,8 @@ module cache_access (
   output         valid_post_o,
   input          ready_post_i,
 
+  input          flush_i,         // flush pipeline registers, fsm reset to correct state when flush_i is 1
+
   input          wen_i,
   input  [3:0]   windex_i,
   input  [2:0]   wway_i,
@@ -40,15 +42,17 @@ module cache_access (
   wire [23:0] tar_tag    = araddr[31:8];
 
   //-----------------------------------------------------------------
-  // Caching Request Araddr 
+  // Caching Info
   //-----------------------------------------------------------------
   reg [31:0] araddr;
 
   always @(posedge clock) begin
     if (reset) begin
-      araddr <= 0;
+      araddr  <= 0;
+    end else if (flush_i) begin
+      araddr  <= 0;
     end else if (valid_pre_i && ready_pre_o) begin
-      araddr <= araddr_i;
+      araddr  <= araddr_i;
     end
   end
 
@@ -117,6 +121,8 @@ module cache_access (
   //-----------------------------------------------------------------
   always @(posedge clock) begin
     if (reset) begin
+      cur_state <= idle;
+    end else if (flush_i) begin
       cur_state <= idle;
     end else begin
       cur_state <= next_state;

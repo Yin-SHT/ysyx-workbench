@@ -74,14 +74,12 @@ void init_verilator(int argc, char **argv) {
   sp_regfile    = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.regfile0");
   sp_decode     = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.decode_log0");
   sp_decode_ctl = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.controller");
-  assert(sp_decode && sp_regfile);
+  assert(sp_decode && sp_regfile && sp_decode_ctl);
 #elif CONFIG_SOC
-  sp_fetch_reg  = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.fetch0.reg0");
-  sp_decode     = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.decode0.decode_log0");
   sp_regfile    = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.decode0.regfile0");
+  sp_decode     = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.decode0.decode_log0");
   sp_decode_ctl = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.decode0.controller");
-  sp_icache     = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.fetch0.icache0");
-  assert(sp_fetch_reg && sp_decode && sp_regfile && sp_decode_ctl && sp_icache);
+  assert(sp_decode && sp_regfile && sp_decode_ctl);
 #endif
 
   // Init nvboard

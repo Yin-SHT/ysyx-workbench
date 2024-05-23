@@ -95,11 +95,16 @@ module cpu (
   wire valid_exu_wbu;
   wire ready_exu_wbu;
 
-  /* IDU --> IFU */
-  wire        fencei;
-  wire        branch_valid;
-  wire        branch_en;
-  wire [31:0] dnpc;
+  /* IDU <--> IFU */
+  wire        fetch_raw;
+  wire [2:0]  fetch_state;
+	wire        fetch_rena1;
+	wire [4:0]  fetch_raddr1;
+	wire [31:0] fetch_rdata1;
+	wire        fetch_rena2;
+	wire [4:0]  fetch_raddr2;
+	wire [31:0] fetch_rdata2;
+
 
   /* IFU --> IDU */
   wire [31:0] instpc;
@@ -223,14 +228,17 @@ module cpu (
   	.reset        (reset),
     .clock        (clock),
 
-    .flush_i      (fencei),
-
     .valid_post_o (valid_ifu_idu),
     .ready_post_i (ready_ifu_idu),
 
-    .branch_valid_i (branch_valid),
-    .branch_en_i  (branch_en),
-    .dnpc_i       (dnpc),
+    .fetch_raw_i    (fetch_raw),      
+    .fetch_state_o  (fetch_state),    
+    .fetch_rena1_o  (fetch_rena1),    
+    .fetch_raddr1_o (fetch_raddr1),    
+    .fetch_rdata1_i (fetch_rdata1),    
+    .fetch_rena2_o  (fetch_rena2),    
+    .fetch_raddr2_o (fetch_raddr2),     
+    .fetch_rdata2_i (fetch_rdata2),     
 
     .pc_o         (instpc),
     .inst_o       (inst),
@@ -280,6 +288,15 @@ module cpu (
     .pc_i         (instpc),                 
     .inst_i       (inst),                   
                    
+    .fetch_raw_o    (fetch_raw),      
+    .fetch_state_i  (fetch_state),    
+    .fetch_rena1_i  (fetch_rena1),    
+    .fetch_raddr1_i (fetch_raddr1),    
+    .fetch_rdata1_o (fetch_rdata1),    
+    .fetch_rena2_i  (fetch_rena2),    
+    .fetch_raddr2_i (fetch_raddr2),     
+    .fetch_rdata2_o (fetch_rdata2),     
+
     .inst_type_o  (inst_type),                        
     .alu_op_o     (alu_op),                     
     .lsu_op_o     (lsu_op),                     
@@ -297,11 +314,6 @@ module cpu (
     .rdata1_o     (rdata1),                     
     .rdata2_o     (rdata2),                     
     .csr_rdata_o  (csr_rdata),                        
-
-    .fencei_o     (fencei),
-    .branch_valid_o (branch_valid),
-    .branch_en_o  (branch_en),  
-    .dnpc_o       (dnpc),
 
     .wena_i       (wena),
     .waddr_i      (waddr), 
