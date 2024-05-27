@@ -37,8 +37,8 @@ void single_cycle() {
   pre_commit_pc = cur_commit_pc;
   pre_commit_inst = cur_commit_inst;
   if (pre_commit) {PROCESSOR_ALIGN(cur_commit_pc);}
-  svSetScope(sp_commit); commit_event(&cur_commit);
-  svSetScope(sp_commit_reg); commit_reg_event(&cur_commit_pc, &cur_commit_inst);
+  svSetScope(sp_commit_ctl); commit_event(&cur_commit);
+  svSetScope(sp_commit); commit_reg_event(&cur_commit_pc, &cur_commit_inst);
 #endif
 
   /* Update nvboard state */
@@ -72,14 +72,18 @@ void init_verilator(int argc, char **argv) {
   sp_regfile    = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.regfile0");
   sp_decode     = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.decode_log0");
   sp_decode_ctl = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.controller");
-  assert(sp_decode && sp_regfile && sp_decode_ctl);
+  sp_commit_ctl = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.commit0.controller");
+  sp_commit     = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.commit0.reg0");
+  assert(sp_decode && sp_regfile && sp_decode_ctl && sp_commit_ctl && sp_commit);
 #elif CONFIG_SOC
   sp_addr       = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.fetch0.addr_calculate0");
   sp_regfile    = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.decode0.regfile0");
   sp_decode     = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.decode0.decode_log0");
   sp_decode_ctl = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.decode0.controller");
   sp_icache     = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.fetch0.cache_access0");
-  assert(sp_addr && sp_decode && sp_regfile && sp_decode_ctl && sp_icache);
+  sp_commit_ctl = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.commit0.controller");
+  sp_commit     = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.commit0.reg0");
+  assert(sp_addr && sp_decode && sp_regfile && sp_decode_ctl && sp_icache && sp_commit_ctl && sp_commit);
 #endif
 
   // Init nvboard

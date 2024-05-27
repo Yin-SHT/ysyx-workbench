@@ -30,11 +30,9 @@ module decode_log (
   function check_inst;
       output int _pc;
       output int _inst;
-      output int _ebreak;
       output int _unknown;
       _pc = pc_i;
       _inst = inst_i;
-      _ebreak = { {31{1'b0}}, ebreak};
       _unknown = { {31{1'b0}}, unknown};
   endfunction
 

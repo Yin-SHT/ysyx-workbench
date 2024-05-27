@@ -47,12 +47,14 @@ module regfile(
   reg[31:0] Busy;
   wire bypass1, bypass2;
   wire raw1, raw2;
+  wire fbypass1, fbypass2;  // fetch bypass for branch instruction
+  wire fraw1, fraw2;        // fetch raw for branch instruction
 
   always @(posedge clock) begin
     if (reset) begin
       Busy <= 0;
     end else if (decode_ready_post && decode_valid_post) begin
-      if (decode_wena_i) begin
+      if (decode_wena_i && (decode_waddr_i != 0)) begin
         Busy[decode_waddr_i] <= 1;
       end
     end
@@ -82,8 +84,8 @@ module regfile(
     end
   end
 
-  assign bypass1 = commit_valid_i && commit_wena_i && (commit_waddr_i == raddr1_i);
-  assign bypass2 = commit_valid_i && commit_wena_i && (commit_waddr_i == raddr2_i);
+  assign bypass1 = commit_valid_i && commit_wena_i && (commit_waddr_i == raddr1_i) && (commit_waddr_i != 0);
+  assign bypass2 = commit_valid_i && commit_wena_i && (commit_waddr_i == raddr2_i) && (commit_waddr_i != 0);
 
   assign rdata1_o = rena1_i ? (bypass1 ? commit_wdata_i : regs[raddr1_i]) : 0;
   assign rdata2_o = rena2_i ? (bypass2 ? commit_wdata_i : regs[raddr2_i]) : 0;
@@ -92,10 +94,14 @@ module regfile(
   assign raw2  = rena2_i && Busy[raddr2_i] && !bypass2 && (state_i == 2'b01);  // 2'b01 == wait_ready
   assign raw_o = raw1 || raw2;
 
-  assign fetch_rdata1_o = (!fetch_raw_o && fetch_rena1_i) ? regs[fetch_raddr1_i] : 0;
-  assign fetch_rdata2_o = (!fetch_raw_o && fetch_rena2_i) ? regs[fetch_raddr2_i] : 0;
+  assign fbypass1 = commit_valid_i && commit_wena_i && (commit_waddr_i == fetch_raddr1_i) && (commit_waddr_i != 0);
+  assign fbypass2 = commit_valid_i && commit_wena_i && (commit_waddr_i == fetch_raddr2_i) && (commit_waddr_i != 0);
 
-  assign fetch_raw_o = (((fetch_state_i == 3'b011) || (fetch_state_i == 3'b100)) && fetch_rena1_i && Busy[fetch_raddr1_i]) ||  // 3'b011 == wait_ready
-                       (((fetch_state_i == 3'b011) || (fetch_state_i == 3'b100)) && fetch_rena2_i && Busy[fetch_raddr2_i]);    // 3'b100 == read_end
+  assign fetch_rdata1_o = fetch_rena1_i ? (fbypass1 ? commit_wdata_i : regs[fetch_raddr1_i]) : 0;
+  assign fetch_rdata2_o = fetch_rena2_i ? (fbypass2 ? commit_wdata_i : regs[fetch_raddr2_i]) : 0;
+
+  assign fraw1 = fetch_rena1_i && Busy[fetch_raddr1_i] && !fbypass1;  // 3'b011 == wait_ready
+  assign fraw2 = fetch_rena2_i && Busy[fetch_raddr2_i] && !fbypass2;  // 3'b100 == read_end
+  assign fetch_raw_o = fraw1 || fraw2;
 
 endmodule

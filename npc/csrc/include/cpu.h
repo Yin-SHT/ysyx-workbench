@@ -13,15 +13,19 @@ void update_cpu(uint32_t next_pc);
 #define CHECKINST \
   do { \
     int idu_check; svSetScope(sp_decode_ctl); decode_event(&idu_check); \
-    int pc, inst, ebreak, unknown; svSetScope(sp_decode); check_inst(&pc, &inst, &ebreak, &unknown); \
+    int wbu_check; svSetScope(sp_commit_ctl); commit_event(&wbu_check); \
+    int commit_pc, commit_inst; svSetScope(sp_commit); commit_reg_event(&commit_pc, &commit_inst); \
+    int pc, inst, unknown; svSetScope(sp_decode); check_inst(&pc, &inst, &unknown); \
     int a0; svSetScope(sp_regfile); regfile_event(&a0); \
-    if (idu_check) { \
-      if (ebreak) { \
+    if (wbu_check) { \
+      if (commit_inst == 0x00100073) { \
         simulation_quit();  \
         difftest_skip_ref();  \
-        set_npc_state(NPC_END, pc, a0);  \
+        set_npc_state(NPC_END, commit_pc, a0);  \
         return; \
       }  \
+    } \
+    if (idu_check) { \
       if (unknown) { \
         RED_BOLD_PRINT("Unknown 0x%08x at pc 0x%08x\n", inst, pc); \
         simulation_quit();  \

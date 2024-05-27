@@ -7,14 +7,16 @@ svScope sp_fetchreg;
 svScope sp_decode_ctl;
 svScope sp_decode;
 svScope sp_regfile;
+svScope sp_commit_ctl;
 svScope sp_commit;
-svScope sp_commit_reg;
 #elif CONFIG_SOC
 svScope sp_addr;
 svScope sp_decode_ctl;
 svScope sp_decode;
 svScope sp_regfile;
 svScope sp_icache;
+svScope sp_commit_ctl;
+svScope sp_commit;
 #endif
 
 bool wave_start;
