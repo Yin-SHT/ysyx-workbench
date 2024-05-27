@@ -20,10 +20,11 @@ module fetch_reg (
   output reg [31:0] inst_o
 );
 
-  export "DPI-C" function fetch_reg_event;
-  function fetch_reg_event;
-    output int pc;
-    pc = pc_o;
+  /* Performance Event */
+  export "DPI-C" function addr_event;
+  function addr_event;
+    output int _pc_;
+    _pc_ = pc_o;
   endfunction
 
   always @(posedge clock) begin

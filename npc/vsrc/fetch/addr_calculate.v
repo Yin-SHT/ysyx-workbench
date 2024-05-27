@@ -13,6 +13,13 @@ module addr_calculate (
   output [31:0] pc_o
 );
 
+  /* Performance Event */
+  export "DPI-C" function addr_event;
+  function addr_event;
+    output int _pc_;
+    _pc_ = pc_o;
+  endfunction
+  
   //-----------------------------------------------------------------
   // Calculate Address
   //-----------------------------------------------------------------

@@ -28,7 +28,7 @@ extern svScope sp_regfile;
 extern svScope sp_commit;
 extern svScope sp_commit_reg;
 #elif CONFIG_SOC
-extern svScope sp_fetch_reg;
+extern svScope sp_addr;
 extern svScope sp_decode;
 extern svScope sp_regfile;
 extern svScope sp_decode_ctl;

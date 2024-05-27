@@ -51,13 +51,13 @@ typedef uint16_t ioaddr_t;
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // Used for functional validation
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#define CONFIG_FUNC 1
+//#define CONFIG_FUNC 1
 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // Used for performance validation
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-//#define CONFIG_SOC 1
-//#define CONFIG_PEREVENT 1
+#define CONFIG_SOC 1
+#define CONFIG_PEREVENT 1
 //#define CONFIG_NVBOARD 1
 
 /* Trace Defines */

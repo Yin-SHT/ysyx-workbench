@@ -25,6 +25,15 @@ module cache_access (
   output [127:0] buffer_o
 );
 
+  /* Performance Event */
+  export "DPI-C" function icache_event;
+  function icache_event;
+    output int check;
+    output int hit;
+    check = {31'h0, valid_post_o && ready_post_i};
+    hit   = {31'h0, tar_hit_o};
+  endfunction
+  
   /*
    * Cache Configuration
    *

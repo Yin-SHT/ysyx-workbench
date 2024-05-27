@@ -39,13 +39,12 @@ module icache (
   /* Performance Event */
   export "DPI-C" function icache_event;
   function icache_event;
-    output int state;
+    output int check;
     output int hit;
-    output int master_rvalid;
-    state = {{29{1'b0}}, cur_state};
-    hit = {{31{1'b0}}, tar_hit};
-    master_rvalid = {{31{1'b0}}, io_master_rvalid};
+    check = {31'h0, (cur_state == seek)};
+    hit   = {31'h0, tar_hit};
   endfunction
+  
   
   /*
    * Cache Configuration

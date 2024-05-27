@@ -45,9 +45,7 @@ void single_cycle() {
   IFDEF(CONFIG_NVBOARD, nvboard_update());
 
   /* Miscellaneous */
-  int pc;
-//  svSetScope(sp_fetch_reg);
-//  fetch_reg_event(&pc);
+  IFDEF(CONFIG_SOC, int pc; svSetScope(sp_addr); addr_event(&pc););
   IFDEF(CONFIG_SOC, {if (pc == 0xa0000000) wave_start = true;});
   IFDEF(CONFIG_SOC, {if (pc == 0xa0000000) perf_start = true;});
   IFDEF(CONFIG_SOC, IFDEF(CONFIG_PEREVENT, perf_update()));
@@ -76,10 +74,12 @@ void init_verilator(int argc, char **argv) {
   sp_decode_ctl = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.controller");
   assert(sp_decode && sp_regfile && sp_decode_ctl);
 #elif CONFIG_SOC
+  sp_addr       = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.fetch0.addr_calculate0");
   sp_regfile    = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.decode0.regfile0");
   sp_decode     = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.decode0.decode_log0");
   sp_decode_ctl = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.decode0.controller");
-  assert(sp_decode && sp_regfile && sp_decode_ctl);
+  sp_icache     = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.fetch0.cache_access0");
+  assert(sp_addr && sp_decode && sp_regfile && sp_decode_ctl && sp_icache);
 #endif
 
   // Init nvboard

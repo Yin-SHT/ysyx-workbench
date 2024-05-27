@@ -1,15 +1,12 @@
-1. 0939776d275a92c5c73708645579065dccd50463
+1. 
 --------------- Perf Event ---------------
-Number of Inst: 550612
-Number of Cycles: 4878435
-IPC(Instruction Per Cycle): 0.112867
+Number of Inst: 170749468
+Number of Cycles: 1022289957
+IPC(Instruction Per Cycle): 0.167026
           Compute   Store     Load      Branch    Jump      Csr       Total
-number:   289954    59327     63797     110921    26612     1         550612
+number:   96614292  5036218   11678011  52615671  4805276   1         170749469
 
 --------------- Cache Perf Event ---------------
-access_time: 2
-missing_penalty: 175.70
-access_cnt: 2487
-hit_cnt: 2349
-hit ratio: 0.94
-AMAT: 11.75
+access_cnt: 195213084
+hit_cnt: 194952294
+hit ratio: 0.998664

@@ -19,10 +19,8 @@ module decode_controller (
   /* Performance Event */
   export "DPI-C" function decode_event;
   function decode_event;
-      output int idu_valid_pre;
-      output int idu_ready_pre;
-      idu_valid_pre  = {{31{1'b0}}, valid_pre_i};
-      idu_ready_pre  = {{31{1'b0}}, ready_pre_o};
+      output int check;
+      check = {31'h0, valid_post_o && ready_post_i};
   endfunction
 
   parameter idle       = 2'b00;
