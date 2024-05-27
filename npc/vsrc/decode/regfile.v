@@ -45,6 +45,8 @@ module regfile(
 
   reg[31:0] regs[31:0];
   reg[31:0] Busy;
+  wire bypass1, bypass2;
+  wire raw1, raw2;
 
   always @(posedge clock) begin
     if (reset) begin
@@ -80,10 +82,15 @@ module regfile(
     end
   end
 
-  assign rdata1_o = rena1_i ? regs[raddr1_i] : 0;
-  assign rdata2_o = rena2_i ? regs[raddr2_i] : 0;
+  assign bypass1 = commit_valid_i && commit_wena_i && (commit_waddr_i == raddr1_i);
+  assign bypass2 = commit_valid_i && commit_wena_i && (commit_waddr_i == raddr2_i);
 
-  assign raw_o = ((state_i == 2'b01) && rena1_i && Busy[raddr1_i]) || ((state_i == 2'b01) && rena2_i && Busy[raddr2_i]);  // 2'b01 == wait_ready
+  assign rdata1_o = rena1_i ? (bypass1 ? commit_wdata_i : regs[raddr1_i]) : 0;
+  assign rdata2_o = rena2_i ? (bypass2 ? commit_wdata_i : regs[raddr2_i]) : 0;
+
+  assign raw1  = rena1_i && Busy[raddr1_i] && !bypass1 && (state_i == 2'b01);  // 2'b01 == wait_ready
+  assign raw2  = rena2_i && Busy[raddr2_i] && !bypass2 && (state_i == 2'b01);  // 2'b01 == wait_ready
+  assign raw_o = raw1 || raw2;
 
   assign fetch_rdata1_o = (!fetch_raw_o && fetch_rena1_i) ? regs[fetch_raddr1_i] : 0;
   assign fetch_rdata2_o = (!fetch_raw_o && fetch_rena2_i) ? regs[fetch_raddr2_i] : 0;

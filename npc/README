@@ -1,4 +1,4 @@
-1. 
+1. ea9c4eb97c11e0c58a6fbde2b10221c4ed25b283
 --------------- Perf Event ---------------
 Number of Inst: 170749468
 Number of Cycles: 1022289957
@@ -10,3 +10,16 @@ number:   96614292  5036218   11678011  52615671  4805276   1         170749469
 access_cnt: 195213084
 hit_cnt: 194952294
 hit ratio: 0.998664
+
+2. 
+--------------- Perf Event ---------------
+Number of Inst: 195220454
+Number of Cycles: 1022213040
+IPC(Instruction Per Cycle): 0.190978 (使用了 bypass)
+          Compute   Store     Load      Branch    Jump      Csr       Total
+number:   115037484 7169722   15589994  52617863  4805391   1         195220455
+
+--------------- Cache Perf Event ---------------
+access_cnt: 195220454
+hit_cnt: 194959525
+hit ratio: 0.998663
