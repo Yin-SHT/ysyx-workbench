@@ -24,7 +24,7 @@ access_cnt: 195220454
 hit_cnt: 194959525
 hit ratio: 0.998663
 
-3. 
+3. 943b8bbc3419b0eeb880cd8157ea2840ffed528d
 --------------- Perf Event ---------------
 Number of Inst: 195221879
 Number of Cycles: 1022253687
@@ -35,4 +35,22 @@ number:   115038272 7169782   15590046  52618327  4805451   2         195221880
 --------------- Cache Perf Event ---------------
 access_cnt: 195221879
 hit_cnt: 194962160
+hit ratio: 0.998670
+
+4.
+--------------- Perf Event ---------------
+Number of Inst: 195221196
+Number of Cycles: 994166968
+IPC(Instruction Per Cycle): 0.196367 (使用了 BTB 分支预测)
+          Compute   Store     Load      Branch    Jump      Csr       Total
+number:   115037844 7169776   15590037  52618095  4805443   2         195221197
+
+--------------- BTB Event ---------------
+Predict count: 56580214
+Success count: 44700801
+Succ ratio: 0.790043
+
+--------------- Cache Perf Event ---------------
+access_cnt: 195221196
+hit_cnt: 194961477
 hit ratio: 0.998670

@@ -1,6 +1,9 @@
 `include "defines.v"
 
 module branch_log (
+  input         pvalid_i,
+  input         ptaken_i,      
+  input [31:0]  ptarget_i,     
   input [31:0]  pc_i, 
   input [31:0]  inst_i, 
 
@@ -13,8 +16,10 @@ module branch_log (
 	input  [31:0] fetch_rdata2_i,
 
   output        is_branch_o,
-  output        taken_o,
-  output [31:0] dnpc_o
+  output        fail_o,           // btb predict failure
+  output [31:0] wpc_o,
+  output        wtaken_o,         // true taken direction
+  output [31:0] wtarget_o         // true predict target
 );
 
   //-----------------------------------------------------------------
@@ -64,10 +69,10 @@ module branch_log (
   //-----------------------------------------------------------------
   // Compute
   //-----------------------------------------------------------------
-  assign fetch_rena1_o  = inst_beq | inst_bne | inst_blt | inst_bge | inst_bltu | inst_bgeu | inst_jalr;
-  assign fetch_rena2_o  = inst_beq | inst_bne | inst_blt | inst_bge | inst_bltu | inst_bgeu;
-  assign fetch_raddr1_o = rs1; 
-  assign fetch_raddr2_o = rs2;
+  assign  fetch_rena1_o  = inst_beq | inst_bne | inst_blt | inst_bge | inst_bltu | inst_bgeu | inst_jalr;
+  assign  fetch_rena2_o  = inst_beq | inst_bne | inst_blt | inst_bge | inst_bltu | inst_bgeu;
+  assign  fetch_raddr1_o = rs1; 
+  assign  fetch_raddr2_o = rs2;
 
   assign  is_branch_o = inst_beq  | 
                         inst_bne  | 
@@ -78,23 +83,27 @@ module branch_log (
                         inst_jal  | 
                         inst_jalr;
 
-  assign  taken_o = ((bpu_op == `BPU_OP_BEQ)  && equal)               ||
-                    ((bpu_op == `BPU_OP_BNE)  && !equal)              ||
-                    ((bpu_op == `BPU_OP_BLT)  && signed_less_than)    ||
-                    ((bpu_op == `BPU_OP_BGE)  && !signed_less_than)   ||
-                    ((bpu_op == `BPU_OP_BLTU) && unsigned_less_than)  ||
-                    ((bpu_op == `BPU_OP_BGEU) && !unsigned_less_than) ||
-                    ((bpu_op == `BPU_OP_JAL))                         ||
-                    ((bpu_op == `BPU_OP_JALR));
+  assign  fail_o = !(pvalid_i && (ptaken_i == wtaken_o) && (ptarget_i == wtarget_o));
 
-  assign  dnpc_o  = (taken_o && (bpu_op == `BPU_OP_BEQ))  ? pc_i + imm :  
-                    (taken_o && (bpu_op == `BPU_OP_BNE))  ? pc_i + imm :  
-                    (taken_o && (bpu_op == `BPU_OP_BLT))  ? pc_i + imm :  
-                    (taken_o && (bpu_op == `BPU_OP_BGE))  ? pc_i + imm :  
-                    (taken_o && (bpu_op == `BPU_OP_BLTU)) ? pc_i + imm :  
-                    (taken_o && (bpu_op == `BPU_OP_BGEU)) ? pc_i + imm :  
-                    (taken_o && (bpu_op == `BPU_OP_JAL))  ? pc_i + imm :
-                    (taken_o && (bpu_op == `BPU_OP_JALR)) ? fetch_rdata1_i + imm : 0;   // need some modification  !!!!!!!!!
+  assign  wpc_o = pc_i;
+
+  assign  wtaken_o =  ((bpu_op == `BPU_OP_BEQ)  && equal)               ||
+                      ((bpu_op == `BPU_OP_BNE)  && !equal)              ||
+                      ((bpu_op == `BPU_OP_BLT)  && signed_less_than)    ||
+                      ((bpu_op == `BPU_OP_BGE)  && !signed_less_than)   ||
+                      ((bpu_op == `BPU_OP_BLTU) && unsigned_less_than)  ||
+                      ((bpu_op == `BPU_OP_BGEU) && !unsigned_less_than) ||
+                      ((bpu_op == `BPU_OP_JAL))                         ||
+                      ((bpu_op == `BPU_OP_JALR));
+
+  assign  wtarget_o = (wtaken_o && (bpu_op == `BPU_OP_BEQ))  ? pc_i + imm :  
+                      (wtaken_o && (bpu_op == `BPU_OP_BNE))  ? pc_i + imm :  
+                      (wtaken_o && (bpu_op == `BPU_OP_BLT))  ? pc_i + imm :  
+                      (wtaken_o && (bpu_op == `BPU_OP_BGE))  ? pc_i + imm :  
+                      (wtaken_o && (bpu_op == `BPU_OP_BLTU)) ? pc_i + imm :  
+                      (wtaken_o && (bpu_op == `BPU_OP_BGEU)) ? pc_i + imm :  
+                      (wtaken_o && (bpu_op == `BPU_OP_JAL))  ? pc_i + imm :
+                      (wtaken_o && (bpu_op == `BPU_OP_JALR)) ? fetch_rdata1_i + imm : pc_i + 4;   // need some modification  !!!!!!!!!
 
 endmodule
 

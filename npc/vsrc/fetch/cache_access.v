@@ -18,9 +18,15 @@ module cache_access (
   input  [23:0]  wtag_i,
   input  [127:0] wdata_i,
 
+  input          pvalid_i,
+  input          ptaken_i,      
+  input  [31:0]  ptarget_i,     
   input  [31:0]  araddr_i,
 
   output         tar_hit_o,
+  output         pvalid_o,
+  output         ptaken_o,      
+  output [31:0]  ptarget_o,     
   output [31:0]  araddr_o,
   output [127:0] buffer_o
 );
@@ -53,14 +59,26 @@ module cache_access (
   //-----------------------------------------------------------------
   // Caching Info
   //-----------------------------------------------------------------
+  reg        pvalid;
+  reg        ptaken;      
+  reg [31:0] ptarget;     
   reg [31:0] araddr;
 
   always @(posedge clock) begin
     if (reset) begin
+      pvalid  <= 0;
+      ptaken  <= 0;
+      ptarget <= 0;
       araddr  <= 0;
     end else if (flush_i) begin
+      pvalid  <= 0;
+      ptaken  <= 0;
+      ptarget <= 0;
       araddr  <= 0;
     end else if (valid_pre_i && ready_pre_o) begin
+      pvalid  <= pvalid_i;
+      ptaken  <= ptaken_i;
+      ptarget <= ptarget_i;
       araddr  <= araddr_i;
     end
   end
@@ -121,6 +139,9 @@ module cache_access (
   assign valid_post_o = cur_state == wait_ready;
 
   assign tar_hit_o  = hit0 | hit1 | hit2 | hit3 | hit4 | hit5 | hit6 | hit7;
+  assign pvalid_o   = pvalid;
+  assign ptaken_o   = ptaken;
+  assign ptarget_o  = ptarget;
   assign araddr_o   = araddr;
   assign buffer_o   = dat[tar_index][hit_idx]; 
 

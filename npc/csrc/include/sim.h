@@ -35,6 +35,7 @@ extern svScope sp_decode_ctl;
 extern svScope sp_icache;
 extern svScope sp_commit_ctl;
 extern svScope sp_commit;
+extern svScope sp_drive;
 #endif
 
 

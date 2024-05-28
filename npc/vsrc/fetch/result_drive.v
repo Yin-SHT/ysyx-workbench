@@ -13,6 +13,9 @@ module result_drive (
   output        flush_o,
 
   input         tar_hit_i,
+  input         pvalid_i,
+  input         ptaken_i,      
+  input [31:0]  ptarget_i,     
   input [31:0]  araddr_i,
   input [127:0] buffer_i,
 
@@ -22,13 +25,16 @@ module result_drive (
   output [23:0] wtag_o,
   output [127:0]wdata_o,
 
+  output        pvalid_o,
+  output        ptaken_o,      
+  output [31:0] ptarget_o,     
   output [31:0] pc_o,
   output [31:0] inst_o,
 
   output [2:0]  fetch_state_o,
   input         fetch_raw_i,
   input         is_branch_i,
-  input         taken_i,      // 0: not-taken 1: taken
+  input         fail_i,      // 0: not-taken 1: taken
 
   // AR: Address Read Channel 
   input         io_master_arready,
@@ -48,6 +54,20 @@ module result_drive (
   input  [3:0]  io_master_rid             // don't use for now
 );
 
+  /* Performance Event */
+  export "DPI-C" function drive_event;
+  function drive_event;
+    output int check;
+    output int is_branch;
+    output int succ;
+    check     = {31'h0, valid_post_o && ready_post_i};
+    is_branch = {31'h0, is_branch_i};
+    succ      = {31'h0, !fail_i};
+  endfunction
+
+  reg         pvalid;
+  reg         ptaken;
+  reg [31:0]  ptarget;
   reg [31:0]  araddr;
   reg [127:0] buffer;
   reg [7:0]   rec_cnt;     // receive count
@@ -59,10 +79,16 @@ module result_drive (
 
   always @(posedge clock) begin
     if (reset) begin
+      pvalid  <= 0;
+      ptaken  <= 0;
+      ptarget <= 0;
       araddr  <= 0;
       buffer  <= 0;
       rec_cnt <= 0;
     end else if (valid_pre_i && ready_pre_o) begin   // Caching Info
+      pvalid  <= pvalid_i;
+      ptaken  <= ptaken_i;
+      ptarget <= ptarget_i;
       araddr  <= araddr_i;
       buffer  <= buffer_i;
     end else if (io_master_rvalid && io_master_rready) begin
@@ -106,7 +132,7 @@ module result_drive (
   assign ready_pre_o  = cur_state == idle;
   assign valid_post_o = (cur_state == wait_ready || cur_state == read_end) ? (is_branch_i ? !fetch_raw_i : 1) : 0;
 
-  assign flush_o = valid_post_o && ready_post_i && is_branch_i && taken_i;  // decode stage receives a taken instruction
+  assign flush_o = valid_post_o && ready_post_i && is_branch_i && fail_i;  // decode stage receives a taken instruction
 
   assign wen_o    = cur_state == read_end && valid_post_o && ready_post_i;
   assign windex_o = tar_index;
@@ -116,6 +142,9 @@ module result_drive (
 
   assign fetch_state_o = cur_state;  
 
+  assign pvalid_o  = pvalid;
+  assign ptaken_o  = ptaken;
+  assign ptarget_o = ptarget;
   assign pc_o   = araddr;
   assign inst_o = tar_offset == 0  ? buffer[ 31: 0] :
                   tar_offset == 4  ? buffer[ 63:32] :

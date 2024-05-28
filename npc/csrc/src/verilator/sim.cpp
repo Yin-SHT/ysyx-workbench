@@ -83,7 +83,8 @@ void init_verilator(int argc, char **argv) {
   sp_icache     = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.fetch0.cache_access0");
   sp_commit_ctl = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.commit0.controller");
   sp_commit     = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.commit0.reg0");
-  assert(sp_addr && sp_decode && sp_regfile && sp_decode_ctl && sp_icache && sp_commit_ctl && sp_commit);
+  sp_drive      = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.fetch0.result_drive0");
+  assert(sp_addr && sp_decode && sp_regfile && sp_decode_ctl && sp_icache && sp_commit_ctl && sp_commit && sp_drive);
 #endif
 
   // Init nvboard

@@ -8,7 +8,11 @@ module addr_calculate (
   input         ready_post_i,
 
   input         flush_i,       // pc receive new correct address, fsm reset to correct state when flush_i is 1
-  input  [31:0] dnpc_i,
+  input  [31:0] wtarget_i,
+
+  input         pvalid_i,      // predict valid
+  input         ptaken_i,      // predict direction
+  input  [31:0] ptarget_i,     // predict target 
 
   output [31:0] pc_o
 );
@@ -24,8 +28,21 @@ module addr_calculate (
   // Calculate Address
   //-----------------------------------------------------------------
   reg [31:0] pc; 
+  reg        pvalid;
+  reg        ptaken;
+  reg [31:0] ptarget;
 
-  assign pc_o = pc;
+  always @(posedge clock) begin
+    if (reset) begin
+      pvalid  <= pvalid_i;
+      ptaken  <= 0;
+      ptarget <= 0;
+    end else if (valid_post_o && ready_post_i) begin
+      pvalid  <= pvalid_i;
+      ptaken  <= ptaken_i;
+      ptarget <= ptarget_i;
+    end
+  end
 
   always @(posedge clock) begin
     if (reset) begin
@@ -33,9 +50,13 @@ module addr_calculate (
     end else if (firing) begin
       pc <= `RESET_VECTOR;
     end else if (flush_i) begin
-      pc <= dnpc_i;
-    end else if (cur_state == calculate) begin
-      pc <= pc + 4; 
+      pc <= wtarget_i;
+    end else if (cur_state == calculate) begin  // when in calculate, pc reserve last instruction address
+      if (pvalid && ptaken) begin
+        pc <= ptarget; 
+      end else begin
+        pc <= pc + 4; 
+      end
     end
   end
 
@@ -53,6 +74,8 @@ module addr_calculate (
   // Outputs 
   //-----------------------------------------------------------------
   assign valid_post_o = cur_state == wait_ready;
+
+  assign pc_o = pc;
 
   //-----------------------------------------------------------------
   // Synchronous State - Transition always@ ( posedge Clock ) block
@@ -78,7 +101,7 @@ module addr_calculate (
       case (cur_state)
         init:       if (firing) next_state = wait_ready;
         calculate:  next_state = wait_ready;
-        wait_ready: if (ready_post_i) next_state = calculate;
+        wait_ready: if (ready_post_i) next_state = calculate;    // when in wait_ready, pc reserve latest instruction address, btb use it to predict next pc
         default: next_state = cur_state;
       endcase
     end

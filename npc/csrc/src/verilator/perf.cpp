@@ -17,6 +17,7 @@ svScope sp_regfile;
 svScope sp_icache;
 svScope sp_commit_ctl;
 svScope sp_commit;
+svScope sp_drive;
 #endif
 
 bool wave_start;
@@ -35,6 +36,10 @@ static uint64_t nr_csr = 1; // last ebreak instruction
 static bool cur_receive;
 static bool pre_receive;
 
+// branch predicion
+static uint64_t nr_predict;
+static uint64_t nr_succ;
+
 // Cache parameters
 static int missing_penalty;
 static uint64_t access_cnt;
@@ -48,17 +53,21 @@ void perf_update() {
 
   nr_cycles ++;
 
-  int idu_check;
+  int idu_check = 0;
 
-  int compute_inst;
-  int branch_inst;
-  int jump_inst;
-  int load_inst;
-  int store_inst;
-  int csr_inst;  
+  int compute_inst = 0;
+  int branch_inst = 0;
+  int jump_inst = 0;
+  int load_inst = 0;
+  int store_inst = 0;
+  int csr_inst  = 0;
 
-  int check;
-  int hit;
+  int check = 0;
+  int hit = 0;
+
+  int drive_check = 0;
+  int is_branch = 0;
+  int succ = 0;
 
   svSetScope(sp_decode_ctl);
   decode_event(&idu_check);
@@ -66,6 +75,17 @@ void perf_update() {
   type_event(&compute_inst, &branch_inst, &jump_inst, &load_inst, &store_inst, &csr_inst);
   svSetScope(sp_icache);
   icache_event(&check, &hit);
+  svSetScope(sp_drive);
+  drive_event(&drive_check, &is_branch, &succ);
+
+  if (drive_check) {
+    if (is_branch) {
+      nr_predict ++;
+      if (succ) {
+        nr_succ ++;
+      }
+    }
+  }
 
   if (idu_check) {
     nr_inst ++;
@@ -108,6 +128,11 @@ void perf_display() {
                                                                         nr_jump, 
                                                                         nr_csr, 
                                                                         nr_total);
+
+  printf("\n--------------- BTB Event ---------------\n");
+  printf("Predict count: %ld\n", nr_predict);
+  printf("Success count: %ld\n", nr_succ);
+  printf("Succ ratio: %f\n", (double)nr_succ / nr_predict);
 
   double hit_ratio = (double)hit_cnt / (double)access_cnt;
 

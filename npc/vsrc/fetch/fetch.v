@@ -98,10 +98,12 @@ module fetch (
 
 
   wire         flush;
-  wire [31:0]  dnpc;
   wire         is_branch;
-  wire         taken;
 
+  wire         ptaken_btb_access;
+  wire [31:0]  ptarget_btb_access;
+
+  wire pvalid;
 
   addr_calculate addr_calculate0 (
     .clock        (clock),
@@ -111,10 +113,37 @@ module fetch (
     .ready_post_i (ready_addr_access),
 
     .flush_i      (flush),
-    .dnpc_i       (dnpc),
+    .wtarget_i    (wtarget),
+
+    .pvalid_i     (pvalid),
+    .ptaken_i     (ptaken_btb_access),
+    .ptarget_i    (ptarget_btb_access),
 
     .pc_o         (pc)
   );
+
+  wire [31:0] wpc;
+  wire        wtaken;
+  wire [31:0] wtarget;
+
+  btb btb0 (
+    .clock        (clock),                
+    .reset        (reset),                
+
+    .pc_i         (pc),              
+    .pvalid_o     (pvalid),
+    .ptaken_o     (ptaken_btb_access),                        
+    .ptarget_o    (ptarget_btb_access),                        
+
+    .flush_i      (flush),                          
+    .wpc_i        (wpc),                
+    .wtaken_i     (wtaken),                        
+    .wtarget_i    (wtarget)                        
+  );
+
+  wire         ptaken_access_drive;
+  wire [31:0]  ptarget_access_drive;
+  wire         pvalid_access_drive;
 
   cache_access cache_access0 (
     .clock        (clock),
@@ -134,12 +163,23 @@ module fetch (
     .wtag_i       (wtag),          
     .wdata_i      (wdata),            
 
+    .pvalid_i     (pvalid),
+    .ptaken_i     (ptaken_btb_access),
+    .ptarget_i    (ptarget_btb_access),
     .araddr_i     (pc),                 
 
     .tar_hit_o    (tar_hit),
+    .pvalid_o     (pvalid_access_drive),
+    .ptaken_o     (ptaken_access_drive),                        
+    .ptarget_o    (ptarget_access_drive),                        
     .araddr_o     (araddr),            
     .buffer_o     (buffer)            
   );
+
+  wire         fail;
+  wire         ptaken_drive_bpu;
+  wire [31:0]  ptarget_drive_bpu;
+  wire         pvalid_drive_bpu;
 
   result_drive result_drive0 (
     .clock              (clock),                      
@@ -154,6 +194,9 @@ module fetch (
     .flush_o            (flush),
 
     .tar_hit_i          (tar_hit),
+    .pvalid_i           (pvalid_access_drive),
+    .ptaken_i           (ptaken_access_drive),
+    .ptarget_i          (ptarget_access_drive),
     .araddr_i           (araddr),
     .buffer_i           (buffer),
                          
@@ -162,14 +205,17 @@ module fetch (
     .wway_o             (wway),
     .wtag_o             (wtag),
     .wdata_o            (wdata),
-                         
+
+    .pvalid_o           (pvalid_drive_bpu),
+    .ptaken_o           (ptaken_drive_bpu),
+    .ptarget_o          (ptarget_drive_bpu),
     .pc_o               (pc_o),
     .inst_o             (inst_o),
 
     .fetch_state_o      (fetch_state_o),                             
     .fetch_raw_i        (fetch_raw_i),                      
     .is_branch_i        (is_branch),                      
-    .taken_i            (taken),                  
+    .fail_i             (fail),
 
     .io_master_arready  (arready_i),                                  
     .io_master_arvalid  (arvalid_o),                                  
@@ -188,6 +234,9 @@ module fetch (
   );
 
   branch_log branch_log0 (
+    .pvalid_i           (pvalid_drive_bpu),
+    .ptaken_i           (ptaken_drive_bpu),
+    .ptarget_i          (ptarget_drive_bpu),
     .pc_i               (pc_o),              
     .inst_i             (inst_o),                
 
@@ -199,9 +248,11 @@ module fetch (
   	.fetch_raddr2_o     (fetch_raddr2_o),                       
   	.fetch_rdata2_i     (fetch_rdata2_i),                       
 
-    .is_branch_o        (is_branch),                      
-    .taken_o            (taken),                  
-    .dnpc_o             (dnpc)                
+    .is_branch_o        (is_branch),
+    .fail_o             (fail),
+    .wpc_o              (wpc),
+    .wtaken_o           (wtaken),
+    .wtarget_o          (wtarget)
   );
 
 endmodule
