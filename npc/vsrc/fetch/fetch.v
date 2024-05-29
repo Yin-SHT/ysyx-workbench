@@ -7,6 +7,8 @@ module fetch (
   output                     valid_post_o,
   input                      ready_post_i,
 
+  input                      commit_csr_i,
+
   // fetch -> decode
   output [2:0]               fetch_state_o,
   input                      fetch_raw_i,
@@ -19,6 +21,9 @@ module fetch (
 	output [4:0]               fetch_raddr2_o,
 	input  [31:0]              fetch_rdata2_i,
 
+  output                     fcsr_rena_o,    
+  output [31:0]              fcsr_raddr_o,   
+  input  [31:0]              fcsr_rdata_i,   
 
   output [`NPC_ADDR_BUS]     pc_o,
   output [`NPC_DATA_BUS]     inst_o,
@@ -114,6 +119,8 @@ module fetch (
 
     .flush_i      (flush),
     .wtarget_i    (wtarget),
+    .csr_flush_i  (csr_flush),
+    .csr_target_i (csr_target),
 
     .pvalid_i     (pvalid),
     .ptaken_i     (ptaken_btb_access),
@@ -156,6 +163,7 @@ module fetch (
     .ready_post_i (ready_access_drive),                
 
     .flush_i      (flush),
+    .csr_flush_i  (csr_flush),
 
     .wen_i        (wen),        
     .windex_i     (windex),             
@@ -177,9 +185,17 @@ module fetch (
   );
 
   wire         fail;
-  wire         ptaken_drive_bpu;
-  wire [31:0]  ptarget_drive_bpu;
-  wire         pvalid_drive_bpu;
+  wire         ptaken_drive_pre;
+  wire [31:0]  ptarget_drive_pre;
+  wire         pvalid_drive_pre;
+
+  wire csr_flush;
+  wire [31:0] csr_target;
+
+  wire csr_flush_pre_drive;
+  wire [31:0] csr_target_pre_drive;
+
+  wire is_csr;
 
   result_drive result_drive0 (
     .clock              (clock),                      
@@ -191,7 +207,11 @@ module fetch (
     .valid_post_o       (valid_post_o),                        
     .ready_post_i       (ready_post_i),                
 
+    .commit_csr_i       (commit_csr_i),
+
     .flush_o            (flush),
+    .csr_flush_o        (csr_flush),
+    .csr_target_o       (csr_target),
 
     .tar_hit_i          (tar_hit),
     .pvalid_i           (pvalid_access_drive),
@@ -206,16 +226,19 @@ module fetch (
     .wtag_o             (wtag),
     .wdata_o            (wdata),
 
-    .pvalid_o           (pvalid_drive_bpu),
-    .ptaken_o           (ptaken_drive_bpu),
-    .ptarget_o          (ptarget_drive_bpu),
+    .pvalid_o           (pvalid_drive_pre),
+    .ptaken_o           (ptaken_drive_pre),
+    .ptarget_o          (ptarget_drive_pre),
     .pc_o               (pc_o),
     .inst_o             (inst_o),
 
     .fetch_state_o      (fetch_state_o),                             
     .fetch_raw_i        (fetch_raw_i),                      
     .is_branch_i        (is_branch),                      
+    .is_csr_i           (is_csr),
     .fail_i             (fail),
+    .csr_flush_i        (csr_flush_pre_drive),
+    .csr_target_i       (csr_target_pre_drive),
 
     .io_master_arready  (arready_i),                                  
     .io_master_arvalid  (arvalid_o),                                  
@@ -233,10 +256,10 @@ module fetch (
     .io_master_rid      (rid_i)
   );
 
-  branch_log branch_log0 (
-    .pvalid_i           (pvalid_drive_bpu),
-    .ptaken_i           (ptaken_drive_bpu),
-    .ptarget_i          (ptarget_drive_bpu),
+  pre_decode pre_decode0 (
+    .pvalid_i           (pvalid_drive_pre),
+    .ptaken_i           (ptaken_drive_pre),
+    .ptarget_i          (ptarget_drive_pre),
     .pc_i               (pc_o),              
     .inst_i             (inst_o),                
 
@@ -248,8 +271,15 @@ module fetch (
   	.fetch_raddr2_o     (fetch_raddr2_o),                       
   	.fetch_rdata2_i     (fetch_rdata2_i),                       
 
+    .fcsr_rena_o        (fcsr_rena_o),
+    .fcsr_raddr_o       (fcsr_raddr_o),
+    .fcsr_rdata_i       (fcsr_rdata_i),
+
     .is_branch_o        (is_branch),
+    .is_csr_o           (is_csr),
     .fail_o             (fail),
+    .csr_flush_o        (csr_flush_pre_drive),
+    .csr_target_o       (csr_target_pre_drive),
     .wpc_o              (wpc),
     .wtaken_o           (wtaken),
     .wtarget_o          (wtarget)

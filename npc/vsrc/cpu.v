@@ -112,6 +112,7 @@ module cpu (
 
   /* WBU --> IDU */
   wire        commit_valid;
+  wire        commit_csr;
   wire        wena;
   wire [4:0]  waddr;
   wire [31:0] wdata;
@@ -224,12 +225,18 @@ module cpu (
   assign io_slave_rlast   = 0;
   assign io_slave_rid     = 0;
 
+  wire        fcsr_rena;
+  wire [31:0] fcsr_raddr;
+  wire [31:0] fcsr_rdata;
+
   fetch fetch0 (
   	.reset        (reset),
     .clock        (clock),
 
     .valid_post_o (valid_ifu_idu),
     .ready_post_i (ready_ifu_idu),
+
+    .commit_csr_i (commit_csr),
 
     .fetch_raw_i    (fetch_raw),      
     .fetch_state_o  (fetch_state),    
@@ -239,6 +246,10 @@ module cpu (
     .fetch_rena2_o  (fetch_rena2),    
     .fetch_raddr2_o (fetch_raddr2),     
     .fetch_rdata2_i (fetch_rdata2),     
+
+    .fcsr_rena_o    (fcsr_rena),
+    .fcsr_raddr_o   (fcsr_raddr),
+    .fcsr_rdata_i   (fcsr_rdata),
 
     .pc_o         (instpc),
     .inst_o       (inst),
@@ -274,6 +285,8 @@ module cpu (
     .rid_i        (ifu_rid)
   );
   
+  wire [7:0] csr_op_wbu_idu;
+
   decode decode0 (
   	.clock        (clock),
     .reset        (reset),
@@ -297,6 +310,10 @@ module cpu (
     .fetch_raddr2_i (fetch_raddr2),     
     .fetch_rdata2_o (fetch_rdata2),     
 
+    .fcsr_rena_i    (fcsr_rena),
+    .fcsr_raddr_i   (fcsr_raddr),
+    .fcsr_rdata_o   (fcsr_rdata),
+
     .inst_type_o  (inst_type),                        
     .alu_op_o     (alu_op),                     
     .lsu_op_o     (lsu_op),                     
@@ -319,11 +336,14 @@ module cpu (
     .waddr_i      (waddr), 
     .wdata_i      (wdata), 
     
+    .csr_op_i     (csr_op_wbu_idu),
     .csr_wena_i   (csr_wena),     
     .csr_waddr_i  (csr_waddr),     
     .csr_wdata_i  (csr_wdata)
   );
   
+  wire [7:0] csr_op_exu_wbu;
+
   execute execute0 (
   	.clock        (clock),
     .reset        (reset),
@@ -356,6 +376,7 @@ module cpu (
     .waddr_o      (waddr_exu_wbu),
     .alu_result_o (alu_result),
     .mem_result_o (mem_result),
+    .csr_op_o     (csr_op_exu_wbu),
     .csr_wena_o   (csr_wena_exu_wbu), 
     .csr_waddr_o  (csr_waddr_exu_wbu),  
     .csr_wdata_o  (csr_wdata_exu_wbu),  
@@ -399,6 +420,7 @@ module cpu (
     .ready_pre_o  (ready_exu_wbu),
 
     .commit_valid_o (commit_valid),
+    .commit_csr_o (commit_csr),
 
     .pc_i         (pc_exu_wbu),                 
     .inst_i       (inst_exu_wbu),                 
@@ -408,6 +430,7 @@ module cpu (
     .alu_result_i (alu_result),
     .mem_result_i (mem_result),
 
+    .csr_op_i     (csr_op_exu_wbu),
     .csr_wena_i   (csr_wena_exu_wbu),
     .csr_waddr_i  (csr_waddr_exu_wbu),
     .csr_wdata_i  (csr_wdata_exu_wbu),
@@ -416,6 +439,7 @@ module cpu (
     .waddr_o      (waddr),
     .wdata_o      (wdata),
 
+    .csr_op_o     (csr_op_wbu_idu),
     .csr_wena_o   (csr_wena),
     .csr_waddr_o  (csr_waddr),
     .csr_wdata_o  (csr_wdata)

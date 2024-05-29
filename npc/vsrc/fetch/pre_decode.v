@@ -1,6 +1,6 @@
 `include "defines.v"
 
-module branch_log (
+module pre_decode (
   input         pvalid_i,
   input         ptaken_i,      
   input [31:0]  ptarget_i,     
@@ -15,8 +15,15 @@ module branch_log (
 	output [4:0]  fetch_raddr2_o,
 	input  [31:0] fetch_rdata2_i,
 
+  output        fcsr_rena_o,    
+  output [31:0] fcsr_raddr_o,   
+  input  [31:0] fcsr_rdata_i,   
+
   output        is_branch_o,
+  output        is_csr_o,
   output        fail_o,           // btb predict failure
+  output        csr_flush_o,      // csr forced branch
+  output [31:0] csr_target_o,     // csr branch target
   output [31:0] wpc_o,
   output        wtaken_o,         // true taken direction
   output [31:0] wtarget_o         // true predict target
@@ -25,6 +32,7 @@ module branch_log (
   //-----------------------------------------------------------------
   // Pre-Decode
   //-----------------------------------------------------------------
+  wire [11:0] funct12 = inst_i[31 : 20];
   wire [ 4:0] rs2     = inst_i[24:20];
   wire [ 4:0] rs1     = inst_i[19:15];
   wire [ 2:0] funct3  = inst_i[14:12];
@@ -42,6 +50,12 @@ module branch_log (
   wire inst_bgeu = (opcode == `OPCODE_BGEU) & (funct3 == `FUNCT3_BGEU);
   wire inst_jal  = (opcode == `OPCODE_JAL );
   wire inst_jalr = (opcode == `OPCODE_JALR) & (funct3 == `FUNCT3_JALR);
+
+  wire ebreak = ( opcode == `OPCODE_EBREAK) & ( funct3 == `FUNCT3_EBREAK ) & ( funct12 == `FUNCT12_EBREAK );
+  wire ecall  = ( opcode == `OPCODE_ECALL ) & ( funct3 == `FUNCT3_ECALL  ) & ( funct12 == `FUNCT12_ECALL  );
+  wire csrrw  = ( opcode == `OPCODE_CSRRW ) & ( funct3 == `FUNCT3_CSRRW );
+  wire csrrs  = ( opcode == `OPCODE_CSRRS ) & ( funct3 == `FUNCT3_CSRRS );
+  wire mret   = ( opcode == `OPCODE_MRET  ) & ( funct3 == `FUNCT3_MRET  ) & ( funct12 == `FUNCT12_MRET   );
 
   wire[31:0]  imm = (inst_beq | inst_bne | inst_blt | inst_bge | inst_bltu | inst_bgeu) ? immB :
                     (inst_jal                                                         ) ? immJ :
@@ -74,6 +88,10 @@ module branch_log (
   assign  fetch_raddr1_o = rs1; 
   assign  fetch_raddr2_o = rs2;
 
+  assign  fcsr_rena_o  = ecall | mret;
+  assign  fcsr_raddr_o = ecall ? `MTVEC :
+                         mret  ? `MEPC  : 0;
+
   assign  is_branch_o = inst_beq  | 
                         inst_bne  | 
                         inst_blt  | 
@@ -83,7 +101,15 @@ module branch_log (
                         inst_jal  | 
                         inst_jalr;
 
-  assign  fail_o = !(pvalid_i && (ptaken_i == wtaken_o) && (ptarget_i == wtarget_o));
+  assign  is_csr_o    = ebreak |
+                        ecall  |
+                        csrrw  |
+                        csrrs  |
+                        mret;
+
+  assign  fail_o = !(pvalid_i && (ptaken_i == wtaken_o) && (ptarget_i == wtarget_o));   // predict failure
+  assign  csr_flush_o = (ecall || mret);   // csr force jump
+  assign  csr_target_o = csr_flush_o ? fcsr_rdata_i : 0;
 
   assign  wpc_o = pc_i;
 
@@ -103,7 +129,7 @@ module branch_log (
                       (wtaken_o && (bpu_op == `BPU_OP_BLTU)) ? pc_i + imm :  
                       (wtaken_o && (bpu_op == `BPU_OP_BGEU)) ? pc_i + imm :  
                       (wtaken_o && (bpu_op == `BPU_OP_JAL))  ? pc_i + imm :
-                      (wtaken_o && (bpu_op == `BPU_OP_JALR)) ? fetch_rdata1_i + imm : pc_i + 4;   // need some modification  !!!!!!!!!
+                      (wtaken_o && (bpu_op == `BPU_OP_JALR)) ? fetch_rdata1_i + imm : pc_i + 4;
 
 endmodule
 

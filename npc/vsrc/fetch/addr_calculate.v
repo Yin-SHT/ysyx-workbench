@@ -9,6 +9,8 @@ module addr_calculate (
 
   input         flush_i,       // pc receive new correct address, fsm reset to correct state when flush_i is 1
   input  [31:0] wtarget_i,
+  input         csr_flush_i,
+  input  [31:0] csr_target_i,
 
   input         pvalid_i,      // predict valid
   input         ptaken_i,      // predict direction
@@ -37,7 +39,7 @@ module addr_calculate (
       pvalid  <= pvalid_i;
       ptaken  <= 0;
       ptarget <= 0;
-    end else if (valid_post_o && ready_post_i) begin
+    end else if (valid_post_o && ready_post_i) begin  // used only for cur_state is calculate
       pvalid  <= pvalid_i;
       ptaken  <= ptaken_i;
       ptarget <= ptarget_i;
@@ -51,6 +53,8 @@ module addr_calculate (
       pc <= `RESET_VECTOR;
     end else if (flush_i) begin
       pc <= wtarget_i;
+    end else if (csr_flush_i) begin
+      pc <= csr_target_i;
     end else if (cur_state == calculate) begin  // when in calculate, pc reserve last instruction address
       if (pvalid && ptaken) begin
         pc <= ptarget; 
@@ -84,6 +88,8 @@ module addr_calculate (
     if (reset) begin
       cur_state <= init;
     end else if (flush_i) begin
+      cur_state <= wait_ready;
+    end else if (csr_flush_i) begin
       cur_state <= wait_ready;
     end else begin
       cur_state <= next_state;

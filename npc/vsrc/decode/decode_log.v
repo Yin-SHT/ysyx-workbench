@@ -206,8 +206,8 @@ module decode_log (
                         inst_mul  | inst_mulh  | inst_mulhu | inst_div   | inst_divu | inst_rem  | inst_remu;
   assign  waddr_o     = rd;
 
-  assign  csr_wena_o  = 0; // TODO
-  assign  csr_waddr_o = 0;
+  assign  csr_wena_o  = inst_csrrw | inst_csrrs | ecall;
+  assign  csr_waddr_o = ecall ? `MEPC : imm;    // imm used for csrrs/csrrw 
 
   assign  rena1_o     = inst_add   | inst_sub  | inst_xor   | inst_or   | inst_and   |
                         inst_sll   | inst_srl  | inst_sra   | inst_slt  | inst_sltu  |

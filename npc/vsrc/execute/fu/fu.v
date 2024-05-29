@@ -34,6 +34,7 @@ module fu (
   .csr_op_i     (csr_op_i),
   .rdata1_i     (rdata1_i),
   .csr_rdata_i  (csr_rdata_i),
+  .pc_i         (pc_i),
 
   .csr_wdata_o  (csr_wdata_o)
   );

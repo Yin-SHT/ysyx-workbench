@@ -14,6 +14,7 @@ module commit_reg (
   input [31:0]      alu_result_i,
   input [31:0]      mem_result_i,
 
+  input [7:0]       csr_op_i,
   input             csr_wena_i,
   input [31:0]      csr_waddr_i, 
   input [31:0]      csr_wdata_i,
@@ -22,6 +23,8 @@ module commit_reg (
   output reg [4:0]  waddr_o, 
   output reg [31:0] wdata_o,
 
+  output            is_csr_o,
+  output reg [7:0]  csr_op_o,
   output reg        csr_wena_o,
   output reg [31:0] csr_waddr_o, 
   output reg [31:0] csr_wdata_o
@@ -36,6 +39,11 @@ module commit_reg (
       commit_inst = inst;
   endfunction
 
+  assign is_csr_o = (csr_op_o ==  `CSR_OP_CSRRW) ||
+                    (csr_op_o ==  `CSR_OP_CSRRS) ||
+                    (csr_op_o ==  `CSR_OP_MRET ) ||
+                    (csr_op_o ==  `CSR_OP_ECALL);
+
   reg [31:0] pc;
   reg [31:0] inst;
 
@@ -46,6 +54,7 @@ module commit_reg (
       wena_o      <= 0;
       waddr_o     <= 0;
       wdata_o     <= 0;
+      csr_op_o    <= 0;
       csr_wena_o  <= 0;
       csr_waddr_o <= 0;
       csr_wdata_o <= 0;
@@ -60,6 +69,7 @@ module commit_reg (
         end else begin
           wdata_o  <= mem_result_i;   
         end
+        csr_op_o    <= csr_op_i;
         csr_wena_o  <= csr_wena_i;
         csr_waddr_o <= csr_waddr_i;
         csr_wdata_o <= csr_wdata_i;

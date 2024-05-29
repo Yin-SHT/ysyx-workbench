@@ -25,6 +25,10 @@ module decode (
 	input  [4:0]                fetch_raddr2_i,
 	output [31:0]               fetch_rdata2_o,
 
+  input                       fcsr_rena_i,    
+  input  [31:0]               fcsr_raddr_i,   
+  output [31:0]               fcsr_rdata_o,   
+
   // decode -> execute
   output  [`INST_TYPE_BUS]    inst_type_o,
   output  [`ALU_OP_BUS]       alu_op_o,
@@ -44,13 +48,12 @@ module decode (
   output  [`REG_DATA_BUS]     rdata2_o,
   output  [`CSR_DATA_BUS]     csr_rdata_o,
   
-  // decode -> fetch
-
   // commit -> decode
   input                       wena_i,
   input   [`REG_ADDR_BUS]     waddr_i,
   input   [`REG_DATA_BUS]     wdata_i,
 
+  input   [7:0]               csr_op_i,
   input                       csr_wena_i,
   input   [31:0]              csr_waddr_i,
   input   [31:0]              csr_wdata_i
@@ -160,10 +163,15 @@ module decode (
     .clock        (clock),
   	.reset        (reset),
 
+    .fcsr_rena_i  (fcsr_rena_i),
+    .fcsr_raddr_i (fcsr_raddr_i),
+    .fcsr_rdata_o (fcsr_rdata_o),
+
     .csr_rena_i   (csr_rena),
     .csr_raddr_i  (csr_raddr),
     .csr_rdata_o  (csr_rdata_o),
 
+    .csr_op_i     (csr_op_i),
     .csr_wena_i   (csr_wena_i),
     .csr_waddr_i  (csr_waddr_i),
     .csr_wdata_i  (csr_wdata_i)

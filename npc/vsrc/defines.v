@@ -48,7 +48,6 @@
 `define MCAUSE       32'h0000_0342
 `define MVENDORID    32'hffff_ff11
 `define MARCHID      32'hffff_ff12
-`define MCAUSE       32'h0000_0342
 `define ECALL_FROM_M 32'h0000_000b
 
 // -------------------------------------------------

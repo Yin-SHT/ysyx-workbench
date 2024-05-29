@@ -10,7 +10,11 @@ module result_drive (
   output        valid_post_o,
   input         ready_post_i,
 
+  input         commit_csr_i,
+
   output        flush_o,
+  output        csr_flush_o,
+  output [31:0] csr_target_o,
 
   input         tar_hit_i,
   input         pvalid_i,
@@ -34,7 +38,10 @@ module result_drive (
   output [2:0]  fetch_state_o,
   input         fetch_raw_i,
   input         is_branch_i,
+  input         is_csr_i,
   input         fail_i,      // 0: not-taken 1: taken
+  input         csr_flush_i,
+  input  [31:0] csr_target_i,
 
   // AR: Address Read Channel 
   input         io_master_arready,
@@ -122,6 +129,7 @@ module result_drive (
   parameter wait_rvalid  = 3'b010; 
   parameter wait_ready   = 3'b011; 
   parameter read_end     = 3'b100; 
+  parameter single_cycle = 3'b101;    // single cycle mode: wait until csr instruction done
 
   reg [2:0] cur_state;
   reg [2:0] next_state;
@@ -133,6 +141,8 @@ module result_drive (
   assign valid_post_o = (cur_state == wait_ready || cur_state == read_end) ? (is_branch_i ? !fetch_raw_i : 1) : 0;
 
   assign flush_o = valid_post_o && ready_post_i && is_branch_i && fail_i;  // decode stage receives a taken instruction
+  assign csr_flush_o = valid_post_o && ready_post_i && csr_flush_i;        // csr flush only used for ecall and mret
+  assign csr_target_o = csr_target_i;
 
   assign wen_o    = cur_state == read_end && valid_post_o && ready_post_i;
   assign windex_o = tar_index;
@@ -191,6 +201,10 @@ module result_drive (
                         if (!fetch_raw_i && ready_post_i) begin
                           next_state = idle;        
                         end
+                      end else if (is_csr_i) begin
+                        if (ready_post_i) begin
+                          next_state = single_cycle;
+                        end
                       end else begin
                         if (ready_post_i) begin
                           next_state = idle;
@@ -202,11 +216,16 @@ module result_drive (
                         if (!fetch_raw_i && ready_post_i) begin
                           next_state = idle;        
                         end
+                      end else if (is_csr_i) begin
+                        if (ready_post_i) begin
+                          next_state = single_cycle;
+                        end
                       end else begin
                         if (ready_post_i) begin
                           next_state = idle;
                         end
                       end
+        single_cycle: if (commit_csr_i) next_state = idle;    // csr instruction done
         default: next_state = cur_state;
       endcase
     end

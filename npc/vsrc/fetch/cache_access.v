@@ -11,6 +11,7 @@ module cache_access (
   input          ready_post_i,
 
   input          flush_i,         // flush pipeline registers, fsm reset to correct state when flush_i is 1
+  input          csr_flush_i,
 
   input          wen_i,
   input  [3:0]   windex_i,
@@ -71,6 +72,11 @@ module cache_access (
       ptarget <= 0;
       araddr  <= 0;
     end else if (flush_i) begin
+      pvalid  <= 0;
+      ptaken  <= 0;
+      ptarget <= 0;
+      araddr  <= 0;
+    end else if (csr_flush_i) begin
       pvalid  <= 0;
       ptaken  <= 0;
       ptarget <= 0;
@@ -153,6 +159,8 @@ module cache_access (
     if (reset) begin
       cur_state <= idle;
     end else if (flush_i) begin
+      cur_state <= idle;
+    end else if (csr_flush_i) begin
       cur_state <= idle;
     end else begin
       cur_state <= next_state;
