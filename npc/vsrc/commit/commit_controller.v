@@ -1,6 +1,6 @@
 `include "defines.v"
 
-module wback_controller (
+module commit_controller (
   input    clock,
   input    reset,
 
@@ -13,12 +13,10 @@ module wback_controller (
   output   we_o
 );
 
-  export "DPI-C" function wback_event;
-  function wback_event;
-    output int wback_valid_post_o;
-    output int wback_ready_post_i;
-    wback_valid_post_o = { {31{1'b0}}, valid_post_o};
-    wback_ready_post_i = { {31{1'b0}}, ready_post_i};
+  export "DPI-C" function commit_event;
+  function commit_event;
+    output int commit;
+    commit = {31'h0, valid_pre_i & ready_pre_o};
   endfunction
 
   parameter idle       = 2'b00;
@@ -30,9 +28,9 @@ module wback_controller (
   //-----------------------------------------------------------------
   // Outputs 
   //-----------------------------------------------------------------
-  assign we_o         = (valid_pre_i && ready_pre_o);
-  assign ready_pre_o  = (cur_state   == idle       );
-  assign valid_post_o = (cur_state   == wait_ready );
+  assign we_o         = valid_pre_i && ready_pre_o;
+  assign ready_pre_o  = cur_state == idle;
+  assign valid_post_o = cur_state == wait_ready;
 
 
   //-----------------------------------------------------------------
@@ -59,4 +57,4 @@ module wback_controller (
     endcase
   end
 
-endmodule // wbu_fsm
+endmodule 

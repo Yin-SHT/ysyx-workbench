@@ -11,7 +11,7 @@ static VerilatedVcdC* tfp;
 static VysyxSoCFull *ysyxSoCFull;
 
 int cur_pc, pre_pc;
-int cur_wbvalid, pre_wbvalid;
+int commit0, commit1, commit2;
 
 void simulation_quit() {
 #ifdef CONFIG_WAVEFORM
@@ -30,17 +30,22 @@ void single_cycle() {
 
   /* Check ebreak or invalid instruction */
   int a0;
-  svSetScope(sp_fetchreg); fetchreg_event((int *)&cur_pc);
+  pre_pc = cur_pc;
+  svSetScope(sp_fetchreg); fetchreg_event(&cur_pc);
   svSetScope(sp_regfile);  regfile_event(&a0);
   NPCTRAP(cur_pc, a0);
 
   /* Update processor state */
 #ifdef CONFIG_DIFFTEST
-  int wbready;
-  pre_wbvalid = cur_wbvalid;
-  svSetScope(sp_wback); wback_event(&cur_wbvalid, &wbready);
-  if (pre_wbvalid) {PROCESSOR_ALIGN(cur_pc);}
-  if (cur_wbvalid) pre_pc = cur_pc;
+  commit0 = commit1;
+  commit1 = commit2;
+  svSetScope(sp_commit); commit_event(&commit2);
+  if (commit0) {
+    for (int i = 0; i < MUXDEF(CONFIG_RVE, 16, 32); i ++) { 
+      cpu.gpr[i] = ysyxSoCFull->rootp->ysyxSoCFull__DOT__cpu0__DOT__decode0__DOT__regfile0__DOT__regs[i];
+    } 
+    cpu.pc = cur_pc;
+  }
 #endif
 
   /* Update nvboard state */
@@ -53,14 +58,10 @@ void single_cycle() {
 }
 
 void init_verilator(int argc, char **argv) {
-  // Construct Context Object
   contextp = new VerilatedContext;
   contextp->commandArgs(argc, argv);
-
-  // Construct Top Object
   ysyxSoCFull = new VysyxSoCFull{contextp};
 
-  // Build Trace Object
 #ifdef CONFIG_WAVEFORM
   Verilated::traceEverOn( true );
   tfp = new VerilatedVcdC;
@@ -68,13 +69,12 @@ void init_verilator(int argc, char **argv) {
   tfp->open( "./build/output/sim.vcd" );
 #endif
 
-  // Prepare for DPI-C
 #ifdef CONFIG_FUNC
   sp_fetchreg = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.fetch0.reg0");
   sp_decode   = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.decode_log0");
   sp_regfile  = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.regfile0");
-  sp_csr      = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.csrs0");
-  assert(sp_fetchreg && sp_decode && sp_regfile && sp_csr);
+  sp_commit   = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.commit0.controller0");
+  assert(sp_fetchreg && sp_decode && sp_regfile && sp_commit);
 #elif CONFIG_SOC
   sp_fetchreg   = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.fetch0.u_reg");
   sp_decode     = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.decode0.u_decode");

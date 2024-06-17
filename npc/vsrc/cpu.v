@@ -371,7 +371,7 @@ module cpu (
     .rid_i        ( exu_rid       )
   );
   
-  wback wback0 (
+  commit commit0 (
   	.clock        (clock),
     .reset        (reset),
 
@@ -385,7 +385,6 @@ module cpu (
     .waddr_i      (waddr_exu_wbu),
     .alu_result_i (alu_result),
     .mem_result_i (mem_result),
-
     .csr_wena_i   (csr_wena_exu_wbu),
     .csr_waddr_i  (csr_waddr_exu_wbu),
     .csr_wdata_i  (csr_wdata_exu_wbu),
@@ -393,7 +392,6 @@ module cpu (
     .wena_o       (wena),
     .waddr_o      (waddr),
     .wdata_o      (wdata),
-
     .csr_wena_o   (csr_wena),
     .csr_waddr_o  (csr_waddr),
     .csr_wdata_o  (csr_wdata)

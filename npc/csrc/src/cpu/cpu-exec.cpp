@@ -8,7 +8,7 @@
 CPU_state cpu = {};
 
 static void trace_and_difftest(vaddr_t pc, vaddr_t dnpc) {
-  if (pre_wbvalid) {
+  if (commit0) {
     difftest_step(pc, dnpc);
   }
 }

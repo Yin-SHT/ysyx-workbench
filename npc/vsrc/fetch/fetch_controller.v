@@ -22,17 +22,6 @@ module fetch_controller (
   input    rvalid_i
 );
 
-  /* Performance Event */
-  export "DPI-C" function fetch_event;
-  function fetch_event;
-      output int fetch_arvalid_o;
-      output int fetch_rvalid_i;
-      output int fetch_rready_o;
-      fetch_arvalid_o = {{31{1'b0}}, arvalid_o};
-      fetch_rready_o  = {{31{1'b0}}, rready_o};
-      fetch_rvalid_i  = {{31{1'b0}}, rvalid_i};
-  endfunction
-
   parameter idle         = 3'b000; 
   parameter wait_ready   = 3'b001; 
 
@@ -45,17 +34,14 @@ module fetch_controller (
   //-----------------------------------------------------------------
   // Outputs 
   //-----------------------------------------------------------------
-  assign pc_we_o      = (valid_pre_i && ready_pre_o);
-  assign inst_we_o    = (rvalid_i    && rready_o   );
+  assign pc_we_o      = valid_pre_i && ready_pre_o;
+  assign inst_we_o    = rvalid_i    && rready_o;
 
-  assign ready_pre_o  = (cur_state   == idle      );
-  assign valid_post_o = (cur_state   == wait_ready);
+  assign ready_pre_o  = cur_state == idle;
+  assign valid_post_o = cur_state == wait_ready;
 
-  // AR
-  assign arvalid_o    = (cur_state   == wait_arready);    
-
-  //  R
-  assign rready_o     = (cur_state   == wait_rvalid );    
+  assign arvalid_o    = cur_state == wait_arready;    
+  assign rready_o     = cur_state == wait_rvalid;    
 
   //-----------------------------------------------------------------
   // Synchronous State - Transition always@ ( posedge Clock ) block
@@ -86,4 +72,4 @@ module fetch_controller (
     end
   end
 
-endmodule // ifu_fsm
+endmodule 
