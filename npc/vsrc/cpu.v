@@ -219,8 +219,6 @@ module cpu (
   	.reset        ( reset            ),
     .clock        ( clock            ),
 
-    .flush_i      (fencei            ),
-
     .valid_pre_i  ( valid_wbu_ifu    ),
     .ready_pre_o  ( ready_wbu_ifu    ),
     .valid_post_o ( valid_ifu_idu    ),
@@ -263,7 +261,7 @@ module cpu (
     .rid_i        ( ifu_rid          )
   );
   
-  wire fencei;
+  wire [7:0] csr_op_wbu_idu;
 
   decode decode0 (
   	.clock        (clock),
@@ -294,7 +292,6 @@ module cpu (
     .rdata2_o     (rdata2),                     
     .csr_rdata_o  (csr_rdata),                        
 
-    .fencei_o     (fencei),
     .branch_en_o  (branch_en),  
     .dnpc_o       (dnpc),
 
@@ -302,11 +299,14 @@ module cpu (
     .waddr_i      (waddr), 
     .wdata_i      (wdata), 
     
+    .csr_op_i     (csr_op_wbu_idu),
     .csr_wena_i   (csr_wena),     
     .csr_waddr_i  (csr_waddr),     
     .csr_wdata_i  (csr_wdata)
   );
   
+    wire [7:0] csr_op_exu_wbu;
+
   execute execute0 (
   	.clock        (clock),
     .reset        (reset),
@@ -336,6 +336,7 @@ module cpu (
     .waddr_o      (waddr_exu_wbu),
     .alu_result_o (alu_result),
     .mem_result_o (mem_result),
+    .csr_op_o     (csr_op_exu_wbu),
     .csr_wena_o   (csr_wena_exu_wbu), 
     .csr_waddr_o  (csr_waddr_exu_wbu),  
     .csr_wdata_o  (csr_wdata_exu_wbu),  
@@ -385,6 +386,7 @@ module cpu (
     .waddr_i      (waddr_exu_wbu),
     .alu_result_i (alu_result),
     .mem_result_i (mem_result),
+    .csr_op_i     (csr_op_exu_wbu),
     .csr_wena_i   (csr_wena_exu_wbu),
     .csr_waddr_i  (csr_waddr_exu_wbu),
     .csr_wdata_i  (csr_wdata_exu_wbu),
@@ -392,6 +394,7 @@ module cpu (
     .wena_o       (wena),
     .waddr_o      (waddr),
     .wdata_o      (wdata),
+    .csr_op_o     (csr_op_wbu_idu),
     .csr_wena_o   (csr_wena),
     .csr_waddr_o  (csr_waddr),
     .csr_wdata_o  (csr_wdata)

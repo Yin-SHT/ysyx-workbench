@@ -30,7 +30,7 @@ module execute (
   output [`REG_ADDR_BUS]     waddr_o,
   output [`REG_DATA_BUS]     alu_result_o,
   output [`REG_DATA_BUS]     mem_result_o,
-
+  output [7:0]               csr_op_o,
   output                     csr_wena_o,
   output [31:0]              csr_waddr_o,
   output [`CSR_DATA_BUS]     csr_wdata_o,
@@ -95,6 +95,7 @@ module execute (
   assign wsel_o      = wsel;
   assign wena_o      = wena;
   assign waddr_o     = waddr;
+  assign csr_op_o    = csr_op;
   assign csr_wena_o  = csr_wena;
   assign csr_waddr_o = csr_waddr;
 

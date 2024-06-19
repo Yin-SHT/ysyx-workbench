@@ -1,100 +1,63 @@
-#include <nvboard.h>
 #include <common.h>
-#include <difftest.h>
 #include <utils.h>
 #include <isa.h>
 #include <cpu.h>
 #include <sim.h>
 
-static VerilatedContext* contextp;
-static VerilatedVcdC* tfp;
-static VysyxSoCFull *ysyxSoCFull;
+VysyxSoCFull *top;
+VerilatedVcdC* tfp;
+VerilatedContext* ctxp;
 
-int cur_pc, pre_pc;
-int commit0, commit1, commit2;
+svScope idu_reg, idu_log, wbu_ctl, \
+        userreg;
 
-void simulation_quit() {
-#ifdef CONFIG_WAVEFORM
-  tfp->close();
-  IFDEF(CONFIG_WAVEFORM, delete tfp);
-  delete ysyxSoCFull;
-  delete contextp;
-#endif
-  IFDEF(CONFIG_PEREVENT, perf_display());
+int last_idu_wena = 0, curr_idu_wena = 0;
+int last_commit = 0, curr_commit = 0;
+int curr_pc;
+
+void examine_inst() {
+    int pc, halt_ret, ebreak, unknown;                     
+
+    last_idu_wena = curr_idu_wena;
+    svSetScope(idu_reg); idu_reg_event(&curr_idu_wena);        
+    if (last_idu_wena) {                                      
+        svSetScope(userreg); userreg_event(&halt_ret);         
+        svSetScope(idu_log); idu_log_event(&pc, &ebreak, &unknown);
+        if (ebreak) {                                          
+            set_npc_state(NPC_END, pc, halt_ret);          
+        }
+    }
+
+    last_commit = curr_commit;
+    svSetScope(wbu_ctl); wbu_ctl_event(&curr_commit);
+    if (last_commit) {
+        curr_pc = cpu.pc;
+        ALIGN_CPU;
+    }
 }
 
 void single_cycle() {
-  /* Advance one clock */
-  ysyxSoCFull->clock = 0; CIRCUIT_EVAL(1);
-  ysyxSoCFull->clock = 1; CIRCUIT_EVAL(1);
-
-  /* Check ebreak or invalid instruction */
-  int a0;
-  pre_pc = cur_pc;
-  svSetScope(sp_fetchreg); fetchreg_event(&cur_pc);
-  svSetScope(sp_regfile);  regfile_event(&a0);
-  NPCTRAP(cur_pc, a0);
-
-  /* Update processor state */
-#ifdef CONFIG_DIFFTEST
-  commit0 = commit1;
-  commit1 = commit2;
-  svSetScope(sp_commit); commit_event(&commit2);
-  if (commit0) {
-    for (int i = 0; i < MUXDEF(CONFIG_RVE, 16, 32); i ++) { 
-      cpu.gpr[i] = ysyxSoCFull->rootp->ysyxSoCFull__DOT__cpu0__DOT__decode0__DOT__regfile0__DOT__regs[i];
-    } 
-    cpu.pc = cur_pc;
-  }
-#endif
-
-  /* Update nvboard state */
-  IFDEF(CONFIG_NVBOARD, nvboard_update());
-
-  /* Miscellaneous */
-  IFDEF(CONFIG_SOC, {if (cur_pc == 0xa0000000) wave_start = true;});
-  IFDEF(CONFIG_SOC, {if (cur_pc == 0xa0000000) perf_start = true;});
-  IFDEF(CONFIG_SOC, IFDEF(CONFIG_PEREVENT, perf_update()));
+    top->clock = 0; ADVANCE_CYCLE;
+    top->clock = 1; ADVANCE_CYCLE;
+    examine_inst();
 }
 
 void init_verilator(int argc, char **argv) {
-  contextp = new VerilatedContext;
-  contextp->commandArgs(argc, argv);
-  ysyxSoCFull = new VysyxSoCFull{contextp};
+    ctxp = new VerilatedContext;
+    ctxp->commandArgs(argc, argv);
+    top = new VysyxSoCFull{ctxp};
 
-#ifdef CONFIG_WAVEFORM
-  Verilated::traceEverOn( true );
-  tfp = new VerilatedVcdC;
-  ysyxSoCFull->trace( tfp, 99 ); // Trace 99 levels of hierarchy (or see below)
-  tfp->open( "./build/output/sim.vcd" );
-#endif
+    Verilated::traceEverOn(true);
+    tfp = new VerilatedVcdC;
+    top->trace(tfp, 99); 
+    IFDEF(CONFIG_WAVEFORM, tfp->open("./build/output/sim.vcd"));
 
-#ifdef CONFIG_FUNC
-  sp_fetchreg = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.fetch0.reg0");
-  sp_decode   = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.decode_log0");
-  sp_regfile  = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.regfile0");
-  sp_commit   = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.commit0.controller0");
-  assert(sp_fetchreg && sp_decode && sp_regfile && sp_commit);
-#elif CONFIG_SOC
-  sp_fetchreg   = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.fetch0.u_reg");
-  sp_decode     = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.decode0.u_decode");
-  sp_regfile    = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.decode0.u_regfile");
-  sp_fetch_ctl  = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.fetch0.controller");
-  sp_decode_ctl = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.decode0.u_idu_fsm");
-  sp_execu_ctl  = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.execute0.controller");
-  sp_wback_ctl  = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.wback0.controller");
-  sp_icache     = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.u_cpu.fetch0.u_icache");
-  assert(sp_fetchreg && sp_decode && sp_regfile && sp_fetch_ctl && sp_decode_ctl && sp_execu_ctl && sp_wback_ctl && sp_icache);
-#endif
+    idu_reg = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.reg0");
+    idu_log = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.decode_log0");
+    userreg = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.userreg0");
+    wbu_ctl = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.commit0.controller0");
+    assert(idu_reg && idu_log && wbu_ctl && userreg);
 
-  // Init nvboard
-  void nvboard_bind_all_pins(VysyxSoCFull* ysyxSoCFull);
-  IFDEF(CONFIG_NVBOARD, nvboard_bind_all_pins(ysyxSoCFull));
-  IFDEF(CONFIG_NVBOARD, nvboard_init());
-
-  // Miscellaneous
-  IFDEF(CONFIG_FUNC, wave_start = true);
-
-  // Reset NPC Model
-  RESET(10);
+    // Reset NPC Model
+    RESET(10);
 }

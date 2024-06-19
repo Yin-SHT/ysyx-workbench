@@ -6,71 +6,33 @@
 #include "VysyxSoCFull__Dpi.h"
 #include "VysyxSoCFull___024root.h"
 
-void clean_up();
-word_t get_reg(int i);
-void isa_reg_display();
-void single_cycle();
-void init_verilator(int argc, char **argv);
-void inst_fetch();
-void perf_update();
-void perf_display();
+#define ADVANCE_CYCLE                                    \
+    do {                                                 \
+        top->eval();                                     \
+        IFDEF(WAVEFORM, tfp->dump(ctxp->time()));        \
+        ctxp->timeInc(1);                                \
+    } while (0);                                         
 
-extern int cur_pc;
-extern int pre_pc;
-extern int commit0;
+#define RESET(num)                                       \
+    do {                                                 \
+        int n = num;                                     \
+        top->reset = 1;                                  \
+        while (n -- > 0) {                               \
+            top->clock = 0; ADVANCE_CYCLE;               \
+            top->clock = 1; ADVANCE_CYCLE;               \
+        }                                                \
+        top->reset = 0;                                  \
+    } while(0)
 
-extern bool wave_start;
-extern bool perf_start;
-
-#ifdef CONFIG_FUNC
-extern svScope sp_fetchreg;
-extern svScope sp_decode;
-extern svScope sp_regfile;
-extern svScope sp_csr;
-extern svScope sp_commit;
-#elif CONFIG_SOC
-extern svScope sp_fetchreg;
-extern svScope sp_decode;
-extern svScope sp_regfile;
-extern svScope sp_fetch_ctl;
-extern svScope sp_decode_ctl;
-extern svScope sp_execu_ctl;
-extern svScope sp_wback_ctl;
-extern svScope sp_icache;
-#endif
-
-
-#define REGS(i) (ysyxSoCFull->rootp->ysyxSoCFull__DOT__cpu0__DOT__decode0__DOT__u_regfile__DOT__regs[i])
-
-#define PROCESSOR_ALIGN(_pc_) \
-  do { \
-    uint32_t pc = _pc_; \
-    for (int i = 0; i < MUXDEF(CONFIG_RVE, 16, 32); i++) { \
-      cpu.gpr[i] = REGS(i); \
-    } \
-    cpu.pc = pc; \
-    int mstatus, mcause, mtvec, mepc; \
-    svSetScope(sp_csr);  \
-    csr_event(&mstatus, &mtvec, &mepc, &mcause); \
-    cpu.mstatus = mstatus; \
-    cpu.mcause  = mtvec; \
-    cpu.mtvec   = mepc; \
-    cpu.mepc    = mcause; \
-  } while(0);
-
-#define CIRCUIT_EVAL(step) \
-  { ysyxSoCFull->eval(); IFDEF(CONFIG_WAVEFORM, if (wave_start) {tfp->dump(contextp->time());}); contextp->timeInc(step); }
-
-#define RESET(num) \
-do { \
-  int n = num; \
-  ysyxSoCFull->reset = 1; \
-  while (n -- > 0) { \
-    ysyxSoCFull->clock = 0; CIRCUIT_EVAL(1) \
-    ysyxSoCFull->clock = 1; CIRCUIT_EVAL(1); \
-  } \
-  ysyxSoCFull->reset = 0; \
-} while(0)
+#define ALIGN_CPU                                                                                               \                   
+    do {                                                                                                        \            
+        for (int i = 0; i < 32; i ++) {                                                                         \                                        
+            cpu.gpr[i] = top->rootp->ysyxSoCFull__DOT__cpu0__DOT__decode0__DOT__userreg0__DOT__UREGS[i];        \                                                                                                                 
+        }                                                                                                       \             
+        cpu.mcause = top->rootp->ysyxSoCFull__DOT__cpu0__DOT__decode0__DOT__sysreg0__DOT__mcause;               \                                                                                                             
+        cpu.mtvec = top->rootp->ysyxSoCFull__DOT__cpu0__DOT__decode0__DOT__sysreg0__DOT__mtvec;                 \                                                                                                         
+        cpu.mepc = top->rootp->ysyxSoCFull__DOT__cpu0__DOT__decode0__DOT__sysreg0__DOT__mepc;                   \                                                                                                         
+        cpu.pc = top->rootp->ysyxSoCFull__DOT__cpu0__DOT__fetch0__DOT__reg0__DOT__pc;                           \
+    } while (0);
 
 #endif
-
