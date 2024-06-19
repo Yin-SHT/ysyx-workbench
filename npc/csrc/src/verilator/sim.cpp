@@ -8,11 +8,11 @@ VysyxSoCFull *top;
 VerilatedVcdC* tfp;
 VerilatedContext* ctxp;
 
-svScope idu_reg, idu_log, wbu_ctl, \
+svScope ifu_reg, idu_reg, idu_log, \
         userreg;
 
 int last_idu_wena = 0, curr_idu_wena = 0;
-int last_commit = 0, curr_commit = 0;
+int last_ifu_wena = 0, curr_ifu_wena = 0;
 int curr_pc;
 
 void examine_inst() {
@@ -28,9 +28,9 @@ void examine_inst() {
         }
     }
 
-    last_commit = curr_commit;
-    svSetScope(wbu_ctl); wbu_ctl_event(&curr_commit);
-    if (last_commit) {
+    last_ifu_wena = curr_ifu_wena;
+    svSetScope(ifu_reg); ifu_reg_event(&curr_ifu_wena);
+    if (last_ifu_wena) {
         curr_pc = cpu.pc;
         ALIGN_CPU;
     }
@@ -52,11 +52,11 @@ void init_verilator(int argc, char **argv) {
     top->trace(tfp, 99); 
     IFDEF(CONFIG_WAVEFORM, tfp->open("./build/output/sim.vcd"));
 
+    ifu_reg = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.fetch0.reg0");
     idu_reg = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.reg0");
     idu_log = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.decode_log0");
     userreg = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.userreg0");
-    wbu_ctl = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.commit0.controller0");
-    assert(idu_reg && idu_log && wbu_ctl && userreg);
+    assert(ifu_reg && idu_reg && idu_log && userreg);
 
     // Reset NPC Model
     RESET(10);

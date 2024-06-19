@@ -9,7 +9,7 @@
 #define ADVANCE_CYCLE                                    \
     do {                                                 \
         top->eval();                                     \
-        IFDEF(WAVEFORM, tfp->dump(ctxp->time()));        \
+        IFDEF(CONFIG_WAVEFORM, tfp->dump(ctxp->time())); \
         ctxp->timeInc(1);                                \
     } while (0);                                         
 
@@ -29,6 +29,7 @@
         for (int i = 0; i < 32; i ++) {                                                                         \                                        
             cpu.gpr[i] = top->rootp->ysyxSoCFull__DOT__cpu0__DOT__decode0__DOT__userreg0__DOT__UREGS[i];        \                                                                                                                 
         }                                                                                                       \             
+        cpu.mstatus = top->rootp->ysyxSoCFull__DOT__cpu0__DOT__decode0__DOT__sysreg0__DOT__mstatus;             \                                                                                                             
         cpu.mcause = top->rootp->ysyxSoCFull__DOT__cpu0__DOT__decode0__DOT__sysreg0__DOT__mcause;               \                                                                                                             
         cpu.mtvec = top->rootp->ysyxSoCFull__DOT__cpu0__DOT__decode0__DOT__sysreg0__DOT__mtvec;                 \                                                                                                         
         cpu.mepc = top->rootp->ysyxSoCFull__DOT__cpu0__DOT__decode0__DOT__sysreg0__DOT__mepc;                   \                                                                                                         

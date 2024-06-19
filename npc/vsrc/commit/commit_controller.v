@@ -13,12 +13,6 @@ module commit_controller (
     output   we_o
 );
 
-    export "DPI-C" function wbu_ctl_event;
-    function wbu_ctl_event;
-        output int commit;
-        commit = {31'h0, valid_pre_i & ready_pre_o};
-    endfunction
-
     parameter idle       = 2'b00;
     parameter wait_ready = 2'b01;
 

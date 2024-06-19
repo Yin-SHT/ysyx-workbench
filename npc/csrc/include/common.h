@@ -62,7 +62,7 @@ typedef uint16_t ioaddr_t;
 
 /* Trace Defines */
 //#define CONFIG_WAVEFORM 1
-//#define CONFIG_DIFFTEST 1
+#define CONFIG_DIFFTEST 1
 
 /* THESE BELOW MICRO ALWAYS RELATED WITH FUNCTIONAL VALIDATION */
 /* Device Defines */

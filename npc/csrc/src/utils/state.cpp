@@ -11,6 +11,20 @@ extern VerilatedContext* ctxp;
 NPCState npc_state = { .state = NPC_STOP };
 
 int is_exit_status_bad() {
+    for (int i = 0; i < 5; i ++) {
+        top->clock = 0; 
+        do {                                                 
+            top->eval();                                     
+            IFDEF(CONFIG_WAVEFORM, tfp->dump(ctxp->time())); 
+            ctxp->timeInc(1);                                
+        } while (0);                                         
+        top->clock = 1; 
+        do {                                                 \
+            top->eval();                                     \
+            IFDEF(CONFIG_WAVEFORM, tfp->dump(ctxp->time())); \
+            ctxp->timeInc(1);                                \
+        } while (0);                                         
+    }
     tfp->close();                                      
     delete tfp;                                         
     delete top;                                

@@ -8,8 +8,8 @@
 CPU_state cpu = {};
 
 void trace_and_difftest(vaddr_t pc, vaddr_t dnpc) {
-    extern int last_commit;
-    if (last_commit) difftest_step(pc, dnpc);
+    extern int last_ifu_wena;
+    if (last_ifu_wena) difftest_step(pc, dnpc);
 }
 
 void exec_once() {

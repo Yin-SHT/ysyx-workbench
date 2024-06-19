@@ -17,6 +17,12 @@ module fetch_reg (
     input  [31:0] rdata_i
 );
 
+    export "DPI-C" function ifu_reg_event;
+    function ifu_reg_event;
+        output int inst_done;
+        inst_done = {31'h0, ~firing & pc_we_i};
+    endfunction
+
     reg [31:0] pc;
     reg [31:0] inst;
 
