@@ -160,7 +160,14 @@ module decode_log (
                             (inst_jal   | inst_jalr ) ? `ALU_OP_JUMP  : 
                             (inst_lui               ) ? `ALU_OP_LUI   :
                             (inst_auipc             ) ? `ALU_OP_AUIPC : 
-                            (inst_csrrs | inst_csrrw) ? `ALU_OP_CSRR  : `ALU_OP_NOP;
+                            (inst_csrrs | inst_csrrw) ? `ALU_OP_CSRR  : 
+                            (inst_mul               ) ? `ALU_OP_MUL   : 
+                            (inst_mulh              ) ? `ALU_OP_MULH  :
+                            (inst_mulhu             ) ? `ALU_OP_MULHU : 
+                            (inst_div               ) ? `ALU_OP_DIV   :
+                            (inst_divu              ) ? `ALU_OP_DIVU  :
+                            (inst_rem               ) ? `ALU_OP_REM   : 
+                            (inst_remu              ) ? `ALU_OP_REMU  : `ALU_OP_NOP;
 
     assign  lsu_op_o    =   inst_lb  ? `LSU_OP_LB    :
                             inst_lh  ? `LSU_OP_LH    :

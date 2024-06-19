@@ -18,4 +18,8 @@ typedef union {
 
 extern PCB *current;
 
+PCB *select_pcb(int i);
+void switch_boot_pcb();
+void context_uload(PCB *pcb, const char *filename, char *const argv[], char *const envp[]);
+
 #endif

@@ -56,47 +56,61 @@ intptr_t _syscall_(intptr_t type, intptr_t a0, intptr_t a1, intptr_t a2) {
 }
 
 void _exit(int status) {
+//  /* n means that exit entirly */
+//  if (status == 'n') {
+//    _syscall_(SYS_exit, 0, 0, 0);
+//  } 
+//  _syscall_(SYS_execve, (intptr_t)("/bin/nterm"), 0, 0);
   _syscall_(SYS_exit, status, 0, 0);
+
   while (1);
 }
 
 int _open(const char *path, int flags, mode_t mode) {
-  _exit(SYS_open);
-  return 0;
+  return _syscall_(SYS_open, (intptr_t)path, flags, mode);
 }
 
 int _write(int fd, void *buf, size_t count) {
-  _exit(SYS_write);
-  return 0;
+  return _syscall_(SYS_write, fd, (intptr_t)buf, count);
 }
 
+extern char end;
 void *_sbrk(intptr_t increment) {
-  return (void *)-1;
+  static uintptr_t pb = (intptr_t)(&end);
+
+  uintptr_t addr = -1;
+  uintptr_t n_pb = pb + increment;
+  if (!_syscall_(SYS_brk, n_pb, 0, 0)) {
+    addr = pb;
+    pb = n_pb;
+  }
+
+  return (void *)addr;
 }
 
 int _read(int fd, void *buf, size_t count) {
-  _exit(SYS_read);
-  return 0;
+  return _syscall_(SYS_read, fd, (intptr_t)buf, count);
 }
 
 int _close(int fd) {
-  _exit(SYS_close);
-  return 0;
+  return _syscall_(SYS_close, fd, 0, 0);
 }
 
 off_t _lseek(int fd, off_t offset, int whence) {
-  _exit(SYS_lseek);
-  return 0;
+  return _syscall_(SYS_lseek, fd, offset, whence);
 }
 
 int _gettimeofday(struct timeval *tv, struct timezone *tz) {
-  _exit(SYS_gettimeofday);
-  return 0;
+  return _syscall_(SYS_gettimeofday, (intptr_t)tv, (intptr_t)tz, 0);
 }
 
+extern int errno;
 int _execve(const char *fname, char * const argv[], char *const envp[]) {
-  _exit(SYS_execve);
-  return 0;
+  int ret = _syscall_(SYS_execve, (intptr_t)fname, (intptr_t)argv, (intptr_t)envp);
+  if (ret < 0) {
+    errno = -ret;
+  }
+  return -1;
 }
 
 // Syscalls below are not used in Nanos-lite.

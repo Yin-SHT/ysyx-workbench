@@ -95,7 +95,7 @@ void trap_in() {
 }
 
 void trap_out() {
-  cpu.mstatus = MUXDEF(CONFIG_ISA64, 0xa00001800, 0x1800);
+//  cpu.mstatus = MUXDEF(CONFIG_ISA64, 0xa00001800, 0x1800);
 #ifdef CONFIG_DIFFTEST
   void difftest_skip_ref();
   difftest_skip_ref();

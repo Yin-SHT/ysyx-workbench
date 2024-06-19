@@ -289,16 +289,23 @@
 `define ALU_OP_SUB      8'b0000_0010
 `define ALU_OP_XOR      8'b0000_0011
 `define ALU_OP_OR       8'b0000_0100
-`define ALU_OP_AND      8'b0001_0101
-`define ALU_OP_SLL      8'b0001_0110
-`define ALU_OP_SRL      8'b0001_0111
-`define ALU_OP_SRA      8'b0001_1000
-`define ALU_OP_SLT      8'b0001_1001
+`define ALU_OP_AND      8'b0000_0101
+`define ALU_OP_SLL      8'b0000_0110
+`define ALU_OP_SRL      8'b0000_0111
+`define ALU_OP_SRA      8'b0000_1000
+`define ALU_OP_SLT      8'b0000_1001
 `define ALU_OP_SLTU     8'b0000_1010
 `define ALU_OP_LUI      8'b0000_1011
 `define ALU_OP_AUIPC    8'b0000_1100
 `define ALU_OP_JUMP     8'b0000_1101
 `define ALU_OP_CSRR     8'b0000_1110
+`define ALU_OP_MUL      8'b0000_1111
+`define ALU_OP_MULH     8'b0001_0000
+`define ALU_OP_MULHU    8'b0001_0001
+`define ALU_OP_DIV      8'b0001_0010
+`define ALU_OP_DIVU     8'b0001_0011
+`define ALU_OP_REM      8'b0001_0100
+`define ALU_OP_REMU     8'b0001_0101
 
 // -------------------------------------------------
 // LSU_OP

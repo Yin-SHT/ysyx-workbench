@@ -14,10 +14,11 @@ void isa_reg_display() {
         if (i % 4 == 0) printf("\n");
         GREEN_PRINT("%-3s:\t",reg_name(i)); BLUE_PRINT("0x%08x\t", gpr(i));
     }
-    GREEN_PRINT("mstatus: "); BLUE_PRINT("%08x\n", cpu.mstatus);
-    GREEN_PRINT("mtvec:   "); BLUE_PRINT("%08x\n", cpu.mtvec);
-    GREEN_PRINT("mcause:  "); BLUE_PRINT("%08x\n", cpu.mcause);
-    GREEN_PRINT("mepc:    "); BLUE_PRINT("%08x\n", cpu.mepc);
+    printf("\n");
+    GREEN_PRINT("mstatus: "); BLUE_PRINT("0x%08x\n", cpu.mstatus);
+    GREEN_PRINT("mtvec:   "); BLUE_PRINT("0x%08x\n", cpu.mtvec);
+    GREEN_PRINT("mcause:  "); BLUE_PRINT("0x%08x\n", cpu.mcause);
+    GREEN_PRINT("mepc:    "); BLUE_PRINT("0x%08x\n", cpu.mepc);
 }
 
 word_t isa_reg_str2val(const char *s, bool *success) {
