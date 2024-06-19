@@ -6,20 +6,22 @@
 
 void  *memcpy    (void *dst, const void *src, size_t n);
 
+static int W, H;
+
 void __am_gpu_init() {
+  uint32_t size = inl(VGACTL_ADDR);
+  W = size >> 16;
+  H = size & 0x0000ffff;
 }
 
 void __am_gpu_config(AM_GPU_CONFIG_T *cfg) {
-  uint32_t size = inl(VGACTL_ADDR);
   cfg->present = true; // ?
   cfg->has_accel = false; // ?
-  cfg->width = size >> 16;
-  cfg->height = size & 0x0000ffff;
+  cfg->width = W;
+  cfg->height = H;
 }
 
 static void write_pixels(AM_GPU_FBDRAW_T *ctl) {
-  int W = inw(VGACTL_ADDR + 2);
-  int H = inw(VGACTL_ADDR);
   uint32_t *dst = (uint32_t*)(uintptr_t)FB_ADDR + ctl->x + ctl->y * W; 
   uint32_t *src = (uint32_t*)(uintptr_t)ctl->pixels;
   int nr_rows = (H - ctl->y) < ctl->h ? (H - ctl->y) : ctl->h;

@@ -131,7 +131,7 @@ static char* itoa(int num,char *str) {
 }
 
 int sprintf(char *out, const char *fmt, ...) {
-  char str[1024] = { 0 };
+  char str[256] = { 0 };
   const char *fp = fmt;
   char *p = str;
 
@@ -163,12 +163,48 @@ int sprintf(char *out, const char *fmt, ...) {
   }
   va_end(ap);
   strcpy(out, str);
+  assert(p - str < 256);
 
   return p - str;
 }
 
 int snprintf(char *out, size_t n, const char *fmt, ...) {
-  panic("Not implemented");
+  char str[256] = { 0 };
+  const char *fp = fmt;
+  char *p = str;
+
+  va_list ap;
+  int d;
+  char *s;
+
+  assert(n < 256);
+  va_start(ap, fmt);
+  while (*fp) {
+    if (*fp == '%') {
+      char next_ch = *(fp + 1);
+      switch (next_ch) {
+        case 's': 
+          s = va_arg(ap, char *);
+          int n = strlen(s);
+          strcpy(p, s);
+          p += n;
+          break;
+        case 'd':
+          d = va_arg(ap, int);
+          p = itoa(d, p);
+          break;
+        default : printf("Unsupport %% %c", next_ch); assert(0); break;
+      }
+      fp += 2;
+    } else {
+      *p++ = *fp++;
+    }
+  }
+  va_end(ap);
+  strncpy(out, str, n);
+  out[n] = '\0'; // ensure that end of line
+
+  return n;
 }
 
 int vsnprintf(char *out, size_t n, const char *fmt, va_list ap) {
