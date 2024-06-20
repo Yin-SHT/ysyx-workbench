@@ -49,7 +49,7 @@ Context *kcontext(Area kstack, void (*entry)(void *), void *arg) {
   /* Initial state of a process to be executed */  
   context.GPR2 = (uintptr_t)arg;  // a0-a7 save args
   context.mepc = (uintptr_t)entry;
-  context.mstatus = 0x1800;
+//  context.mstatus = 0x1800;     // state transition ignore for now
 
   Context *cp = (Context *)kstack.end - 1;
   *cp = context;
