@@ -70,27 +70,23 @@ void __am_switch(Context *c) {
 }
 
 void map(AddrSpace *as, void *va, void *pa, int prot) {
-  /* Get first level page table entry */
-  PTE *pt1_base = (PTE *)(as->ptr);         
-  PTE pte_1 = pt1_base[VPN_1(va)];    
+  PTE *pgtbl = (PTE *)as->ptr; // first level page table
+  PTE pte1 = pgtbl[VPN_1(va)];
 
-  if (!(pte_1 & 0x1)) {
-    PTE *pt2_base = pgalloc_usr(PGSIZE);
-
-    pte_1 = 0 | (((uintptr_t)pt2_base >> 12) << 10) | prot | 0x1;
-    pt1_base[VPN_1(va)] = pte_1; 
+  if (!(pte1 & PTE_V)) {
+    void *pa0 = pgalloc_usr(PGSIZE);
+    assert(((uintptr_t)pa0 % PGSIZE) == 0);
+    pte1 = (((uintptr_t)pa0 >> 12) << 10) | PTE_V;
+    pgtbl[VPN_1(va)] = pte1;
   }
 
-  PTE *pt2_base = (PTE *)(PPN(pte_1) << 12);       
-  PTE pte_2 = pt2_base[VPN_2(va)];               
+  PTE *leaf = (PTE *)((pte1 >> 10) << 12); // second level page table
+  PTE pte2 = leaf[VPN_2(va)];;
 
-  if (!(pte_2 & 0x1)) {
-    /* Second page table entry invalid */
-    PTE new_pte_2 = 0 | (((PTE)pa >> 12) << 10) | prot | 0x1; 
-    pt2_base[VPN_2(va)] = new_pte_2;
-  } else {
-    /* Second page table entry valid */
-    assert((((PTE)pte_2 >> 10) << 10) == (0 | (((PTE)pa >> 12) << 10)));
+  assert((pte2 & PTE_V) == 0);
+  if (!(pte2 & PTE_V)) {
+    pte2 = (((uintptr_t)pa >> 12) << 10) | prot | PTE_V;
+    leaf[VPN_2(va)] = pte2;
   }
 }
 

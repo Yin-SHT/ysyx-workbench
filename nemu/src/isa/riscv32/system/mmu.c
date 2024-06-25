@@ -17,28 +17,36 @@
 #include <memory/vaddr.h>
 #include <memory/paddr.h>
 
-#define PPN(pte) (((uint32_t)pte) >> 10)
+#define PTE_V 0x01
+#define PTE_R 0x02
+#define PTE_W 0x04
+#define PTE_X 0x08
+#define PTE_U 0x10
+#define PTE_A 0x40
+#define PTE_D 0x80
+
 #define VPN_1(va) (((uint32_t)va) >> 22)
 #define VPN_2(va) ((((uint32_t)va) << 10) >> 22)
 
 paddr_t addr_translate(vaddr_t vaddr) {
-  /* 1. Access first level page table */
-  uint32_t pt1_base = (uint32_t)(cpu.satp << 12);
-  uint32_t pte_1 = paddr_read(pt1_base + VPN_1(vaddr) * 4, 4);
-  printf("%x\n", pte_1);
-  assert(pte_1 & 0x1);
+  uint32_t pgtbl = (uint32_t)((cpu.satp & 0x3fffff) << 12);
+  uint32_t pte_1 = paddr_read(pgtbl + VPN_1(vaddr) * 4, 4);
+  assert(pte_1 & PTE_V);
 
-  /* 2. Access second level page table */
-  uint32_t pt2_base = (uint32_t)(PPN(pte_1) << 12);
-  uint32_t pte_2 = paddr_read(pt2_base + VPN_2(vaddr) * 4, 4);
+  uint32_t leaf = (uint32_t)((pte_1 >> 10) << 12);
+  uint32_t pte_2 = paddr_read(leaf + VPN_2(vaddr) * 4, 4);
+  assert(pte_2 & PTE_V);
 
-  /* 3. Get mapped physical address */
-  paddr_t paddr = (PPN(pte_2) << 12) | (vaddr & 0xfff);
+  paddr_t paddr = ((pte_2 >> 10) << 12) | (vaddr & 0xfff);
+  assert(vaddr == paddr);
   return paddr;
 }
 
 paddr_t isa_mmu_translate(vaddr_t vaddr, int len, int type) {
-  if (isa_mmu_check(vaddr, len, type) == MMU_DIRECT) return (paddr_t)vaddr;
-  if (isa_mmu_check(vaddr, len, type) == MMU_TRANSLATE) return addr_translate(vaddr);
+  switch (isa_mmu_check(vaddr, len, type)) {
+    case MMU_DIRECT: return (paddr_t)vaddr;
+    case MMU_TRANSLATE: return addr_translate(vaddr);
+    case MMU_FAIL: panic("mmu translate failed!");
+  }
   panic("Unexpected page fault!");
 }

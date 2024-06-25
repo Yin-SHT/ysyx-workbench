@@ -3,18 +3,27 @@
 static void *pf = NULL;
 
 void* new_page(size_t nr_page) {
-  pf = (void *)((uintptr_t)pf + nr_page * PGSIZE);
-  return pf;
+  void *old = (void *)ROUNDUP(pf, PGSIZE);
+  pf = (void *)((uintptr_t)old + nr_page * PGSIZE);
+  return old;
 }
 
 #ifdef HAS_VME
 static void* pg_alloc(int n) {
-  return NULL;
+  if (n % PGSIZE != 0) {
+    panic("n is not align\n");
+  }
+  char *addr = new_page(n / PGSIZE);
+  for (int i = 0; i < n; i ++) {
+    addr[i] = 0;
+  }
+  return (void *)addr;
 }
 #endif
 
 void free_page(void *p) {
-  panic("not implement yet");
+  // don't free mem for simplify
+  return;
 }
 
 /* The brk() system call handler. */
