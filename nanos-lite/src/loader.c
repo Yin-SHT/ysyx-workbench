@@ -23,16 +23,14 @@
 #endif
 
 uintptr_t loader(PCB *pcb, const char *filename) {
-  // 0. Find file 
+  // read ELF header
   int fd = fs_open(filename, 0, 0);
   assert(fd >= 0);
-
-  // 1. Read ELF header
-  Elf_Ehdr *ehdr = malloc(sizeof(Elf_Ehdr));
+  Elf_Ehdr *ehdr = (Elf_Ehdr *)new_page(1);
   fs_lseek(fd, 0, SEEK_SET);
   fs_read(fd, ehdr, sizeof(Elf_Ehdr));
 
-  // Check elf format and ARCH
+  // check elf format and ARCH
   assert(*(uint32_t *)ehdr->e_ident == 0x464c457f);
 #if defined(__ISA_AM_NATIVE__)
   assert(ehdr->e_machine == EM_X86_64);
@@ -40,12 +38,13 @@ uintptr_t loader(PCB *pcb, const char *filename) {
   assert(ehdr->e_machine == EM_RISCV);
 #endif
 
-  // 2. Read Program header
-  Elf_Phdr *phdr = malloc(ehdr->e_phnum * ehdr->e_phentsize);
+  // read program header
+  assert(ehdr->e_phnum * ehdr->e_phentsize < PGSIZE);
+  Elf_Phdr *phdr = (Elf_Phdr *)new_page(1);
   fs_lseek(fd, ehdr->e_phoff, SEEK_SET);
   fs_read(fd, phdr, ehdr->e_phnum * ehdr->e_phentsize);
 
-  // 3. Go through phdrs
+  // go through phdrs
   for (int i = 0; i < ehdr->e_phnum; i++) {
     if (phdr[i].p_type == PT_LOAD) {
       fs_lseek(fd, phdr[i].p_offset, SEEK_SET);

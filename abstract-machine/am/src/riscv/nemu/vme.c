@@ -70,23 +70,23 @@ void __am_switch(Context *c) {
 }
 
 void map(AddrSpace *as, void *va, void *pa, int prot) {
-  PTE *pgtbl = (PTE *)as->ptr; // first level page table
-  PTE pte1 = pgtbl[VPN_1(va)];
+  PTE *ptb1 = (PTE *)as->ptr; // first level page table
+  PTE pte1 = ptb1[VPN_1(va)];
 
   if (!(pte1 & PTE_V)) {
-    void *pa0 = pgalloc_usr(PGSIZE);
-    assert(((uintptr_t)pa0 % PGSIZE) == 0);
-    pte1 = (((uintptr_t)pa0 >> 12) << 10) | PTE_V;
-    pgtbl[VPN_1(va)] = pte1;
+    void *ptb2 = pgalloc_usr(PGSIZE);
+    assert(((uintptr_t)ptb2 % PGSIZE) == 0);
+    pte1 = (((uintptr_t)ptb2 >> 12) << 10) | PTE_V;
+    ptb1[VPN_1(va)] = pte1;
   }
 
-  PTE *leaf = (PTE *)((pte1 >> 10) << 12); // second level page table
-  PTE pte2 = leaf[VPN_2(va)];;
+  PTE *ptb2 = (PTE *)((pte1 >> 10) << 12); // second level page table
+  PTE pte2 = ptb2[VPN_2(va)];;
 
   assert((pte2 & PTE_V) == 0);
   if (!(pte2 & PTE_V)) {
     pte2 = (((uintptr_t)pa >> 12) << 10) | prot | PTE_V;
-    leaf[VPN_2(va)] = pte2;
+    ptb2[VPN_2(va)] = pte2;
   }
 }
 

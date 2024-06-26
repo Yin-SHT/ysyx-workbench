@@ -4,19 +4,18 @@ static void *pf = NULL;
 
 void* new_page(size_t nr_page) {
   void *old = (void *)ROUNDUP(pf, PGSIZE);
-  pf = (void *)((uintptr_t)old + nr_page * PGSIZE);
+  pf = old + nr_page * PGSIZE;
+  assert(pf <= heap.end);
+  char *p = (char *)old;
+  for (int _ = 0; _ < nr_page * PGSIZE; _ ++)
+    p[_] = 0;
   return old;
 }
 
 #ifdef HAS_VME
 static void* pg_alloc(int n) {
-  if (n % PGSIZE != 0) {
-    panic("n is not align\n");
-  }
+  assert((n % PGSIZE) == 0);
   char *addr = new_page(n / PGSIZE);
-  for (int i = 0; i < n; i ++) {
-    addr[i] = 0;
-  }
   return (void *)addr;
 }
 #endif

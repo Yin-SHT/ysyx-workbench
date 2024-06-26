@@ -18,36 +18,36 @@ void switch_boot_pcb() {
 }
 
 static uintptr_t args_init(char *const argv[], char *const envp[]) {
-  /* Create a new stack of 32kb */
-  void *ustack = new_page(8);
-  char *str_st = (char *)((uintptr_t)ustack - 512);
+  void *bottom = new_page(8);
+  void *top = bottom + 8 * PGSIZE;
+  void *area = top - PGSIZE / 2; // used to store string (2048 Bytes)
+  void *sp = top - PGSIZE;
 
-  /* Write process arguments */
-  int nr_argv = 0;
-  uintptr_t *_argv = (uintptr_t *)((uintptr_t)ustack - 1024);
-  while (argv && *argv) {
-    if ((uintptr_t)(*argv) < 0x80000000) break;
-    strcpy(str_st, *argv ++);
-    _argv[nr_argv ++] = (uintptr_t)str_st;
-    str_st += strlen(str_st) + 1;
+  // copy process arguments
+  int argc = 0;
+  char **_argv_ = (char **)(sp + sizeof(uintptr_t));
+  while (argv && argv[argc]) {
+    _argv_[argc] = area;
+    strcpy(area, argv[argc]);
+    area = area + strlen(argv[argc]) + 1;
+    argc ++;
   }
-  _argv[nr_argv] = 0;
+  _argv_[argc] = NULL;
 
-  /* Write environment variables */
-  int nr_envp = 0;
-  uintptr_t *_envp = _argv + nr_argv + 1;
-  while (envp && *envp) {
-    if ((uintptr_t)(*envp) < 0x80000000) break;
-    strcpy(str_st, *envp ++);
-    _envp[nr_envp ++] = (uintptr_t)str_st; 
-    str_st += strlen(str_st) + 1;
+  // copy environment variables
+  int envc = 0;
+  char **_envp_ = _argv_ + argc + 1;
+  while (envp && envp[envc]) {
+    _envp_[envc] = area;
+    area = strcpy(area, envp[envc]);
+    area = area + strlen(envp[argc]) + 1;
+    envc ++;
   }
-  _envp[nr_envp] = 0;
+  _envp_[envc] = NULL;
 
-  /* Write the number of process arguments */
-  *(_argv - 1) = nr_argv;
+  *((uintptr_t *)sp) = argc;
 
-  return (uintptr_t)(_argv - 1);
+  return (uintptr_t)sp;
 }
 
 void context_uload(PCB *pcb, const char *filename, char *const argv[], char *const envp[]) {
@@ -82,7 +82,7 @@ void hello_fun(void *arg) {
 }
 
 void init_proc() {
-  char *argv[] = {"/bin/nterm", NULL};
+  char *argv[] = {"/bin/pal", "--skip", NULL};
   char *envp[] = {NULL};
 
   context_kload(&pcb[0], hello_fun, "first");
@@ -90,11 +90,6 @@ void init_proc() {
   switch_boot_pcb();
 
   Log("Initializing processes...");
-
-  // load program here
-//  void naive_uload(PCB *pcb, const char *filename);
-//  naive_uload(NULL, "/bin/nterm");
-
 }
 
 Context* schedule(Context *prev) {
