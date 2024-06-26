@@ -48,8 +48,19 @@ uintptr_t loader(PCB *pcb, const char *filename) {
   for (int i = 0; i < ehdr->e_phnum; i++) {
     if (phdr[i].p_type == PT_LOAD) {
       fs_lseek(fd, phdr[i].p_offset, SEEK_SET);
+
+    #ifdef HAS_VME
+      void *va = (void *)phdr[i].p_vaddr;
+      void *va_end = (void *)phdr[i].p_vaddr +  phdr[i].p_memsz;
+      for (; va < va_end; va += PGSIZE) {
+        void *pa = new_page(1); // new page set page to zero
+        map(&pcb->as, va, pa, PTE_W | PTE_X | PTE_R);
+        fs_read(fd, pa, PGSIZE);
+      }
+    #else
       fs_read(fd, (void*)(uintptr_t)(phdr[i].p_vaddr), phdr[i].p_filesz);
       memset((void*)(uintptr_t)(phdr[i].p_vaddr + phdr[i].p_filesz), 0, phdr[i].p_memsz - phdr[i].p_filesz);    
+    #endif
     }
   }
 

@@ -17,11 +17,23 @@ void switch_boot_pcb() {
   current = &pcb_boot;
 }
 
-static uintptr_t args_init(char *const argv[], char *const envp[]) {
+static uintptr_t args_init(AddrSpace *as, char *const argv[], char *const envp[]) {
   void *bottom = new_page(8);
   void *top = bottom + 8 * PGSIZE;
   void *area = top - PGSIZE / 2; // used to store string (2048 Bytes)
   void *sp = top - PGSIZE;
+
+#ifdef HAS_VME
+  void *va_end = as->area.end;
+  void *va = as->area.end - 8 * PGSIZE;
+  void *pa = bottom;
+  for (; va < va_end; va += PGSIZE) {
+    map(as, va, pa, PTE_R | PTE_W);
+    pa += PGSIZE;
+  }
+  assert(va == as->area.end);
+  assert(pa == top);
+#endif
 
   // copy process arguments
   int argc = 0;
@@ -51,16 +63,20 @@ static uintptr_t args_init(char *const argv[], char *const envp[]) {
 }
 
 void context_uload(PCB *pcb, const char *filename, char *const argv[], char *const envp[]) {
+#ifdef HAS_VME
+  protect(&pcb->as);
+#endif
+
   Area kstack = {.start = pcb->stack, .end = pcb->stack + STACK_SIZE};
 
   /* Get user process entry */
   void *entry = (void *)loader(pcb, filename);
 
   /* Create user process context */
-  pcb->cp = ucontext(NULL, kstack, entry);
+  pcb->cp = ucontext(&pcb->as, kstack, entry);
 
   /* Set user stack base address */
-  pcb->cp->GPRx = args_init(argv, envp);  // convention with navy-apps
+  pcb->cp->GPRx = args_init(&pcb->as, argv, envp);  // convention with navy-apps
 }
 
 void context_kload(PCB *pcb, void (*entry)(void *), void *arg) {
@@ -82,7 +98,7 @@ void hello_fun(void *arg) {
 }
 
 void init_proc() {
-  char *argv[] = {"/bin/pal", "--skip", NULL};
+  char *argv[] = {"/bin/dummy", "--skip", NULL};
   char *envp[] = {NULL};
 
   context_kload(&pcb[0], hello_fun, "first");
@@ -97,7 +113,8 @@ Context* schedule(Context *prev) {
   current->cp = prev;
 
   // schedule the next process
-  current = (current == &pcb[0] ? &pcb[1] : &pcb[0]);
+//  current = (current == &pcb[0] ? &pcb[1] : &pcb[0]);
+  current = &pcb[1];
 
   // then return the new context
   return current->cp;

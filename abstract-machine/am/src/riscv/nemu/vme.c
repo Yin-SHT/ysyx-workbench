@@ -96,7 +96,7 @@ Context *ucontext(AddrSpace *as, Area kstack, void *entry) {
   /* Initial state of a process to be executed */  
   context.mepc = (uintptr_t)entry;
   context.mstatus = 0x1800;
-//  context.pdir = as->ptr;
+  context.pdir = as->ptr;
 
   Context *cp = (Context *)kstack.end - 1;
   *cp = context;
