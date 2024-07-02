@@ -12,7 +12,7 @@ typedef struct {
   WriteFn write;
 } Finfo;
 
-enum {FD_STDIN, FD_STDOUT, FD_STDERR, FD_FB, FD_EVENT};
+enum {FD_STDIN, FD_STDOUT, FD_STDERR, FD_FB, FD_DISPINFO, FD_EVENT};
 
 size_t invalid_read(void *buf, size_t offset, size_t len) {
   panic("should not reach here");
@@ -26,11 +26,12 @@ size_t invalid_write(const void *buf, size_t offset, size_t len) {
 
 /* This is the information about all files in disk. */
 static Finfo file_table[] __attribute__((used)) = {
-  [FD_STDIN]  = {"stdin",       0, 0, 0, invalid_read, invalid_write},
-  [FD_STDOUT] = {"stdout",      0, 0, 0, invalid_read, serial_write},
-  [FD_STDERR] = {"stderr",      0, 0, 0, invalid_read, serial_write},
-  [FD_FB]     = {"/dev/fb",     0, 0, 0, invalid_read, invalid_write},
-  [FD_EVENT]  = {"/dev/events", 0, 0, 0, events_read,  invalid_write},
+  [FD_STDIN]    = {"stdin",          0, 0, 0, invalid_read,  invalid_write},
+  [FD_STDOUT]   = {"stdout",         0, 0, 0, invalid_read,  serial_write},
+  [FD_STDERR]   = {"stderr",         0, 0, 0, invalid_read,  serial_write},
+  [FD_FB]       = {"/dev/fb",        0, 0, 0, invalid_read,  fb_write},
+  [FD_DISPINFO] = {"/proc/dispinfo", 0, 0, 0, dispinfo_read, invalid_write},
+  [FD_EVENT]    = {"/dev/events",    0, 0, 0, events_read,   invalid_write},
 #include "files.h"
 };
 
@@ -43,6 +44,10 @@ void init_fs() {
     file_table[i].read = NULL;
     file_table[i].write = NULL;
   }
+
+  int w = io_read(AM_GPU_CONFIG).width;
+  int h = io_read(AM_GPU_CONFIG).height;
+  file_table[FD_FB].size = w * h * sizeof(uint32_t);
 }
 
 int fs_open(const char *pathname, int flags, int mode) {
@@ -80,7 +85,7 @@ size_t fs_write(int fd, const void *buf, size_t len) {
   assert(fd >= 0 && fd < NR_FILE);
 
   // calculate number of bytes to write
-  if (!file_table[fd].write) {
+  if (!file_table[fd].write || fd == FD_FB) {
     size_t remain_len = file_table[fd].size - file_table[fd].open_offset;
     len = len < remain_len ? len : remain_len; 
   }
@@ -91,7 +96,7 @@ size_t fs_write(int fd, const void *buf, size_t len) {
   size_t w_len = write(buf, offset, len);
 
   // advance file's open_offset
-  if (!file_table[fd].write) {
+  if (!file_table[fd].write || fd == FD_FB) {
     file_table[fd].open_offset += w_len;
     assert(file_table[fd].open_offset <= file_table[fd].size);
   }
@@ -101,6 +106,7 @@ size_t fs_write(int fd, const void *buf, size_t len) {
 
 size_t fs_lseek(int fd, size_t offset, int whence) {
   assert(fd >= 0 && fd < NR_FILE);
+  assert(!file_table[fd].read || fd == FD_FB); // only block device and fb support lseek
 
   switch (whence) {
     case SEEK_SET: file_table[fd].open_offset = offset; break;
