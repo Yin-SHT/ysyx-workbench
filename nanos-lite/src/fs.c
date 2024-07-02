@@ -27,8 +27,8 @@ size_t invalid_write(const void *buf, size_t offset, size_t len) {
 /* This is the information about all files in disk. */
 static Finfo file_table[] __attribute__((used)) = {
   [FD_STDIN]  = {"stdin", 0, 0, 0, invalid_read, invalid_write},
-  [FD_STDOUT] = {"stdout", 0, 0, 0, invalid_read, invalid_write},
-  [FD_STDERR] = {"stderr", 0, 0, 0, invalid_read, invalid_write},
+  [FD_STDOUT] = {"stdout", 0, 0, 0, invalid_read, serial_write},
+  [FD_STDERR] = {"stderr", 0, 0, 0, invalid_read, serial_write},
 #include "files.h"
 };
 
@@ -36,10 +36,10 @@ static Finfo file_table[] __attribute__((used)) = {
 
 void init_fs() {
   // TODO: initialize the size of /dev/fb
-  for (int i = 0; i < NR_FILE; i ++) {
+  for (int i = FD_STDERR + 1; i < NR_FILE; i ++) {
     file_table[i].open_offset = 0;
-    file_table[i].read = invalid_read;
-    file_table[i].write = invalid_write;
+    file_table[i].read = NULL;
+    file_table[i].write = NULL;
   }
 }
 
@@ -73,16 +73,21 @@ size_t fs_write(int fd, const void *buf, size_t len) {
   assert(fd >= 0 && fd < NR_FILE);
 
   // calculate number of bytes to write
-  size_t remain_len = file_table[fd].size - file_table[fd].open_offset;
-  len = len < remain_len ? len : remain_len;
+  if (!file_table[fd].write) {
+    size_t remain_len = file_table[fd].size - file_table[fd].open_offset;
+    len = len < remain_len ? len : remain_len; 
+  }
 
   // write len bytes from buf into fd
+  WriteFn write = file_table[fd].write ? file_table[fd].write : ramdisk_write;
   size_t offset = file_table[fd].disk_offset + file_table[fd].open_offset;
-  size_t w_len = ramdisk_write(buf, offset, len);
+  size_t w_len = write(buf, offset, len);
 
   // advance file's open_offset
-  file_table[fd].open_offset += w_len;
-  assert(file_table[fd].open_offset <= file_table[fd].size);
+  if (!file_table[fd].write) {
+    file_table[fd].open_offset += w_len;
+    assert(file_table[fd].open_offset <= file_table[fd].size);
+  }
 
   return w_len;
 }

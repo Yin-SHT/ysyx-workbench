@@ -3,13 +3,26 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <assert.h>
+#include <sys/time.h>
 
 static int evtdev = -1;
 static int fbdev = -1;
 static int screen_w = 0, screen_h = 0;
 
 uint32_t NDL_GetTicks() {
-  return 0;
+  struct timeval tv;
+  assert(gettimeofday(&tv, NULL) != -1);
+
+#if defined(__ISA_NATIVE__)
+  struct timeval now;
+  gettimeofday(&now, NULL);
+  long seconds = now.tv_sec - boot_time.tv_sec;
+  long useconds = now.tv_usec - boot_time.tv_usec;
+  tv.tv_usec = seconds * 1000000 + useconds;
+#endif
+
+  return tv.tv_usec / 1000;
 }
 
 int NDL_PollEvent(char *buf, int len) {
