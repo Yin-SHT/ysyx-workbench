@@ -7,6 +7,7 @@ typedef struct {
   char *name;
   size_t size;
   size_t disk_offset;
+  size_t open_offset;
   ReadFn read;
   WriteFn write;
 } Finfo;
@@ -25,12 +26,80 @@ size_t invalid_write(const void *buf, size_t offset, size_t len) {
 
 /* This is the information about all files in disk. */
 static Finfo file_table[] __attribute__((used)) = {
-  [FD_STDIN]  = {"stdin", 0, 0, invalid_read, invalid_write},
-  [FD_STDOUT] = {"stdout", 0, 0, invalid_read, invalid_write},
-  [FD_STDERR] = {"stderr", 0, 0, invalid_read, invalid_write},
+  [FD_STDIN]  = {"stdin", 0, 0, 0, invalid_read, invalid_write},
+  [FD_STDOUT] = {"stdout", 0, 0, 0, invalid_read, invalid_write},
+  [FD_STDERR] = {"stderr", 0, 0, 0, invalid_read, invalid_write},
 #include "files.h"
 };
 
+#define NR_FILE LENGTH(file_table)
+
 void init_fs() {
   // TODO: initialize the size of /dev/fb
+  for (int i = 0; i < NR_FILE; i ++) {
+    file_table[i].open_offset = 0;
+    file_table[i].read = invalid_read;
+    file_table[i].write = invalid_write;
+  }
+}
+
+int fs_open(const char *pathname, int flags, int mode) {
+  for (int i = 0; i < NR_FILE; i ++) {
+    if (!strcmp(file_table[i].name, pathname))
+      return i;
+  }
+  panic("panic: no %s in fs", pathname);
+}
+
+size_t fs_read(int fd, void *buf, size_t len) {
+  assert(fd >= 0 && fd < NR_FILE);
+
+  // calculate number of bytes to read
+  size_t remain_len = file_table[fd].size - file_table[fd].open_offset;
+  len = len < remain_len ? len : remain_len;
+
+  // read len bytes from fd into buf
+  size_t offset = file_table[fd].disk_offset + file_table[fd].open_offset;
+  size_t r_len = ramdisk_read(buf, offset, len);
+
+  // advance file's open_offset
+  file_table[fd].open_offset += r_len;
+  assert(file_table[fd].open_offset <= file_table[fd].size);
+
+  return r_len;
+}
+
+size_t fs_write(int fd, const void *buf, size_t len) {
+  assert(fd >= 0 && fd < NR_FILE);
+
+  // calculate number of bytes to write
+  size_t remain_len = file_table[fd].size - file_table[fd].open_offset;
+  len = len < remain_len ? len : remain_len;
+
+  // write len bytes from buf into fd
+  size_t offset = file_table[fd].disk_offset + file_table[fd].open_offset;
+  size_t w_len = ramdisk_write(buf, offset, len);
+
+  // advance file's open_offset
+  file_table[fd].open_offset += w_len;
+  assert(file_table[fd].open_offset <= file_table[fd].size);
+
+  return w_len;
+}
+
+size_t fs_lseek(int fd, size_t offset, int whence) {
+  assert(fd >= 0 && fd < NR_FILE);
+
+  switch (whence) {
+    case SEEK_SET: file_table[fd].open_offset = offset; break;
+    case SEEK_CUR: file_table[fd].open_offset += offset; break;
+    case SEEK_END: file_table[fd].open_offset = file_table[fd].size + offset; break;
+    default: assert(0);
+  }
+
+  return file_table[fd].open_offset;
+}
+
+int fs_close(int fd) {
+  return 0;
 }
