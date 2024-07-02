@@ -12,7 +12,7 @@ typedef struct {
   WriteFn write;
 } Finfo;
 
-enum {FD_STDIN, FD_STDOUT, FD_STDERR, FD_FB};
+enum {FD_STDIN, FD_STDOUT, FD_STDERR, FD_FB, FD_EVENT};
 
 size_t invalid_read(void *buf, size_t offset, size_t len) {
   panic("should not reach here");
@@ -26,9 +26,11 @@ size_t invalid_write(const void *buf, size_t offset, size_t len) {
 
 /* This is the information about all files in disk. */
 static Finfo file_table[] __attribute__((used)) = {
-  [FD_STDIN]  = {"stdin", 0, 0, 0, invalid_read, invalid_write},
-  [FD_STDOUT] = {"stdout", 0, 0, 0, invalid_read, serial_write},
-  [FD_STDERR] = {"stderr", 0, 0, 0, invalid_read, serial_write},
+  [FD_STDIN]  = {"stdin",       0, 0, 0, invalid_read, invalid_write},
+  [FD_STDOUT] = {"stdout",      0, 0, 0, invalid_read, serial_write},
+  [FD_STDERR] = {"stderr",      0, 0, 0, invalid_read, serial_write},
+  [FD_FB]     = {"/dev/fb",     0, 0, 0, invalid_read, invalid_write},
+  [FD_EVENT]  = {"/dev/events", 0, 0, 0, events_read,  invalid_write},
 #include "files.h"
 };
 
@@ -36,7 +38,7 @@ static Finfo file_table[] __attribute__((used)) = {
 
 void init_fs() {
   // TODO: initialize the size of /dev/fb
-  for (int i = FD_STDERR + 1; i < NR_FILE; i ++) {
+  for (int i = FD_EVENT + 1; i < NR_FILE; i ++) {
     file_table[i].open_offset = 0;
     file_table[i].read = NULL;
     file_table[i].write = NULL;
@@ -55,16 +57,21 @@ size_t fs_read(int fd, void *buf, size_t len) {
   assert(fd >= 0 && fd < NR_FILE);
 
   // calculate number of bytes to read
-  size_t remain_len = file_table[fd].size - file_table[fd].open_offset;
-  len = len < remain_len ? len : remain_len;
+  if (!file_table[fd].read) {
+    size_t remain_len = file_table[fd].size - file_table[fd].open_offset;
+    len = len < remain_len ? len : remain_len; 
+  }
 
   // read len bytes from fd into buf
+  ReadFn read = file_table[fd].read ? file_table[fd].read : ramdisk_read;
   size_t offset = file_table[fd].disk_offset + file_table[fd].open_offset;
-  size_t r_len = ramdisk_read(buf, offset, len);
+  size_t r_len = read(buf, offset, len);
 
   // advance file's open_offset
-  file_table[fd].open_offset += r_len;
-  assert(file_table[fd].open_offset <= file_table[fd].size);
+  if (!file_table[fd].read) {
+    file_table[fd].open_offset += r_len;
+    assert(file_table[fd].open_offset <= file_table[fd].size);
+  }
 
   return r_len;
 }
