@@ -24,6 +24,8 @@ enum {
   SYS_gettimeofday
 };
 
+size_t serial_write(const void *buf, size_t offset, size_t len);
+
 void do_syscall(Context *c) {
   uintptr_t a[4];
   a[0] = c->GPR1;
@@ -34,6 +36,8 @@ void do_syscall(Context *c) {
   switch (a[0]) {
     case SYS_exit:  halt(a[1]); break;
     case SYS_yield: yield(); c->GPRx = 0; break;
+    case SYS_write: if (a[1] == 1 || a[1] == 2) c->GPRx = serial_write((void *)a[2], 0, a[3]); break;
+    case SYS_brk:   c->GPRx = 0; break;
     default: panic("Unhandled syscall ID = %d", a[0]);
   }
 }
