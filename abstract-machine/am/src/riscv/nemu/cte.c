@@ -34,7 +34,7 @@ Context* __am_irq_handle(Context *c) {
     assert(c != NULL);
   }
 
-  // switch new pdir
+  // switch to new pdir
   __am_switch(c);
 
   return c;
