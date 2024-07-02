@@ -8,11 +8,7 @@ void __am_switch(Context *c);
 static Context* (*user_handler)(Event, Context*) = NULL;
 
 Context* __am_irq_handle(Context *c) {
-#ifdef __riscv_e
-  int syscall_num = c->gpr[15];   // x15/a5
-#else
-  int syscall_num = c->gpr[17];   // x17/a7
-#endif
+  int syscall_num = c->GPR1;
 
   // reserve old pdir
   __am_get_cur_as(c);
