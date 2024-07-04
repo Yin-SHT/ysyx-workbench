@@ -25,9 +25,18 @@ uint32_t NDL_GetTicks() {
   return secs * 1000000 + usecs;
 }
 
+/*
+ * Read an event message and write it to 'buf', 
+ * with the longest being written to 'len' bytes.
+ * If a valid event is read, the function returns 1; 
+ * otherwise, it returns 0.
+*/
 int NDL_PollEvent(char *buf, int len) {
   int fd = open("/dev/events", 0);
-  return read(fd, buf, len);
+  if (fd == -1) return 0; // file open failed
+  int ret = read(fd, buf, len);
+  if (ret == -1 || ret == 0) return 0; // read file failed or no event be read
+  return 1;
 }
 
 void NDL_OpenCanvas(int *w, int *h) {
