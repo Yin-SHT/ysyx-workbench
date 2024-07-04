@@ -9,8 +9,10 @@
 
 static int evtdev = -1;
 static int fbdev = -1;
-static int screen_w = 0, screen_h = 0;
+static int fb_fd = -1;
+static int delta_x = 0, delta_y = 0;
 static int canvas_w = 0, canvas_h = 0;
+static int screen_w = 0, screen_h = 0;
 static struct timeval boot_time = {};
 
 /*
@@ -39,6 +41,12 @@ int NDL_PollEvent(char *buf, int len) {
   return 1;
 }
 
+/*
+ * Open a canvas of (*w) X (*h), if *w and *h are both 0, 
+ * use the full system screen as the canvas and 
+ * set *w and *h to the size of the system screen, respectively.
+ * Size of canvas can't over size of screen.
+*/
 void NDL_OpenCanvas(int *w, int *h) {
   if (getenv("NWM_APP")) {
     int fbctl = 4;
@@ -58,26 +66,26 @@ void NDL_OpenCanvas(int *w, int *h) {
     close(fbctl);
   }
 
-  printf("canvas_w: %d canvas_h: %d\n", *w, *h);
-  if (*w > screen_w || *w == 0) {
-    *w = screen_w;
-  }
-  if (*h > screen_h || *h == 0) {
-    *h = screen_h;
-  }
+  if (*w > screen_w || *w == 0) *w = screen_w;
+  if (*h > screen_h || *h == 0) *h = screen_h;
   canvas_w = *w;
   canvas_h = *h;
-  printf("CANVAS_W: %d CANVAS_H: %d\n", canvas_w, canvas_h);
+  delta_x = (screen_w - canvas_w) / 2;
+  delta_y = (screen_h - canvas_h) / 2;
 }
 
+/*
+ * Draw a rectangular image of 'w * h' at the coordinates 
+ * of the canvas '(x, y)' and synchronize the drawing area 
+ * to the screen. Image pixels are stored in a row first 
+ * manner in pixels, and each pixel is described as a color 
+ * using a 32-bit integer in the form of 00RRGGBB.
+*/
 void NDL_DrawRect(uint32_t *pixels, int x, int y, int w, int h) {
-  int fd = open("/dev/fb", 0);
   /* Upper left of canvas is (delta_x, delta_y) */
-  int delta_x = (screen_w - canvas_w) / 2;
-  int delta_y = (screen_h - canvas_h) / 2;
   for (int i = 0; i < h; i++) {
-    lseek(fd, (delta_x + delta_y * screen_w + x + (y + i) * screen_w) * sizeof(uint32_t), SEEK_SET);
-    write(fd, pixels + i * w, w * sizeof(uint32_t));
+    lseek(fb_fd, (delta_x + delta_y * screen_w + x + (y + i) * screen_w) * sizeof(uint32_t), SEEK_SET);
+    write(fb_fd, pixels + i * w, w * sizeof(uint32_t));
   }
 }
 
@@ -102,6 +110,18 @@ int NDL_Init(uint32_t flags) {
 
   /* Get boot_time of system */
   gettimeofday(&boot_time, NULL);
+
+  /* Get size of screen */
+  char buf[128];
+  int fd = open("/proc/dispinfo", 0);
+  assert(fd != -1);
+  int ret = read(fd, buf, sizeof(buf));
+  assert(ret != -1);
+  sscanf(buf, "WIDTH : %d HEIGHT : %d", &screen_w, &screen_h);
+
+  /* Get fd of /dev/fb */
+  fb_fd = open("/dev/fb", 0);
+  assert(fb_fd != -1);
 
   return 0;
 }
