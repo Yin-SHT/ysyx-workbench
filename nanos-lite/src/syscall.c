@@ -3,8 +3,6 @@
 #include <sys/time.h>
 #include "syscall.h"
 
-size_t serial_write(const void *buf, size_t offset, size_t len);
-
 void do_syscall(Context *c) {
   uintptr_t a[4];
   a[0] = c->GPR1;
@@ -21,7 +19,13 @@ void do_syscall(Context *c) {
     case SYS_lseek: c->GPRx = fs_lseek(a[1], a[2], a[3]); break;
     case SYS_close: c->GPRx = fs_close(a[1]); break;
     case SYS_brk:   c->GPRx = 0; break;
-    case SYS_gettimeofday: ((struct timeval*)a[1])->tv_usec = io_read(AM_TIMER_UPTIME).us; c->GPRx = 0; break;
+    case SYS_gettimeofday: {
+      // Returns the time elapsed since the system was started. 
+      ((struct timeval*)a[1])->tv_usec = io_read(AM_TIMER_UPTIME).us; 
+      ((struct timeval*)a[1])->tv_sec  = 0;
+      c->GPRx = 0;
+      break;
+    }
     default: panic("Unhandled syscall ID = %d", a[0]);
   }
 }

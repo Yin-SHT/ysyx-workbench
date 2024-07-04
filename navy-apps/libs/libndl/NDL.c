@@ -13,19 +13,16 @@ static int screen_w = 0, screen_h = 0;
 static int canvas_w = 0, canvas_h = 0;
 static struct timeval boot_time = {};
 
+/*
+ * Returns the time elapsed since 
+ * the system was booted in useconds.
+*/
 uint32_t NDL_GetTicks() {
-  struct timeval tv;
-  assert(gettimeofday(&tv, NULL) != -1);
-
-#if defined(__ISA_NATIVE__)
   struct timeval now;
   gettimeofday(&now, NULL);
-  long seconds = now.tv_sec - boot_time.tv_sec;
-  long useconds = now.tv_usec - boot_time.tv_usec;
-  tv.tv_usec = seconds * 1000000 + useconds;
-#endif
-
-  return tv.tv_usec / 1000;
+  uint32_t secs = now.tv_sec - boot_time.tv_sec;
+  uint32_t usecs = now.tv_usec - boot_time.tv_usec;
+  return secs * 1000000 + usecs;
 }
 
 int NDL_PollEvent(char *buf, int len) {
@@ -94,16 +91,8 @@ int NDL_Init(uint32_t flags) {
     evtdev = 3;
   }
 
-    /* Get boot_time of system */
+  /* Get boot_time of system */
   gettimeofday(&boot_time, NULL);
-
-  /* Get size of screen */
-  char buf[128];
-  int fd = open("/proc/dispinfo", 0);
-  assert(fd != -1);
-  assert(read(fd, buf, sizeof(buf)) != -1);
-  sscanf(buf, "WIDTH : %d HEIGHT : %d", &screen_w, &screen_h);
-  printf("SCREEN_W: %d SCREEN_H: %d\n", screen_w, screen_h);
 
   return 0;
 }
