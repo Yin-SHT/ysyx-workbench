@@ -17,14 +17,14 @@ static struct timeval boot_time = {};
 
 /*
  * Returns the time elapsed since 
- * the system was booted in useconds.
+ * the system was booted in millisecond.
 */
 uint32_t NDL_GetTicks() {
   struct timeval now;
   gettimeofday(&now, NULL);
   uint32_t secs = now.tv_sec - boot_time.tv_sec;
   uint32_t usecs = now.tv_usec - boot_time.tv_usec;
-  return secs * 1000000 + usecs;
+  return (secs * 1000000 + usecs) / 1000;
 }
 
 /*

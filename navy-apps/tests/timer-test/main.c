@@ -2,7 +2,8 @@
 #include <sys/time.h>
 #include <NDL.h>
 
-#define TV(sec) ((uint32_t)(sec * 1000000))
+// millisecond
+#define TV(sec) ((uint32_t)(sec * 1000))
 
 int main() {
   int cnt = 0;

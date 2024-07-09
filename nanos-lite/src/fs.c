@@ -38,22 +38,24 @@ static Finfo file_table[] __attribute__((used)) = {
 #define NR_FILE LENGTH(file_table)
 
 void init_fs() {
-  // TODO: initialize the size of /dev/fb
-  for (int i = FD_EVENT + 1; i < NR_FILE; i ++) {
-    file_table[i].open_offset = 0;
-    file_table[i].read = NULL;
-    file_table[i].write = NULL;
-  }
-
   int w = io_read(AM_GPU_CONFIG).width;
   int h = io_read(AM_GPU_CONFIG).height;
   file_table[FD_FB].size = w * h * sizeof(uint32_t);
+  Log("frame buffer size is %x", file_table[FD_FB].size);
+
+  for (int _ = FD_EVENT + 1; _ < NR_FILE; _ ++) {
+    file_table[_].open_offset = 0;
+    file_table[_].read = NULL;
+    file_table[_].write = NULL;
+  }
 }
 
 int fs_open(const char *pathname, int flags, int mode) {
   for (int i = 0; i < NR_FILE; i ++) {
-    if (!strcmp(file_table[i].name, pathname))
+    if (!strcmp(file_table[i].name, pathname)) {
+      file_table[i].open_offset = 0;  // very important !!!
       return i;
+    }
   }
   panic("panic: no %s in fs", pathname);
 }
@@ -105,8 +107,7 @@ size_t fs_write(int fd, const void *buf, size_t len) {
 }
 
 size_t fs_lseek(int fd, size_t offset, int whence) {
-  assert(fd >= 0 && fd < NR_FILE);
-  assert(!file_table[fd].read || fd == FD_FB); // only block device and fb support lseek
+  assert((fd == FD_FB) || (fd > FD_EVENT && fd < NR_FILE));
 
   switch (whence) {
     case SEEK_SET: file_table[fd].open_offset = offset; break;
@@ -114,6 +115,7 @@ size_t fs_lseek(int fd, size_t offset, int whence) {
     case SEEK_END: file_table[fd].open_offset = file_table[fd].size + offset; break;
     default: assert(0);
   }
+  assert(file_table[fd].open_offset <= file_table[fd].size);
 
   return file_table[fd].open_offset;
 }
