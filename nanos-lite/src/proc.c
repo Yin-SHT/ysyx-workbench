@@ -12,11 +12,27 @@ void switch_boot_pcb() {
 
 void hello_fun(void *arg) {
   int j = 1;
+  uint32_t cnt = 0;
   while (1) {
-    Log("Hello World from Nanos-lite with arg '%s' for the %dth time!", (char *)arg, j);
-    j ++;
+    if (cnt % 10000 == 0) {
+      Log("Hello World from Nanos-lite with arg '%s' for the %dth time!", (char *)arg, j);
+      j ++;
+    }
+    cnt ++;
     yield();
   }
+}
+
+void context_uload(PCB *pcb, char *filename) {
+  void *entry = (void *) loader(pcb, filename);
+
+  AddrSpace as = {};
+  Area kstack = {.start = pcb->stack, .end = pcb->stack + STACK_SIZE};
+  pcb->cp = ucontext(&as, kstack, entry);
+  assert(pcb->cp);
+
+  // convention with navy-apps
+  pcb->cp->GPRx = (uintptr_t) heap.end;
 }
 
 void context_kload(PCB *pcb, void (*entry)(void *), void *arg) {
@@ -27,7 +43,7 @@ void context_kload(PCB *pcb, void (*entry)(void *), void *arg) {
 
 void init_proc() {
   context_kload(&pcb[0], hello_fun, "A");
-  context_kload(&pcb[1], hello_fun, "B");
+  context_uload(&pcb[1], "/bin/pal");
   switch_boot_pcb();
 
   Log("Initializing processes...");
