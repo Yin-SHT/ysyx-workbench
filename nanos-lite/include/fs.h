@@ -2,10 +2,13 @@
 #define __FS_H__
 
 #include <common.h>
+#include <proc.h>
 
 #ifndef SEEK_SET
 enum {SEEK_SET, SEEK_CUR, SEEK_END};
 #endif
+
+void naive_uload(PCB *pcb, const char *filename);
 
 /* True file system API */
 // regular file

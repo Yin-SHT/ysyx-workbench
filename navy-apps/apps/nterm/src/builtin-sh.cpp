@@ -23,11 +23,28 @@ static void sh_prompt() {
 }
 
 static void sh_handle_cmd(const char *cmd) {
+  int i = 0;
+  const char *p = cmd;
+  char command[64] = {0};
+
+  /* Process command */
+  while (*p != '\n') {
+    command[i] = *p;
+    i++;
+    p++;
+  }
+  command[i] = 0;
+
+  /* Execute command */
+  execvp(command, NULL);
+  sh_printf("exec %s failed\n", command);
 }
 
 void builtin_sh_run() {
   sh_banner();
   sh_prompt();
+
+  setenv("PATH", "/bin/", 1);
 
   while (1) {
     SDL_Event ev;
