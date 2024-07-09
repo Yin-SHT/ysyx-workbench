@@ -23,16 +23,42 @@ void hello_fun(void *arg) {
   }
 }
 
-void context_uload(PCB *pcb, char *filename) {
+void context_uload(PCB *pcb, const char *filename, char *const argv[], char *const envp[]) {
   void *entry = (void *) loader(pcb, filename);
 
+  // initialize kernel stack
   AddrSpace as = {};
   Area kstack = {.start = pcb->stack, .end = pcb->stack + STACK_SIZE};
   pcb->cp = ucontext(&as, kstack, entry);
   assert(pcb->cp);
 
+  // initialize args
+  void *area = heap.end - PGSIZE / 2; // used to store string (2048 Bytes)
+  void *sp = heap.end - PGSIZE;
+
+  int argc = 0;
+  char **_argv_ = (char **)(sp + sizeof(uintptr_t));
+  while (argv && argv[argc]) {
+    _argv_[argc] = area;
+    strcpy(area, argv[argc]);
+    area = area + strlen(argv[argc]) + 1;
+    argc ++;
+  }
+  _argv_[argc] = NULL;
+
+  int envc = 0;
+  char **_envp_ = _argv_ + argc + 1;
+  while (envp && envp[envc]) {
+    _envp_[envc] = area;
+    area = strcpy(area, envp[envc]);
+    area = area + strlen(envp[argc]) + 1;
+    envc ++;
+  }
+  _envp_[envc] = NULL;
+
   // convention with navy-apps
-  pcb->cp->GPRx = (uintptr_t) heap.end;
+  *((uintptr_t *)sp) = argc;
+  pcb->cp->GPRx = (uintptr_t) sp;
 }
 
 void context_kload(PCB *pcb, void (*entry)(void *), void *arg) {
@@ -42,8 +68,11 @@ void context_kload(PCB *pcb, void (*entry)(void *), void *arg) {
 }
 
 void init_proc() {
+  char *argv[] = {"/bin/pal", "--skip", NULL};
+  char *envp[] = {NULL};
+
   context_kload(&pcb[0], hello_fun, "A");
-  context_uload(&pcb[1], "/bin/pal");
+  context_uload(&pcb[1], argv[0], argv, envp);
   switch_boot_pcb();
 
   Log("Initializing processes...");
