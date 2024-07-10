@@ -23,28 +23,36 @@ static void sh_prompt() {
 }
 
 static void sh_handle_cmd(const char *cmd) {
-  int i = 0;
-  const char *p = cmd;
-  char command[64] = {0};
+  // Pre-process to remove '\n'
+  char buf[128] = {};
+  strcpy(buf, cmd);
+  int len = strlen(buf);
+  buf[len - 1] = 0;   
 
-  /* Process command */
-  while (*p != '\n') {
-    command[i] = *p;
-    i++;
-    p++;
+  // Fill argv array
+  int argc = 0;
+  char *argv[64] = {};
+  char delim[2] = {" "};
+  char *token = strtok(buf, delim);
+  while (token) {
+    argv[argc] = token;
+    token = strtok(NULL, delim);
+    argc ++;
   }
-  command[i] = 0;
+  argv[argc] = NULL;
 
-  /* Execute command */
-  execvp(command, NULL);
-  sh_printf("exec %s failed\n", command);
+  // Execute command
+  if (argc > 0) {
+    execvp(argv[0], argv);
+    sh_printf("execute %s failed\n", argv[0]);
+  }
 }
 
 void builtin_sh_run() {
   sh_banner();
   sh_prompt();
 
-  setenv("PATH", "/bin/", 1);
+  setenv("PATH", "/bin", 0);
 
   while (1) {
     SDL_Event ev;

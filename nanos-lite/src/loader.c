@@ -20,6 +20,17 @@
 #error Unsupported ISA
 #endif
 
+uintptr_t get_entry(const char *filename) {
+  Elf_Ehdr ehdr = {};
+  int fd = fs_open(filename, 0, 0);
+  fs_lseek(fd, 0, SEEK_SET);
+  fs_read(fd, &ehdr, sizeof(Elf_Ehdr));
+  assert(*(uint32_t *)ehdr.e_ident == ELF_MAGIC);
+  assert(ehdr.e_machine == EXPECT_TYPE);
+
+  return ehdr.e_entry;
+}
+
 uintptr_t loader(PCB *pcb, const char *filename) {
   Elf_Ehdr ehdr = {};
   int fd = fs_open(filename, 0, 0);
