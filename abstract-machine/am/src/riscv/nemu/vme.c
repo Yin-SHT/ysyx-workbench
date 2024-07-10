@@ -11,7 +11,6 @@ static Area segments[] = {      // Kernel memory mappings
   NEMU_PADDR_SPACE
 };
 
-#define PPN(pte) (((uintptr_t)pte) >> 10)
 #define VPN_1(va) (((uintptr_t)va) >> 22)
 #define VPN_2(va) ((((uintptr_t)va) << 10) >> 22)
 #define USER_SPACE RANGE(0x40000000, 0x80000000)
@@ -70,23 +69,22 @@ void __am_switch(Context *c) {
 }
 
 void map(AddrSpace *as, void *va, void *pa, int prot) {
-  PTE *ptb1 = (PTE *)as->ptr; // first level page table
-  PTE pte1 = ptb1[VPN_1(va)];
-
-  if (!(pte1 & PTE_V)) {
-    void *ptb2 = pgalloc_usr(PGSIZE);
-    assert(((uintptr_t)ptb2 % PGSIZE) == 0);
-    pte1 = (((uintptr_t)ptb2 >> 12) << 10) | PTE_V;
-    ptb1[VPN_1(va)] = pte1;
+  // 1'st page table
+  PTE *ptb1 = (PTE *)as->ptr; 
+  PTE *pte1 = &ptb1[VPN_1(va)];
+  if (!(*pte1 & PTE_V)) {
+    void *ptr = pgalloc_usr(PGSIZE);
+    assert(((PTE)ptr % PGSIZE) == 0);
+    *pte1 = (((PTE)ptr >> 12) << 10) | PTE_V;
+    assert(ptb1[VPN_1(va)] & PTE_V);
   }
 
-  PTE *ptb2 = (PTE *)((pte1 >> 10) << 12); // second level page table
-  PTE pte2 = ptb2[VPN_2(va)];;
-
-  assert((pte2 & PTE_V) == 0);
-  if (!(pte2 & PTE_V)) {
-    pte2 = (((uintptr_t)pa >> 12) << 10) | prot | PTE_V;
-    ptb2[VPN_2(va)] = pte2;
+  // 2'nd page table
+  PTE *ptb2 = (PTE *)((*pte1 >> 10) << 12); 
+  PTE *pte2 = &ptb2[VPN_2(va)];
+  if (!(*pte2 & PTE_V)) {
+    *pte2 = (((PTE)pa >> 12) << 10) | prot | PTE_V;
+    assert(ptb2[VPN_2(va)] & PTE_V);
   }
 }
 

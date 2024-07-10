@@ -25,20 +25,20 @@
 #define PTE_A 0x40
 #define PTE_D 0x80
 
-#define VPN_1(va) (((uint32_t)va) >> 22)
-#define VPN_2(va) ((((uint32_t)va) << 10) >> 22)
+#define VPN_1(va) (((paddr_t)va) >> 22)
+#define VPN_2(va) ((((paddr_t)va) << 10) >> 22)
 
 paddr_t addr_translate(vaddr_t vaddr) {
-  uint32_t ptb1 = (uint32_t)((cpu.satp & 0x3fffff) << 12);
-  uint32_t pte1 = paddr_read(ptb1 + VPN_1(vaddr) * 4, 4);
+  paddr_t ptb1 = (paddr_t)((cpu.satp & 0x3fffff) << 12);
+  paddr_t pte1 = paddr_read(ptb1 + VPN_1(vaddr) * 4, 4);
   assert(pte1 & PTE_V);
 
-  uint32_t ptb2 = (uint32_t)((pte1 >> 10) << 12);
-  uint32_t pte2 = paddr_read(ptb2 + VPN_2(vaddr) * 4, 4);
+  paddr_t ptb2 = (paddr_t)((pte1 >> 10) << 12);
+  paddr_t pte2 = paddr_read(ptb2 + VPN_2(vaddr) * 4, 4);
   assert(pte2 & PTE_V);
 
   paddr_t paddr = ((pte2 >> 10) << 12) | (vaddr & 0xfff);
-//  assert(vaddr == paddr);
+  assert(vaddr == paddr);
   return paddr;
 }
 
