@@ -44,7 +44,7 @@ static void sh_handle_cmd(const char *cmd) {
   // Execute command
   if (argc > 0) {
     execvp(argv[0], argv);
-    sh_printf("execute %s failed\n", argv[0]);
+    sh_printf("%s: command not found\n", argv[0]);
   }
 }
 
@@ -52,7 +52,7 @@ void builtin_sh_run() {
   sh_banner();
   sh_prompt();
 
-  setenv("PATH", "/bin", 0);
+  setenv("PATH", "/bin:/usr/bin", 0);
 
   while (1) {
     SDL_Event ev;

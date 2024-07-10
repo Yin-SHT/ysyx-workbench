@@ -20,7 +20,7 @@ void hello_fun(void *arg) {
   int j = 1;
   uint32_t cnt = 0;
   while (1) {
-    if (cnt % 100000 == 0) {
+    if (cnt % 1000000 == 0) {
       Log("Hello World from Nanos-lite with arg '%s' for the %dth time!", (char *)arg, j);
       j ++;
     }

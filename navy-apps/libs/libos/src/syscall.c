@@ -99,8 +99,11 @@ int _gettimeofday(struct timeval *tv, struct timezone *tz) {
   return _syscall_(SYS_gettimeofday, (intptr_t)tv, (intptr_t)tz, 0);
 }
 
+extern int errno ;
+
 int _execve(const char *fname, char * const argv[], char *const envp[]) {
-  _syscall_(SYS_execve, (intptr_t)fname, (intptr_t)argv, (intptr_t)envp);
+  int ret = _syscall_(SYS_execve, (intptr_t)fname, (intptr_t)argv, (intptr_t)envp);
+  if (ret < 0) errno = -ret;
   return -1;
 }
 

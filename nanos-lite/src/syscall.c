@@ -29,6 +29,11 @@ void do_syscall(Context *c) {
       break;
     }
     case SYS_execve: {
+      if (fs_open((char *)(a[1]), 0, 0) == -1) {
+        c->GPRx = -2;
+        break;
+      }
+
       context_uload(pick_pcb(1), (char *)(a[1]), (char **)(a[2]), (char **)(a[3])); 
       switch_boot_pcb();     
       yield();
