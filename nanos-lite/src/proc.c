@@ -30,7 +30,7 @@ void hello_fun(void *arg) {
 }
 
 void init_proc() {
-  char *argv[] = {"/bin/dummy", NULL};
+  char *argv[] = {"/bin/pal", "--skip", NULL};
   char *envp[] = {NULL};
 
   context_kload(&pcb[0], hello_fun, "A");

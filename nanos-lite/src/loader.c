@@ -28,6 +28,7 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
   assert(ehdr.e_machine == EXPECT_TYPE);
 
   Elf_Phdr phdr = {};
+  void *max_brk = 0;
   for (int i = 0; i < ehdr.e_phnum; i ++) {
     fs_lseek(fd, ehdr.e_phoff + i * ehdr.e_phentsize, SEEK_SET);
     fs_read(fd, &phdr, sizeof(Elf_Phdr));
@@ -43,11 +44,13 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
         pa += PGSIZE;
       }
       assert(va == end);
+      if (max_brk < end) max_brk = end; // determine start of heap
 
       fs_lseek(fd, phdr.p_offset, SEEK_SET);
       fs_read(fd, (void*)((uintptr_t)old + (phdr.p_vaddr & 0xfff)), phdr.p_filesz);
     }
   }
+  pcb->max_brk = ROUNDUP(max_brk, PGSIZE);
 
   return ehdr.e_entry;
 }
