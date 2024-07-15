@@ -20,7 +20,7 @@ void hello_fun(void *arg) {
   int j = 1;
   uint32_t cnt = 0;
   while (1) {
-    if (cnt % 1000000 == 0) {
+    if (cnt % 1000 == 0) {
       Log("Hello World from Nanos-lite with arg '%s' for the %dth time!", (char *)arg, j);
       j ++;
     }
@@ -41,8 +41,12 @@ void init_proc() {
 }
 
 Context* schedule(Context *prev) {
+  // kthread's pdir always NULL
+#ifdef __riscv
+  pcb[0].as.ptr = NULL;
+#endif
+
   current->cp = prev;
-//  current = (current == &pcb[0] ? &pcb[1] : &pcb[0]);
-  current = &pcb[1];
+  current = (current == &pcb[0] ? &pcb[1] : &pcb[0]);
   return current->cp;
 }
