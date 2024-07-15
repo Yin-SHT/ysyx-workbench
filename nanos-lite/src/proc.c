@@ -41,12 +41,11 @@ void init_proc() {
 }
 
 Context* schedule(Context *prev) {
-  // kthread's pdir always NULL
-#ifdef __riscv
-  pcb[0].as.ptr = NULL;
-#endif
-
   current->cp = prev;
   current = (current == &pcb[0] ? &pcb[1] : &pcb[0]);
+  // kthread's pdir always NULL
+#ifdef __riscv
+  pcb[0].cp->pdir = NULL;
+#endif
   return current->cp;
 }
