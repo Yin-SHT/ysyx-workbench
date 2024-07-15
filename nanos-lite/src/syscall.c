@@ -19,7 +19,8 @@ void do_syscall(Context *c) {
     case SYS_close:  c->GPRx = fs_close(a[1]); break;
     case SYS_brk:    c->GPRx = 0; break;
     case SYS_exit:   {
-      if (a[1] != 0) halt(a[1]);
+//      if (a[1] != 0) halt(a[1]);
+      halt(a[1]);
 
       char *argv[] = {"/bin/nterm", NULL};
       char *envp[] = {NULL};

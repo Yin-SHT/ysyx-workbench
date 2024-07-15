@@ -38,7 +38,7 @@ paddr_t addr_translate(vaddr_t vaddr) {
   assert(pte2 & PTE_V);
 
   paddr_t paddr = ((pte2 >> 10) << 12) | (vaddr & 0xfff);
-  assert(vaddr == paddr);
+
   return paddr;
 }
 

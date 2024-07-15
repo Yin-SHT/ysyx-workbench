@@ -29,54 +29,8 @@ void hello_fun(void *arg) {
   }
 }
 
-void context_uload(PCB *pcb, const char *filename, char *const argv[], char *const envp[]) {
-  // create initial state to execute
-  AddrSpace as = {};
-  Area kstack = {.start = pcb->stack, .end = pcb->stack + STACK_SIZE};
-  pcb->cp = ucontext(&as, kstack, (void *)get_entry(filename));
-  assert(pcb->cp);
-
-  // arrange args & envs
-  void *ustack = new_page(8) + 8 * PGSIZE;  // stack size: 32 KB
-  void *area = ustack - PGSIZE / 2; // used to store string (2048 Bytes)
-  void *sp = ustack - PGSIZE;
-  
-  int argc = 0;
-  char **ARGV = (char **)(sp + sizeof(uintptr_t));
-  while (argv[argc]) {
-    ARGV[argc] = area;
-    strcpy(area, argv[argc]);
-    area = area + strlen(argv[argc]) + 1;
-    argc ++;
-  }
-  ARGV[argc] = NULL;
-
-  int envc = 0;
-  char **ENVP = ARGV + argc + 1;
-  while (envp[envc]) {
-    ENVP[envc] = area;
-    strcpy(area, envp[envc]);
-    area = area + strlen(envp[envc]) + 1;
-    envc ++;
-  }
-  ENVP[envc] = NULL;
-
-  // set stack pointer (convention with navy-apps)
-  *((uintptr_t *)sp) = argc;
-  pcb->cp->GPRx = (uintptr_t) sp;
-
-  // load program to mem
-  loader(pcb, filename);
-}
-
-void context_kload(PCB *pcb, void (*entry)(void *), void *arg) {
-  Area kstack = {.start = pcb->stack, .end = pcb->stack + STACK_SIZE};
-  pcb->cp = kcontext(kstack, entry, arg);
-  assert(pcb->cp);
-}
-
 void init_proc() {
-  char *argv[] = {"/bin/nterm", NULL};
+  char *argv[] = {"/bin/dummy", NULL};
   char *envp[] = {NULL};
 
   context_kload(&pcb[0], hello_fun, "A");
@@ -88,6 +42,7 @@ void init_proc() {
 
 Context* schedule(Context *prev) {
   current->cp = prev;
-  current = (current == &pcb[0] ? &pcb[1] : &pcb[0]);
+//  current = (current == &pcb[0] ? &pcb[1] : &pcb[0]);
+  current = &pcb[1];
   return current->cp;
 }

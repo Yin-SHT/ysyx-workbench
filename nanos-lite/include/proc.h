@@ -20,9 +20,8 @@ extern PCB *current;
 
 PCB *pick_pcb(int i);
 Context* schedule(Context *prev);
-uintptr_t loader(PCB *pcb, const char *filename);
-uintptr_t get_entry(const char *filename);
 void context_uload(PCB *pcb, const char *filename, char *const argv[], char *const envp[]);
+void context_kload(PCB *pcb, void (*entry)(void *), void *arg);
 void switch_boot_pcb();
 
 #endif
