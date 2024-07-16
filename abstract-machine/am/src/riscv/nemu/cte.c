@@ -23,6 +23,7 @@ Context* __am_irq_handle(Context *c) {
         else { ev.event = EVENT_ERROR; }
         break;
       }
+      case 0x80000007: ev.event = EVENT_IRQ_TIMER; break;
       default: ev.event = EVENT_ERROR; break;
     }
 
@@ -52,7 +53,7 @@ Context *kcontext(Area kstack, void (*entry)(void *), void *arg) {
   Context context = {
     .GPR2 = (uintptr_t)arg,
     .mepc = (uintptr_t)entry,
-    .mstatus = 0x1800,
+    .mstatus = 0x1880,
     .pdir = NULL
   };
 

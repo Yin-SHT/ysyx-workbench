@@ -26,7 +26,10 @@
 #define SATP    0x180
 
 // Machine cause register (mcause) values after trap.
-#define ECALL_FROM_M 11
+#define ECALL_FROM_M  11
+#define IRQ_TIMER     0x80000007  
+#define MIE           (1 << 3)
+#define MPIE          (1 << 7)
 
 typedef struct {
   word_t gpr[MUXDEF(CONFIG_RVE, 16, 32)];
@@ -38,6 +41,9 @@ typedef struct {
   word_t mtvec;
   word_t mepc;
   word_t satp;
+
+  // interrupt
+  bool INTR;
 } MUXDEF(CONFIG_RV64, riscv64_CPU_state, riscv32_CPU_state);
 
 // decode

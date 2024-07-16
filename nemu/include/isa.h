@@ -49,10 +49,6 @@ paddr_t isa_mmu_translate(vaddr_t vaddr, int len, int type);
 // interrupt/exception
 word_t read_csr(word_t imm);
 void write_csr(word_t imm, word_t val);
-void etrace_call(word_t NO);
-void etrace_ret();
-void trap_in();
-void trap_out();
 vaddr_t isa_raise_intr(word_t NO, vaddr_t epc);
 #define INTR_EMPTY ((word_t)-1)
 word_t isa_query_intr();

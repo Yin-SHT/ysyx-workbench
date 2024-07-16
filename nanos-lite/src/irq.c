@@ -7,9 +7,7 @@ static Context* do_event(Event e, Context* c) {
   switch (e.event) {
     case EVENT_SYSCALL: do_syscall(c); break;
     case EVENT_YIELD: c = schedule(c); break;
-
-    // patch for native
-    case EVENT_IRQ_TIMER: break;
+    case EVENT_IRQ_TIMER: c = schedule(c); break;
     case EVENT_IRQ_IODEV: break;
     default: panic("Unhandled event ID = %d", e.event);
   }

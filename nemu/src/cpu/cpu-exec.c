@@ -87,6 +87,12 @@ static void execute(uint64_t n) {
     trace_and_difftest(&s, cpu.pc);
     IFDEF(CONFIG_DEVICE, device_update());
     if (nemu_state.state != NEMU_RUNNING) break;
+
+    // polling interrupt
+    word_t intr = isa_query_intr();
+    if (intr != INTR_EMPTY) {
+      cpu.pc = isa_raise_intr(intr, cpu.pc);
+    }
   }
 }
 

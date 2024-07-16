@@ -91,7 +91,7 @@ void map(AddrSpace *as, void *va, void *pa, int prot) {
 Context *ucontext(AddrSpace *as, Area kstack, void *entry) {
   Context context = {
     .mepc = (uintptr_t)entry,
-    .mstatus = 0x1800,
+    .mstatus = 0x1880,
     .pdir = as->ptr
   };
 
