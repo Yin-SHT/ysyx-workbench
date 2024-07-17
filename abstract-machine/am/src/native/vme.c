@@ -82,6 +82,10 @@ end:
   thiscpu->vm_head = head;
 }
 
+void switch_as(Context *current) {
+  __am_switch(current);
+}
+
 void map(AddrSpace *as, void *va, void *pa, int prot) {
   assert(IN_RANGE(va, USER_SPACE));
   assert((uintptr_t)va % __am_pgsize == 0);
