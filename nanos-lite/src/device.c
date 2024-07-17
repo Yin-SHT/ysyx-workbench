@@ -9,6 +9,8 @@
 #define NAME(key) \
   [AM_KEY_##key] = #key,
 
+extern int fg_pcb;
+
 static const char *keyname[256] __attribute__((used)) = {
   [AM_KEY_NONE] = "NONE",
   AM_KEYS(NAME)
@@ -30,6 +32,10 @@ size_t serial_write(const void *buf, size_t offset, size_t len) {
 size_t events_read(void *buf, size_t offset, size_t len) {
   AM_INPUT_KEYBRD_T ev = io_read(AM_INPUT_KEYBRD);
   if (ev.keycode != AM_KEY_NONE) {
+    if (ev.keycode == AM_KEY_F1) fg_pcb = 1;
+    else if (ev.keycode == AM_KEY_F2) fg_pcb = 2;
+    else if (ev.keycode == AM_KEY_F3) fg_pcb = 3;
+
     return snprintf(buf, len, "%s %s\n", ev.keydown ? "kd" : "ku", keyname[ev.keycode]);
   }
   return 0;
