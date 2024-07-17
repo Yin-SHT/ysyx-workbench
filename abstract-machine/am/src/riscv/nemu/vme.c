@@ -68,6 +68,10 @@ void __am_switch(Context *c) {
   }
 }
 
+void switch_as(Context *current) {
+  __am_switch(current);
+}
+
 void map(AddrSpace *as, void *va, void *pa, int prot) {
   // 1'st page table
   PTE *ptb1 = (PTE *)as->ptr; 
@@ -92,7 +96,8 @@ Context *ucontext(AddrSpace *as, Area kstack, void *entry) {
   Context context = {
     .mepc = (uintptr_t)entry,
     .mstatus = 0x1880,
-    .pdir = as->ptr
+    .pdir = as->ptr,
+    .mscratch = (uintptr_t)kstack.end
   };
 
   Context *cp = (Context *)kstack.end - 1;

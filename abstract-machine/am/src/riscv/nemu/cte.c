@@ -1,6 +1,6 @@
 #include <am.h>
-#include <riscv/riscv.h>
 #include <klib.h>
+#include <riscv/riscv.h>
 
 void __am_get_cur_as(Context *c);
 void __am_switch(Context *c);
@@ -9,9 +9,6 @@ static Context* (*user_handler)(Event, Context*) = NULL;
 
 Context* __am_irq_handle(Context *c) {
   int syscall_num = c->GPR1;
-
-  // reserve old pdir
-  __am_get_cur_as(c);
 
   if (user_handler) {
     Event ev = {0};
@@ -30,9 +27,6 @@ Context* __am_irq_handle(Context *c) {
     c = user_handler(ev, c);
     assert(c != NULL);
   }
-
-  // switch to new pdir
-  __am_switch(c);
 
   return c;
 }
@@ -54,7 +48,8 @@ Context *kcontext(Area kstack, void (*entry)(void *), void *arg) {
     .GPR2 = (uintptr_t)arg,
     .mepc = (uintptr_t)entry,
     .mstatus = 0x1880,
-    .pdir = NULL
+    .pdir = NULL,
+    .mscratch = 0
   };
 
   Context *cp = (Context *)kstack.end - 1;

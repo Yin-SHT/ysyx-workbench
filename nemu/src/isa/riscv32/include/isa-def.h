@@ -19,11 +19,12 @@
 #include <common.h>
 
 // CSRs
-#define MSTATUS 0x300
-#define MTVEC   0x305
-#define MEPC    0x341
-#define MCAUSE  0x342
-#define SATP    0x180
+#define MSTATUS  0x300
+#define MTVEC    0x305
+#define MSCRATCH 0x340
+#define MEPC     0x341
+#define MCAUSE   0x342
+#define SATP     0x180
 
 // Machine cause register (mcause) values after trap.
 #define ECALL_FROM_M  11
@@ -37,9 +38,10 @@ typedef struct {
 
   // control and status registers
   word_t mstatus;
-  word_t mcause;
   word_t mtvec;
+  word_t mscratch;
   word_t mepc;
+  word_t mcause;
   word_t satp;
 
   // interrupt

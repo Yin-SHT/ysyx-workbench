@@ -34,15 +34,12 @@ static void restart() {
   cpu.gpr[0] = 0;
 
   /* Set the initial CSRs. */
-#ifdef CONFIG_ISA64
-  cpu.mstatus = 0xa00001800;
-#else
-  cpu.mstatus = 0x1800;
-#endif
-  cpu.mcause = 0;
-  cpu.mtvec = 0;
-  cpu.mepc = 0;
-  cpu.satp = 0;
+  cpu.mstatus  = 0x1800;
+  cpu.mtvec    = 0;
+  cpu.mscratch = 0;
+  cpu.mepc     = 0;
+  cpu.mcause   = 0;
+  cpu.satp     = 0;
 }
 
 void init_isa() {

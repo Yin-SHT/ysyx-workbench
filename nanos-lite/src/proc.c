@@ -30,11 +30,11 @@ void hello_fun(void *arg) {
 }
 
 void init_proc() {
-  char *argv[] = {"/bin/pal", "--skip", NULL};
+  char *argv[] = {NULL};
   char *envp[] = {NULL};
 
-  context_kload(&pcb[0], hello_fun, "A");
-  context_uload(&pcb[1], argv[0], argv, envp);
+  context_uload(&pcb[0], "/bin/hello", argv, envp);
+  context_uload(&pcb[1], "/bin/nterm", argv, envp);
   switch_boot_pcb();
 
   Log("Initializing processes...");
@@ -43,9 +43,6 @@ void init_proc() {
 Context* schedule(Context *prev) {
   current->cp = prev;
   current = (current == &pcb[0] ? &pcb[1] : &pcb[0]);
-  // kthread's pdir always NULL
-#ifdef __riscv
-  pcb[0].cp->pdir = NULL;
-#endif
+  switch_as(current->cp);
   return current->cp;
 }

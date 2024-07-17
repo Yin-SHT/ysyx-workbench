@@ -37,22 +37,24 @@ word_t isa_query_intr() {
 
 word_t read_csr(word_t imm) {
   switch (imm) {
-    case MSTATUS: return cpu.mstatus;
-    case MCAUSE: return cpu.mcause;
-    case MTVEC: return cpu.mtvec;
-    case MEPC: return cpu.mepc;
-    case SATP: return cpu.satp;
+    case MSTATUS:  return cpu.mstatus;
+    case MTVEC:    return cpu.mtvec;
+    case MSCRATCH: return cpu.mscratch;
+    case MEPC:     return cpu.mepc;
+    case MCAUSE:   return cpu.mcause;
+    case SATP:     return cpu.satp;
     default: panic("CSRs[%d] is not immplement\n", imm);
   }
 }
 
 void write_csr(word_t imm, word_t val) {
   switch (imm) {
-    case MSTATUS: cpu.mstatus = val; break;
-    case MCAUSE: cpu.mcause = val; break;
-    case MTVEC: cpu.mtvec = val; break;
-    case MEPC: cpu.mepc = val; break;
-    case SATP: cpu.satp = val; break;
+    case MSTATUS:  cpu.mstatus  = val; break;
+    case MTVEC:    cpu.mtvec    = val; break;
+    case MSCRATCH: cpu.mscratch = val; break;
+    case MEPC:     cpu.mepc     = val; break;
+    case MCAUSE:   cpu.mcause   = val; break;
+    case SATP:     cpu.satp     = val; break;
     default: panic("CSRs[%d] is not immplement\n", imm);
   }
 }
