@@ -52,7 +52,7 @@ void init_verilator(int argc, char **argv) {
     top->trace(tfp, 99); 
     IFDEF(CONFIG_WAVEFORM, tfp->open("./build/output/sim.vcd"));
 
-    ifu_reg = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.fetch0.reg0");
+    ifu_reg = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.fetch0.controller");
     idu_reg = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.reg0");
     idu_log = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.decode_log0");
     userreg = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.userreg0");

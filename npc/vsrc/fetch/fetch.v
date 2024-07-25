@@ -56,72 +56,15 @@ module fetch (
     input  [`AXI4_RID_BUS]     rid_i
 );
 
-    wire pc_we;
-    wire inst_we;
-    wire arvalid;
-    wire arready;
-
-    wire rvalid;
-    wire rready;
-    wire [31:0] rdata;
-
-
-    // AW: Address Write Channel 
-    assign awvalid_o = 0;
-    assign awaddr_o  = 0;
-    assign awid_o    = 0;
-    assign awlen_o   = 0;
-    assign awsize_o  = 0;
-    assign awburst_o = 0;
-
-    //  W: Data Write Channel 
-    assign wvalid_o  = 0;
-    assign wdata_o   = 0;
-    assign wstrb_o   = 0;
-    assign wlast_o   = 0;
-
-    //  B: Response Write Channel 
-    assign bready_o  = 0;
-
-    reg[127:0] fire;
-    wire       firing = (fire == 1);
-
-    always @(posedge clock) begin
-        if (reset) begin
-            fire <= 0;
-        end else begin
-            fire <= fire + 1;
-        end
-    end
-
     fetch_controller controller (
         .clock        (clock),
         .reset        (reset),
 
-        .valid_pre_i  (valid_pre_i | firing),
+        .valid_pre_i  (valid_pre_i),
         .ready_pre_o  (ready_pre_o),
+
         .valid_post_o (valid_post_o),
         .ready_post_i (ready_post_i),
-
-        .pc_we_o      (pc_we),
-        .inst_we_o    (inst_we),
-
-        // AR,
-        .arready_i    (arready),
-        .arvalid_o    (arvalid),
-
-        // R,
-        .rready_o     (rready),
-        .rvalid_i     (rvalid)
-    );
-
-    fetch_reg reg0 (
-        .clock        (clock),
-        .reset        (reset),
-
-        .firing       (firing),
-        .pc_we_i      (pc_we),
-        .inst_we_i    (inst_we),
 
         .branch_en_i  (branch_en_i),
         .dnpc_i       (dnpc_i),
@@ -129,35 +72,39 @@ module fetch (
         .pc_o         (pc_o),
         .inst_o       (inst_o),
 
-        .rdata_i      (rdata)
-    );
+        .awready_i    (awready_i),                                 
+        .awvalid_o    (awvalid_o),                            
+        .awaddr_o     (awaddr_o),                           
+        .awid_o       (awid_o),                         
+        .awlen_o      (awlen_o),                          
+        .awsize_o     (awsize_o),                           
+        .awburst_o    (awburst_o),                            
 
-    icache icache0 (
-        .clock              (clock),                      
-        .reset              (reset),                      
+        .wready_i     (wready_i),                                 
+        .wvalid_o     (wvalid_o),                           
+        .wdata_o      (wdata_o),                          
+        .wstrb_o      (wstrb_o),                          
+        .wlast_o      (wlast_o),                          
 
-        .io_master_arready  (arready_i),                                  
-        .io_master_arvalid  (arvalid_o),                                  
-        .io_master_araddr   (araddr_o),                                  
-        .io_master_arid     (arid_o),                               
-        .io_master_arlen    (arlen_o),                                
-        .io_master_arsize   (arsize_o),                                 
-        .io_master_arburst  (arburst_o),                                  
+        .bready_o     (bready_o),                           
+        .bvalid_i     (bvalid_i),                                 
+        .bresp_i      (bresp_i),                                 
+        .bid_i        (bid_i),                                 
 
-        .io_master_rready   (rready_o),                                 
-        .io_master_rvalid   (rvalid_i),                                 
-        .io_master_rresp    (rresp_i),                                
-        .io_master_rdata    (rdata_i),                                
-        .io_master_rlast    (rlast_i),                                
-        .io_master_rid      (rid_i),                              
+        .arready_i    (arready_i),                            
+        .arvalid_o    (arvalid_o),                            
+        .araddr_o     (araddr_o),                           
+        .arid_o       (arid_o),                         
+        .arlen_o      (arlen_o),                          
+        .arsize_o     (arsize_o),                           
+        .arburst_o    (arburst_o),                            
 
-        .arready_o          (arready),                          
-        .arvalid_i          (arvalid),                          
-        .araddr_i           (pc_o),                         
-
-        .rready_i           (rready),                         
-        .rvalid_o           (rvalid),                         
-        .rdata_o            (rdata)                        
+        .rready_o     (rready_o),                           
+        .rvalid_i     (rvalid_i),                           
+        .rresp_i      (rresp_i),                          
+        .rdata_i      (rdata_i),                          
+        .rlast_i      (rlast_i),                          
+        .rid_i        (rid_i)
     );
 
 endmodule
