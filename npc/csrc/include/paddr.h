@@ -27,6 +27,13 @@
 #define PMEM_RIGHT ((paddr_t)CONFIG_MBASE + CONFIG_MSIZE - 1)
 #define RESET_VECTOR (PMEM_LEFT + CONFIG_PC_RESET_OFFSET)
 
+/* Mrom */
+#define CONFIG_MROMSIZE 0x1000
+#define CONFIG_MROMBASE 0x20000000
+#define MROM_LEFT  ((paddr_t)CONFIG_MROMBASE)
+#define MROM_RIGHT ((paddr_t)CONFIG_MROMBASE + CONFIG_MROMSIZE - 1)
+#define MROM_VECTOR (MROM_LEFT + CONFIG_PC_RESET_OFFSET)
+
 /* Flash */
 #define CONFIG_FLASH_SIZE 0x2000000
 #define CONFIG_FLASH_BASE 0x30000000
@@ -44,9 +51,10 @@ uint8_t* guest_to_host(paddr_t paddr);
 /* convert the host virtual address in NPC to guest physical address in the guest program */
 paddr_t host_to_guest(uint8_t *haddr);
 
-/* convert the guest physical address in the guest program to host virtual address in SOC */
+uint8_t* mrom_to_host(paddr_t paddr);
+paddr_t host_to_mrom(uint8_t *haddr);
+
 uint8_t* guest_to_flash(paddr_t paddr);
-/* convert the host virtual address in SOC to guest physical address in the guest program */
 paddr_t flash_to_guest(uint8_t *haddr);
 
 static inline bool in_pmem(paddr_t addr) {

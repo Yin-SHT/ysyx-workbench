@@ -51,26 +51,26 @@ typedef uint16_t ioaddr_t;
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // Used for functional validation
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#define CONFIG_FUNC 1
+//#define CONFIG_FUNC 1
 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // Used for performance validation
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-//#define CONFIG_SOC 1
+#define CONFIG_SOC 1
 //#define CONFIG_PEREVENT 1
 //#define CONFIG_NVBOARD 1
 
 /* Trace Defines */
 //#define CONFIG_WAVEFORM 1
-#define CONFIG_DIFFTEST 1
+//#define CONFIG_DIFFTEST 1
 
 /* THESE BELOW MICRO ALWAYS RELATED WITH FUNCTIONAL VALIDATION */
 /* Device Defines */
-#define CONFIG_DEVICE 1
-#define CONFIG_HAS_SERIAL 1
-#define CONFIG_HAS_TIMER 1
-#define CONFIG_HAS_VGA 1
-#define CONFIG_HAS_KEYBOARD 1
+//#define CONFIG_DEVICE 1
+//#define CONFIG_HAS_SERIAL 1
+//#define CONFIG_HAS_TIMER 1
+//#define CONFIG_HAS_VGA 1
+//#define CONFIG_HAS_KEYBOARD 1
 
 
 #endif

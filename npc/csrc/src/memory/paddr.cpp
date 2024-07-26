@@ -23,19 +23,19 @@ static void pmem_read(uint32_t araddr, uint32_t *rdata_high, uint32_t *rdata_low
 }
 
 static void pmem_write(uint32_t awaddr, uint32_t wdata_high, uint32_t wdata_low, uint32_t wstrb) {
-  uint64_t *PMEM = (uint64_t *)pmem;
-  uint64_t offset = (awaddr - 0x80000000) >> 3;
-  uint64_t wdata = (((uint64_t)wdata_high) << 32) | ((uint64_t)wdata_low);
-  uint8_t *cont_p = (uint8_t *)(&PMEM[offset]);
+    uint64_t *PMEM = (uint64_t *)pmem;
+    uint64_t offset = (awaddr - 0x80000000) >> 3;
+    uint64_t wdata = (((uint64_t)wdata_high) << 32) | ((uint64_t)wdata_low);
+    uint8_t *cont_p = (uint8_t *)(&PMEM[offset]);
 
-  if (BIT(wstrb, 0)) cont_p[0] = BITS(wdata, 7,  0 );
-  if (BIT(wstrb, 1)) cont_p[1] = BITS(wdata, 15, 8 );
-  if (BIT(wstrb, 2)) cont_p[2] = BITS(wdata, 23, 16);
-  if (BIT(wstrb, 3)) cont_p[3] = BITS(wdata, 31, 24);
-  if (BIT(wstrb, 4)) cont_p[4] = BITS(wdata, 39, 32);
-  if (BIT(wstrb, 5)) cont_p[5] = BITS(wdata, 47, 40);
-  if (BIT(wstrb, 6)) cont_p[6] = BITS(wdata, 55, 48);
-  if (BIT(wstrb, 7)) cont_p[7] = BITS(wdata, 63, 56);
+    if (BIT(wstrb, 0)) cont_p[0] = BITS(wdata, 7,  0 );
+    if (BIT(wstrb, 1)) cont_p[1] = BITS(wdata, 15, 8 );
+    if (BIT(wstrb, 2)) cont_p[2] = BITS(wdata, 23, 16);
+    if (BIT(wstrb, 3)) cont_p[3] = BITS(wdata, 31, 24);
+    if (BIT(wstrb, 4)) cont_p[4] = BITS(wdata, 39, 32);
+    if (BIT(wstrb, 5)) cont_p[5] = BITS(wdata, 47, 40);
+    if (BIT(wstrb, 6)) cont_p[6] = BITS(wdata, 55, 48);
+    if (BIT(wstrb, 7)) cont_p[7] = BITS(wdata, 63, 56);
 }
 
 extern "C" void axi4_read(uint32_t araddr, uint32_t *rdata_high, uint32_t *rdata_low, uint32_t arsize) {
@@ -84,6 +84,7 @@ extern "C" void axi4_write(uint32_t awaddr, uint32_t wdata_high, uint32_t wdata_
     mmio_write(awaddr, len, data);
 }
 
+#ifdef CONFIG_FUNC
 void init_mem() {
     uint32_t *p = (uint32_t *)pmem;
     int i;
@@ -92,3 +93,8 @@ void init_mem() {
     }
     Log("physical memory area [" FMT_PADDR ", " FMT_PADDR "]", PMEM_LEFT, PMEM_RIGHT);
 }
+#elif CONFIG_SOC
+void init_mem() {
+    Log("physical memory area [" FMT_PADDR ", " FMT_PADDR "]", MROM_LEFT, MROM_RIGHT);
+}
+#endif
