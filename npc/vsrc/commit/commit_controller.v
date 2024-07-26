@@ -23,8 +23,8 @@ module commit_controller (
     // Outputs 
     //-----------------------------------------------------------------
     assign we_o         = valid_pre_i && ready_pre_o;
-    assign ready_pre_o  = cur_state == idle;
-    assign valid_post_o = cur_state == wait_ready;
+    assign ready_pre_o  = cur_state   == idle;
+    assign valid_post_o = cur_state   == wait_ready;
 
 
     //-----------------------------------------------------------------

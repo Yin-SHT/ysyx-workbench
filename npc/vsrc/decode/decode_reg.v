@@ -22,7 +22,7 @@ module decode_reg (
     reg [31:0] pc;
     reg [31:0] inst; 
 
-    assign pc_o = pc;
+    assign pc_o   = pc;
     assign inst_o = inst;
 
     always @(posedge clock) begin

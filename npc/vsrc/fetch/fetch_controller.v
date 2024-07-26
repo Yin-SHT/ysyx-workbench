@@ -1,8 +1,8 @@
 `include "defines.v"
 
 module fetch_controller (
-    input           clock,
     input           reset,
+    input           clock,
 
     input           valid_pre_i,
     output          ready_pre_o,
@@ -26,8 +26,8 @@ module fetch_controller (
 
     input           wready_i,      
     output          wvalid_o,
-    output [63:0]   wdata_o,
-    output [7:0]    wstrb_o,
+    output [31:0]   wdata_o,
+    output [3:0]    wstrb_o,
     output          wlast_o,
 
     output          bready_o,
@@ -46,7 +46,7 @@ module fetch_controller (
     output          rready_o,
     input           rvalid_i,
     input  [1:0]    rresp_i,
-    input  [63:0]   rdata_i,
+    input  [31:0]   rdata_i,
     input           rlast_i,
     input  [3:0]    rid_i
 );
@@ -63,11 +63,8 @@ module fetch_controller (
     reg [31:0] pc;
     reg [31:0] inst;
     
-    wire [31:0] offset;
-
-    assign pc_o = pc;
+    assign pc_o   = pc;
     assign inst_o = inst;
-    assign offset = pc % 8;
 
     always @(posedge clock) begin
         if (reset) begin
@@ -87,13 +84,7 @@ module fetch_controller (
         if (reset) begin
             inst <= 0;
         end else if (rvalid_i && rready_o) begin
-            if (offset == 0) begin
-                inst <= rdata_i[31:0];
-            end else if (offset == 4) begin
-                inst <= rdata_i[63:32];
-            end else begin
-                $fatal("panic: fetch offset 0x%08x\n", offset);
-            end
+            inst <= rdata_i;
         end 
     end
 
@@ -166,6 +157,17 @@ module fetch_controller (
                 wait_ready:   if (ready_post_i) next_state = idle;
             default:                            next_state = cur_state;
             endcase
+        end
+    end
+
+    //-----------------------------------------------------------------
+    // Error detection
+    //-----------------------------------------------------------------
+    always @(posedge clock) begin
+        if (!reset) begin
+            if (rvalid_i && rresp_i != 2'b00) begin
+                $fatal("read failed in fetch\n");
+            end
         end
     end
 

@@ -1,59 +1,54 @@
 `include "defines.v"
 
 module fetch (
-    input                      reset,
-    input                      clock,
+    input             reset,
+    input             clock,
 
-    input                      valid_pre_i,
-    output                     ready_pre_o,
+    input             valid_pre_i,
+    output            ready_pre_o,
 
-    output                     valid_post_o,
-    input                      ready_post_i,
+    output            valid_post_o,
+    input             ready_post_i,
 
-    input                      branch_en_i,
-    input  [`NPC_ADDR_BUS]     dnpc_i,
+    input             branch_en_i,
+    input  [31:0]     dnpc_i,
 
-    output [`NPC_ADDR_BUS]     pc_o,
-    output [`NPC_DATA_BUS]     inst_o,
+    output [31:0]     pc_o,
+    output [31:0]     inst_o,
 
-    // AW: Address Write Channel 
-    input                      awready_i,     // don't use
-    output                     awvalid_o,
-    output [`AXI4_AWADDR_BUS]  awaddr_o,
-    output [`AXI4_AWID_BUS]    awid_o,
-    output [`AXI4_AWLEN_BUS]   awlen_o,
-    output [`AXI4_AWSIZE_BUS]  awsize_o,
-    output [`AXI4_AWBURST_BUS] awburst_o,
+    input             awready_i,     
+    output            awvalid_o,
+    output [31:0]     awaddr_o,
+    output [3:0]      awid_o,
+    output [7:0]      awlen_o,
+    output [2:0]      awsize_o,
+    output [1:0]      awburst_o,
 
-    //  W: Data Write Channel 
-    input                      wready_i,      // don't use
-    output                     wvalid_o,
-    output [`AXI4_WDATA_BUS]   wdata_o,
-    output [`AXI4_WSTRB_BUS]   wstrb_o,
-    output                     wlast_o,
+    input             wready_i,      
+    output            wvalid_o,
+    output [31:0]     wdata_o,
+    output [3:0]      wstrb_o,
+    output            wlast_o,
 
-    //  B: Response Write Channel 
-    output                     bready_o,
-    input                      bvalid_i,      // don't use 
-    input  [`AXI4_BRESP_BUS]   bresp_i,       // don't use
-    input  [`AXI4_BID_BUS]     bid_i,         // don't use
+    output            bready_o,
+    input             bvalid_i,      
+    input  [1:0]      bresp_i,       
+    input  [3:0]      bid_i,         
 
-    // AR: Address Read Channel
-    input                      arready_i,
-    output                     arvalid_o,
-    output [`AXI4_ARADDR_BUS]  araddr_o,
-    output [`AXI4_ARID_BUS]    arid_o,
-    output [`AXI4_ARLEN_BUS]   arlen_o,
-    output [`AXI4_ARSIZE_BUS]  arsize_o,
-    output [`AXI4_ARBURST_BUS] arburst_o,
+    input             arready_i,
+    output            arvalid_o,
+    output [31:0]     araddr_o,
+    output [3:0]      arid_o,
+    output [7:0]      arlen_o,
+    output [2:0]      arsize_o,
+    output [1:0]      arburst_o,
 
-    //  R: Data Read Channel
-    output                     rready_o,
-    input                      rvalid_i,
-    input  [`AXI4_RRESP_BUS]   rresp_i,
-    input  [`AXI4_RDATA_BUS]   rdata_i,
-    input                      rlast_i,
-    input  [`AXI4_RID_BUS]     rid_i
+    output            rready_o,
+    input             rvalid_i,
+    input  [1:0]      rresp_i,
+    input  [31:0]     rdata_i,
+    input             rlast_i,
+    input  [3:0]      rid_i
 );
 
     fetch_controller controller (

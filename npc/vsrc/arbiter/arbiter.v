@@ -42,13 +42,13 @@ module arbiter (
   input                      ifu_wvalid_i,
   input                      exu_wvalid_i,
 
-  output [63:0]              wdata_o,
-  input  [63:0]              ifu_wdata_i,
-  input  [63:0]              exu_wdata_i,
+  output [31:0]              wdata_o,
+  input  [31:0]              ifu_wdata_i,
+  input  [31:0]              exu_wdata_i,
 
-  output [7:0]               wstrb_o,
-  input  [7:0]               ifu_wstrb_i,
-  input  [7:0]               exu_wstrb_i,
+  output [3:0]               wstrb_o,
+  input  [3:0]               ifu_wstrb_i,
+  input  [3:0]               exu_wstrb_i,
 
   output                     wlast_o,
   input                      ifu_wlast_i,
@@ -113,9 +113,9 @@ module arbiter (
   output [1:0]               ifu_rresp_o,
   output [1:0]               exu_rresp_o,
 
-  input  [63:0]              rdata_i,
-  output [63:0]              ifu_rdata_o,
-  output [63:0]              exu_rdata_o,
+  input  [31:0]              rdata_i,
+  output [31:0]              ifu_rdata_o,
+  output [31:0]              exu_rdata_o,
 
   input                      rlast_i,
   output                     ifu_rlast_o,
@@ -133,7 +133,7 @@ module arbiter (
 
   /*  R: Data Read Channel */
   input  [1:0]               clint_rresp_i,
-  input  [63:0]              clint_rdata_i,
+  input  [31:0]              clint_rdata_i,
   input                      clint_rlast_i,
   input  [3:0]               clint_rid_i,
   input                      clint_rvalid_i,

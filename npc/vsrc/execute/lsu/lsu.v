@@ -1,188 +1,280 @@
 `include "defines.v"
 
 module lsu (
-  input                      clock,
-  input                      reset,
+    input           clock,
+    input           reset,
 
-  input [`LSU_OP_BUS]        lsu_op_i,
+    input  [7:0]    inst_type_i,
+    input  [7:0]    lsu_op_i,
+    input  [31:0]   imm_i,
+    input  [31:0]   rdata1_i,
+    input  [31:0]   rdata2_i,
 
-  input [`REG_DATA_BUS]      imm_i,
-  input [`REG_DATA_BUS]      rdata1_i,
-  input [`REG_DATA_BUS]      rdata2_i,
+    input           access_begin_i,
+    output          access_done_o,
 
-  input                      rdata_we_i,
+    output [31:0]   mem_result_o,
 
-  // t: wbu
-  output reg [`MEM_ADDR_BUS] mem_result_o,
+    input           awready_i,     
+    output          awvalid_o,
+    output [31:0]   awaddr_o,
+    output [3:0]    awid_o,
+    output [7:0]    awlen_o,
+    output [2:0]    awsize_o,
+    output [1:0]    awburst_o,
 
-  // AW: Address Write Channel
-  output [`AXI4_AWADDR_BUS]  awaddr_o,
-  output [`AXI4_AWID_BUS]    awid_o,
-  output [`AXI4_AWLEN_BUS]   awlen_o,
-  output [`AXI4_AWSIZE_BUS]  awsize_o,
-  output [`AXI4_AWBURST_BUS] awburst_o,
+    input           wready_i,      
+    output          wvalid_o,
+    output [31:0]   wdata_o,
+    output [3:0]    wstrb_o,
+    output          wlast_o,
 
-  //  W: Data Write Channel
-  output [`AXI4_WDATA_BUS]   wdata_o,
-  output [`AXI4_WSTRB_BUS]   wstrb_o,
-  output                     wlast_o,
+    output          bready_o,
+    input           bvalid_i,      
+    input  [1:0]    bresp_i,       
+    input  [3:0]    bid_i,         
 
-  // AR: Address Read Channel
-  output [`AXI4_ARADDR_BUS]  araddr_o,
-  output [`AXI4_ARID_BUS]    arid_o,
-  output [`AXI4_ARLEN_BUS]   arlen_o,
-  output [`AXI4_ARSIZE_BUS]  arsize_o,
-  output [`AXI4_ARBURST_BUS] arburst_o,
+    input           arready_i,
+    output          arvalid_o,
+    output [31:0]   araddr_o,
+    output [3:0]    arid_o,
+    output [7:0]    arlen_o,
+    output [2:0]    arsize_o,
+    output [1:0]    arburst_o,
 
-  //  R: Read Channel
-  input  [`AXI4_RDATA_BUS]   rdata_i
+    output          rready_o,
+    input           rvalid_i,
+    input  [1:0]    rresp_i,
+    input  [31:0]   rdata_i,
+    input           rlast_i,
+    input  [3:0]    rid_i
 );
   
-  wire[31:0] address = rdata1_i + imm_i;
-  
-  wire[31:0] byte_lane  = address % 8;
+    //-----------------------------------------------------------------
+    // FSM
+    //-----------------------------------------------------------------
+    parameter idle         = 3'b000; 
+    parameter wait_arready = 3'b001; 
+    parameter wait_rvalid  = 3'b010; 
+    parameter wait_awready = 3'b011; 
+    parameter wait_bvalid  = 3'b100; 
 
-  /* Write operation */
+    reg [2:0] cur_state;
+    reg [2:0] next_state;
 
-  assign awaddr_o   = address;
-  assign awid_o     = 0;
-  assign awlen_o    = 0;
-  assign awsize_o   = ( lsu_op_i == `LSU_OP_SB ) ? 3'b000 :
-                      ( lsu_op_i == `LSU_OP_SH ) ? 3'b001 :
-                      ( lsu_op_i == `LSU_OP_SW ) ? 3'b010 : 0;
-  assign awburst_o  = 2'b01;
+    //-----------------------------------------------------------------
+    // Outputs 
+    //-----------------------------------------------------------------
+    assign mem_result_o  = mem_result;
+    assign access_done_o = (cur_state == wait_bvalid && bvalid_i) ||
+                           (cur_state == wait_rvalid && rvalid_i);
 
-  always @( * ) begin
-    if ( lsu_op_i == `LSU_OP_SB ) begin
-      case ( byte_lane )
-        0: wdata_o = {56'h0, rdata2_i[7:0]       }; 
-        1: wdata_o = {48'h0, rdata2_i[7:0],  8'h0}; 
-        2: wdata_o = {40'h0, rdata2_i[7:0], 16'h0}; 
-        3: wdata_o = {32'h0, rdata2_i[7:0], 24'h0}; 
-        4: wdata_o = {24'h0, rdata2_i[7:0], 32'h0}; 
-        5: wdata_o = {16'h0, rdata2_i[7:0], 40'h0}; 
-        6: wdata_o = { 8'h0, rdata2_i[7:0], 48'h0}; 
-        7: wdata_o = {       rdata2_i[7:0], 56'h0}; 
-        default: wdata_o = 0;
-      endcase
-    end else if ( lsu_op_i == `LSU_OP_SH ) begin
-      case ( byte_lane )
-        0: wdata_o = {48'h0, rdata2_i[15:0]       }; 
-        2: wdata_o = {32'h0, rdata2_i[15:0], 16'h0}; 
-        4: wdata_o = {16'h0, rdata2_i[15:0], 32'h0}; 
-        6: wdata_o = {       rdata2_i[15:0], 48'h0}; 
-        default: wdata_o = 0;
-      endcase
-    end else if ( lsu_op_i == `LSU_OP_SW ) begin
-      case ( byte_lane )
-        0: wdata_o = {32'h0, rdata2_i[31:0]       }; 
-        4: wdata_o = {       rdata2_i[31:0], 32'h0}; 
-        default: wdata_o = 0;
-      endcase
-    end else begin
-      wdata_o = 0;
+    assign awvalid_o  = cur_state == wait_awready;
+    assign awaddr_o   = cur_state == wait_awready ? address : 0; 
+    assign awid_o     = cur_state == wait_awready ? 0       : 0; 
+    assign awlen_o    = cur_state == wait_awready ? 0       : 0; 
+    assign awsize_o   = cur_state == wait_awready ? awsize  : 0;
+    assign awburst_o  = cur_state == wait_awready ? 2'b01   : 0;
+
+    assign wvalid_o   = cur_state == wait_awready;
+    assign wdata_o    = cur_state == wait_awready ? wdata   : 0;
+    assign wstrb_o    = cur_state == wait_awready ? wstrb   : 0;
+    assign wlast_o    = cur_state == wait_awready ? 1       : 0;
+
+    assign bready_o   = cur_state == wait_bvalid;
+
+    assign arvalid_o  = cur_state == wait_arready;
+    assign araddr_o   = cur_state == wait_arready ? address : 0;
+    assign arid_o     = cur_state == wait_arready ? 0       : 0;
+    assign arlen_o    = cur_state == wait_arready ? 0       : 0;
+    assign arsize_o   = cur_state == wait_arready ? arsize  : 0;
+    assign arburst_o  = cur_state == wait_arready ? 2'b01   : 0;
+
+    assign rready_o   = cur_state == wait_rvalid;
+
+    //-----------------------------------------------------------------
+    // Synchronous State - Transition always@ ( posedge Clock ) block
+    //-----------------------------------------------------------------
+    always @(posedge clock) begin
+        if (reset) begin
+            cur_state <= idle;
+        end else begin
+            cur_state <= next_state;
+        end
     end
-  end
 
-  always @( * ) begin
-    if ( lsu_op_i == `LSU_OP_SB ) begin
-      case ( byte_lane )
-        0: wstrb_o = 8'b0000_0001;  
-        1: wstrb_o = 8'b0000_0010;  
-        2: wstrb_o = 8'b0000_0100;  
-        3: wstrb_o = 8'b0000_1000;  
-        4: wstrb_o = 8'b0001_0000;  
-        5: wstrb_o = 8'b0010_0000;  
-        6: wstrb_o = 8'b0100_0000;  
-        7: wstrb_o = 8'b1000_0000;  
-        default: wstrb_o = 0;
-      endcase
-    end else if ( lsu_op_i == `LSU_OP_SH ) begin
-      case ( byte_lane )
-        0: wstrb_o = 8'b0000_0011; 
-        2: wstrb_o = 8'b0000_1100; 
-        4: wstrb_o = 8'b0011_0000; 
-        6: wstrb_o = 8'b1100_0000; 
-        default: wstrb_o = 0;
-      endcase
-    end else if ( lsu_op_i == `LSU_OP_SW ) begin
-      case ( byte_lane )
-        0: wstrb_o = 8'b0000_1111; 
-        4: wstrb_o = 8'b1111_0000; 
-        default: wstrb_o = 0;
-      endcase
-    end else begin
-      wstrb_o = 0;
+    //-----------------------------------------------------------------
+    // Conditional State - Transition always@ ( * ) block
+    //-----------------------------------------------------------------
+    always @( * ) begin
+        if (reset) begin
+            next_state = idle;  
+        end else begin
+            next_state = cur_state;
+            case (cur_state)
+                idle: begin
+                    if (access_begin_i) begin
+                        if (inst_type_i == `INST_LOAD)
+                            next_state = wait_arready;
+                        else if (inst_type_i == `INST_STORE) 
+                            next_state = wait_awready;
+                    end
+                end         
+                wait_arready: if (arready_i) next_state = wait_rvalid;  
+                wait_awready: if (awready_i) next_state = wait_bvalid;  
+                wait_rvalid:  if (rvalid_i)  next_state = idle; 
+                wait_bvalid:  if (bvalid_i)  next_state = idle;
+                default:                     next_state = cur_state;
+            endcase
+        end
     end
-  end
 
-  assign wlast_o = 1;
-
-  /* Read operation */
-  assign araddr_o   = address;
-  assign arid_o     = 0;
-  assign arlen_o    = 0;
-  assign arsize_o   = ( lsu_op_i == `LSU_OP_LB  ) ? 3'b000 :
-                      ( lsu_op_i == `LSU_OP_LBU ) ? 3'b000 :
-                      ( lsu_op_i == `LSU_OP_LH  ) ? 3'b001 :
-                      ( lsu_op_i == `LSU_OP_LHU ) ? 3'b001 :
-                      ( lsu_op_i == `LSU_OP_LW  ) ? 3'b010 : 0;
-  assign arburst_o  = 2'b01;
-
-  always @(posedge clock) begin
-    if (reset) begin
-      mem_result_o <= 0;
-    end else if ( rdata_we_i ) begin
-      if ( lsu_op_i == `LSU_OP_LB ) begin
-        case ( byte_lane )
-          0: mem_result_o <= {{24{rdata_i[7 ]}}, rdata_i[7 :0 ]};
-          1: mem_result_o <= {{24{rdata_i[15]}}, rdata_i[15:8 ]}; 
-          2: mem_result_o <= {{24{rdata_i[23]}}, rdata_i[23:16]}; 
-          3: mem_result_o <= {{24{rdata_i[31]}}, rdata_i[31:24]}; 
-          4: mem_result_o <= {{24{rdata_i[39]}}, rdata_i[39:32]}; 
-          5: mem_result_o <= {{24{rdata_i[47]}}, rdata_i[47:40]}; 
-          6: mem_result_o <= {{24{rdata_i[55]}}, rdata_i[55:48]}; 
-          7: mem_result_o <= {{24{rdata_i[63]}}, rdata_i[63:56]}; 
-          default: mem_result_o <= mem_result_o;
-        endcase
-      end else if ( lsu_op_i == `LSU_OP_LBU ) begin
-        case ( byte_lane )
-          0: mem_result_o <= {24'h0, rdata_i[7 :0 ]};
-          1: mem_result_o <= {24'h0, rdata_i[15:8 ]}; 
-          2: mem_result_o <= {24'h0, rdata_i[23:16]}; 
-          3: mem_result_o <= {24'h0, rdata_i[31:24]}; 
-          4: mem_result_o <= {24'h0, rdata_i[39:32]}; 
-          5: mem_result_o <= {24'h0, rdata_i[47:40]}; 
-          6: mem_result_o <= {24'h0, rdata_i[55:48]}; 
-          7: mem_result_o <= {24'h0, rdata_i[63:56]}; 
-          default: mem_result_o <= mem_result_o;
-        endcase
-      end else if ( lsu_op_i == `LSU_OP_LH ) begin
-        case ( byte_lane )
-          0: mem_result_o <= {{16{rdata_i[15]}}, rdata_i[15:0 ]}; 
-          2: mem_result_o <= {{16{rdata_i[31]}}, rdata_i[31:16]}; 
-          4: mem_result_o <= {{16{rdata_i[47]}}, rdata_i[47:32]}; 
-          6: mem_result_o <= {{16{rdata_i[63]}}, rdata_i[63:48]}; 
-          default: mem_result_o <= mem_result_o;
-        endcase
-      end else if ( lsu_op_i == `LSU_OP_LHU ) begin
-        case ( byte_lane )
-          0: mem_result_o <= {16'h0, rdata_i[15:0 ]}; 
-          2: mem_result_o <= {16'h0, rdata_i[31:16]}; 
-          4: mem_result_o <= {16'h0, rdata_i[47:32]}; 
-          6: mem_result_o <= {16'h0, rdata_i[63:48]}; 
-          default: mem_result_o <= mem_result_o;
-        endcase
-      end else if ( lsu_op_i == `LSU_OP_LW ) begin
-        case ( byte_lane )
-          0: mem_result_o <= rdata_i[31:0 ]; 
-          4: mem_result_o <= rdata_i[63:32];
-          default: mem_result_o <= mem_result_o;
-        endcase
-      end else begin
-        mem_result_o <= mem_result_o;
-      end
+    //-----------------------------------------------------------------
+    // Error detection
+    //-----------------------------------------------------------------
+    always @(posedge clock) begin
+        if (!reset) begin
+            if (rvalid_i && rresp_i != 2'b00) begin
+                $fatal("read failed in lsu\n");
+            end
+        end
     end
-  end
+
+    always @(posedge clock) begin
+        if (!reset) begin
+            if (bvalid_i && bresp_i != 2'b00) begin
+                $fatal("write failed in lsu\n");
+            end
+        end
+    end
+
+    //-----------------------------------------------------------------
+    // Miscellaneous
+    //-----------------------------------------------------------------
+    wire[31:0] address   = rdata1_i + imm_i;
+    wire[31:0] byte_lane = address % 4;
+
+    reg [31:0] wdata;
+    reg [3:0]  wstrb;
+    reg [2:0]  awsize;
+    reg [2:0]  arsize;
+    reg [31:0] mem_result;
+
+    always @(*) begin
+        if (lsu_op_i == `LSU_OP_SB) begin
+            case (byte_lane)
+                0: wdata = {24'h0, rdata2_i[7:0]}; 
+                1: wdata = {16'h0, rdata2_i[7:0],  8'h0}; 
+                2: wdata = { 8'h0, rdata2_i[7:0], 16'h0}; 
+                3: wdata = {rdata2_i[7:0], 24'h0}; 
+                default: $fatal("write address not align");
+            endcase
+        end else if (lsu_op_i == `LSU_OP_SH) begin
+            case (byte_lane)
+                0: wdata = {16'h0, rdata2_i[15:0]}; 
+                2: wdata = {rdata2_i[15:0], 16'h0}; 
+                default: $fatal("write address not align");
+            endcase
+        end else if (lsu_op_i == `LSU_OP_SW) begin
+            case (byte_lane)
+                0: wdata = rdata2_i; 
+                default: $fatal("write address not align");
+            endcase
+        end else begin
+            wdata = 0;
+        end
+    end
+
+    always @(*) begin
+        if (lsu_op_i == `LSU_OP_SB) begin
+            case (byte_lane)
+                0: wstrb = 4'b0001;  
+                1: wstrb = 4'b0010;
+                2: wstrb = 4'b0100;
+                3: wstrb = 4'b1000;
+                default: $fatal("write address not align");
+            endcase
+        end else if (lsu_op_i == `LSU_OP_SH) begin
+            case (byte_lane)
+                0: wstrb = 4'b0011;  
+                2: wstrb = 4'b1100;  
+                default: $fatal("write address not align");
+            endcase
+        end else if (lsu_op_i == `LSU_OP_SW) begin
+            case (byte_lane)
+                0: wstrb = 4'b1111;  
+                default: $fatal("write address not align");
+            endcase
+        end else begin
+            wstrb = 0;
+        end
+    end
+
+    always @(*) begin
+        if (lsu_op_i == `LSU_OP_SB) begin
+            awsize = 3'b000;
+        end else if (lsu_op_i == `LSU_OP_SH) begin
+            awsize = 3'b001;
+        end else if (lsu_op_i == `LSU_OP_SW) begin
+            awsize = 3'b010;
+        end else begin
+            awsize = 0;
+        end
+    end
+
+    always @(*) begin
+        if (lsu_op_i == `LSU_OP_LB || lsu_op_i == `LSU_OP_LBU) begin
+            arsize = 3'b000;
+        end else if (lsu_op_i == `LSU_OP_LH || lsu_op_i == `LSU_OP_LHU) begin
+            arsize = 3'b001;
+        end else if (lsu_op_i == `LSU_OP_LW) begin
+            arsize = 3'b010;
+        end else begin
+            arsize = 0;
+        end
+    end
+
+    always @(posedge clock) begin
+        if (reset) begin
+            mem_result <= 0;
+        end else if (cur_state == wait_rvalid && rvalid_i) begin
+            if (lsu_op_i == `LSU_OP_LB) begin
+                case (byte_lane)
+                    0: mem_result <= {{24{rdata_i[7 ]}}, rdata_i[7 :0 ]};
+                    1: mem_result <= {{24{rdata_i[15]}}, rdata_i[15:8 ]}; 
+                    2: mem_result <= {{24{rdata_i[23]}}, rdata_i[23:16]}; 
+                    3: mem_result <= {{24{rdata_i[31]}}, rdata_i[31:24]}; 
+                    default: mem_result <= mem_result;
+                endcase
+            end else if (lsu_op_i == `LSU_OP_LBU) begin
+                case ( byte_lane )
+                    0: mem_result <= {24'h0, rdata_i[7 :0 ]};
+                    1: mem_result <= {24'h0, rdata_i[15:8 ]}; 
+                    2: mem_result <= {24'h0, rdata_i[23:16]}; 
+                    3: mem_result <= {24'h0, rdata_i[31:24]}; 
+                    default: mem_result <= mem_result;
+                endcase
+            end else if (lsu_op_i == `LSU_OP_LH) begin
+                    case (byte_lane)
+                    0: mem_result <= {{16{rdata_i[15]}}, rdata_i[15:0 ]}; 
+                    2: mem_result <= {{16{rdata_i[31]}}, rdata_i[31:16]}; 
+                    default: mem_result <= mem_result;
+                endcase
+            end else if (lsu_op_i == `LSU_OP_LHU) begin
+                case (byte_lane)
+                    0: mem_result <= {16'h0, rdata_i[15:0 ]}; 
+                    2: mem_result <= {16'h0, rdata_i[31:16]}; 
+                    default: mem_result <= mem_result;
+                endcase
+            end else if (lsu_op_i == `LSU_OP_LW) begin
+                case (byte_lane)
+                    0: mem_result <= rdata_i; 
+                    default: mem_result <= mem_result;
+                endcase
+            end else begin
+                mem_result <= mem_result;
+            end
+        end
+    end
 
 endmodule

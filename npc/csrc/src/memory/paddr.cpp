@@ -95,6 +95,7 @@ void init_mem() {
 }
 #elif CONFIG_SOC
 void init_mem() {
-    Log("physical memory area [" FMT_PADDR ", " FMT_PADDR "]", MROM_LEFT, MROM_RIGHT);
+    Log("mrom memory area [" FMT_PADDR ", " FMT_PADDR "]", MROM_LEFT, MROM_RIGHT);
+    Log("sram memory area [" FMT_PADDR ", " FMT_PADDR "]", SRAM_LEFT, SRAM_RIGHT);
 }
 #endif

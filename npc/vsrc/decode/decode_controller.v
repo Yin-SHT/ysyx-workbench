@@ -6,6 +6,7 @@ module decode_controller (
 
     input  valid_pre_i,
     output valid_post_o,
+
     input  ready_post_i,
     output ready_pre_o,
 
@@ -15,6 +16,9 @@ module decode_controller (
     parameter idle       = 2'b00;
     parameter wait_ready = 2'b01;
 
+    //-----------------------------------------------------------------
+    // FSM
+    //-----------------------------------------------------------------
     reg [1:0] cur_state;
     reg [1:0] next_state;
 
