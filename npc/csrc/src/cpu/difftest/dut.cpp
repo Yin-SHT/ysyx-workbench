@@ -42,11 +42,15 @@ void init_difftest(char *ref_so_file, long img_size, int port) {
     void (*ref_difftest_init)(int) = (void(*)(int))dlsym(handle, "difftest_init");
     assert(ref_difftest_init);
 
-    Log("Differential testing: %s", "ON");
+    Log("Differential testing: %s", ANSI_FMT("ON", ANSI_FG_GREEN));
     Log("The result of every instruction will be compared with %s.", ref_so_file);
 
     ref_difftest_init(port);
+#ifdef CONFIG_FUNC
     ref_difftest_memcpy(RESET_VECTOR, guest_to_host(RESET_VECTOR), img_size, DIFFTEST_TO_REF);
+#else
+    ref_difftest_memcpy(MROM_VECTOR, mrom_to_host(MROM_VECTOR), img_size, DIFFTEST_TO_REF);
+#endif
     ref_difftest_regcpy(&cpu, DIFFTEST_TO_REF);
 }
 

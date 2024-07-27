@@ -12,7 +12,7 @@ void init_device();
 
 static void welcome() {
   BLUE_BOLD_PRINT("Build time: %s, %s\n", __TIME__, __DATE__);
-  printf("Welcome to RISCV32-NPC!\n");
+  printf("Welcome to %s-NPC!\n", ANSI_FMT(str(__GUEST_ISA__), ANSI_FG_YELLOW ANSI_BG_RED));
   printf("For help, type \"help\"\n");
 }
 
