@@ -1,13 +1,13 @@
-AM_SRCS := riscv/ysyxSoC/start.S \
-           riscv/ysyxSoC/trm.c \
-           riscv/ysyxSoC/ioe.c \
-           riscv/ysyxSoC/timer.c \
-           riscv/ysyxSoC/input.c \
-           riscv/ysyxSoC/cte.c \
-           riscv/ysyxSoC/gpu.c \
-           riscv/ysyxSoC/trap.S \
-		   riscv/ysyxSoC/vme.c \
-           riscv/ysyxSoC/mpe.c
+AM_SRCS := riscv/ysyxsoc/start.S \
+           riscv/ysyxsoc/trm.c \
+           riscv/ysyxsoc/ioe.c \
+           riscv/ysyxsoc/timer.c \
+           riscv/ysyxsoc/input.c \
+           riscv/ysyxsoc/cte.c \
+           riscv/ysyxsoc/gpu.c \
+           riscv/ysyxsoc/trap.S \
+		   riscv/ysyxsoc/vme.c \
+           riscv/ysyxsoc/mpe.c
 
 CFLAGS    += -fdata-sections -ffunction-sections
 LDFLAGS   += -T $(AM_HOME)/scripts/ysyxsoc.ld 

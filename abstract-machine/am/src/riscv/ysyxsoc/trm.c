@@ -19,6 +19,11 @@ Area heap = {.start = (void *)SRAM_START, .end = (void *)SRAM_END};
 static const char mainargs[] = MAINARGS;
 
 void putch(char ch) {
+  uint8_t lsr = inb(SERIAL_PORT + 5);
+  while (!(lsr & 0x20)) {
+    lsr = inb(SERIAL_PORT + 5);
+  }
+
   outb(SERIAL_PORT, ch);
 }
 
@@ -42,6 +47,12 @@ void _trm_init() {
   for (dst = &_bss_start; dst < &_bss_end; dst++) {
     *dst = 0;
   }
+
+  uint8_t lcr = inb(SERIAL_PORT + 3);
+  outb(SERIAL_PORT + 3, lcr | 0x80);
+  outb(SERIAL_PORT + 1, 0x00);
+  outb(SERIAL_PORT + 0, 0x01);
+  outb(SERIAL_PORT + 3, lcr & 0x7f);
 
   int ret = main(mainargs);
   halt(ret);
