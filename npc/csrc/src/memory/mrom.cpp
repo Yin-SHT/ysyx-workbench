@@ -1,8 +1,4 @@
-#include <common.h>
-#include <device.h>
 #include <paddr.h>
-#include <map.h>
-#include <utils.h>
 
 uint8_t mrom[CONFIG_MROMSIZE] PG_ALIGN = {};
 
