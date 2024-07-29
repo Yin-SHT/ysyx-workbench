@@ -4,6 +4,7 @@ MEMORY {
   mrom  : ORIGIN = 0x20000000, LENGTH = 4K
   sram  : ORIGIN = 0x0f000000, LENGTH = 8K
   flash : ORIGIN = 0x30000000, LENGTH = 16M
+  psram : ORIGIN = 0x80000000, LENGTH = 4M
 }
 
 SECTIONS {
@@ -25,7 +26,7 @@ SECTIONS {
     _data_start = .;
     *(.data*)
     *(.sdata*)
-  } > sram AT> flash 
+  } > psram AT> flash 
 
   .bss : {
   . = ALIGN(8);
@@ -34,7 +35,8 @@ SECTIONS {
     *(.sbss*)
     *(.scommon)
 	_bss_end = .;
-  } > sram 
+  _heap_start = ALIGN(0x1000);
+  } > psram 
 
   _data_load_start = LOADADDR(.data);
   _data_load_end   = LOADADDR(.data) + SIZEOF(.data);
