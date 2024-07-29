@@ -40,7 +40,8 @@ static long load_img() {
 #ifdef CONFIG_FUNC
   int ret = fread(guest_to_host(RESET_VECTOR), size, 1, fp);
 #else
-  int ret = fread(mrom_to_host(MROM_VECTOR), size, 1, fp);
+//  int ret = fread(mrom_to_host(MROM_VECTOR), size, 1, fp);
+  int ret = fread(flash_to_host(FLASH_VECTOR), size, 1, fp);
 #endif
   assert(ret == 1);
 

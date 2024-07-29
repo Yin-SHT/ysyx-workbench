@@ -47,10 +47,12 @@ module sysreg (
                 mcause <= `ECALL_FROM_M;
             end else begin
                 case (csr_waddr_i)   // used for csrrs/csrrw
-                    `MSTATUS: mstatus <= csr_wdata_i;
-                    `MTVEC  : mtvec   <= csr_wdata_i;
-                    `MEPC   : mepc    <= csr_wdata_i;
-                    `MCAUSE : mcause  <= csr_wdata_i;
+                    `MSTATUS   : mstatus   <= csr_wdata_i;
+                    `MTVEC     : mtvec     <= csr_wdata_i;
+                    `MEPC      : mepc      <= csr_wdata_i;
+                    `MCAUSE    : mcause    <= csr_wdata_i;
+                    `MVENDORID : mvendorid <= csr_wdata_i;
+                    `MARCHID   : marchid   <= csr_wdata_i;
                     default: $fatal("Unsupport csr 0x%08x\n", csr_waddr_i);
                 endcase
             end

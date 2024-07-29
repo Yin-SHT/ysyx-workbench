@@ -22,7 +22,7 @@ static const uint32_t img [] = {
 
 static void restart() {
     /* Set the initial program counter. */
-    cpu.pc = MROM_VECTOR;
+    cpu.pc = FLASH_VECTOR;
 
     /* The zero register is always 0. */
     cpu.gpr[0] = 0;
@@ -33,7 +33,7 @@ void init_isa() {
 #ifdef CONFIG_FUNC
     memcpy(guest_to_host(RESET_VECTOR), img, sizeof(img));
 #else 
-    memcpy(mrom_to_host(MROM_VECTOR), img, sizeof(img));
+//    memcpy(mrom_to_host(MROM_VECTOR), img, sizeof(img));
     memcpy(flash_to_host(FLASH_VECTOR), img, sizeof(img));
 #endif
 

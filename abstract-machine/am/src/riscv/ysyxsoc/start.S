@@ -4,5 +4,5 @@
 
 _start:
   mv s0, zero
-  li sp, 0x0f002000  // Stack in sram
+  li sp, 0x0f002000  // stack in sram
   jal _trm_init
