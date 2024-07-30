@@ -1,4 +1,4 @@
-ENTRY(_loader)
+ENTRY(_fsbl)
 
 MEMORY {
   mrom  : ORIGIN = 0x20000000, LENGTH = 4K
@@ -8,29 +8,31 @@ MEMORY {
 }
 
 SECTIONS {
+
   . = ORIGIN(flash);
 
-  .loader : {
-    *(bootloader)
+  .fsbl : {
+    *(fsbl)
   } > flash AT> flash 
+
+  .ssbl : ALIGN(8) {
+    *(ssbl)
+  } > sram AT> flash 
 
   .text : ALIGN(8) {
     . = ALIGN(8);
-    _text_vma = .;
     *(entry)
     *(.text*)
   } > psram AT> flash 
 
   .rodata : ALIGN(8) {
     . = ALIGN(8);
-    _rodata_vma = .;
     *(.rodata*)
     *(.srodata*)
-  } > psram AT> flash 
+  } > psram AT> flash
 
   .data : ALIGN(8) {
     . = ALIGN(8);
-    _data_vma = .;
     *(.data*)
     *(.sdata*)
   } > psram AT> flash 
@@ -45,6 +47,8 @@ SECTIONS {
     _heap_start = ALIGN(0x1000);
   } > psram 
 
+  _ssbl_start = LOADADDR(.ssbl);
+  _ssbl_end   = LOADADDR(.ssbl) + SIZEOF(.ssbl);
   _code_start = LOADADDR(.text);
   _code_end   = LOADADDR(.data) + SIZEOF(.data);
 

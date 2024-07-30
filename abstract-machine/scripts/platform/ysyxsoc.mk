@@ -1,4 +1,5 @@
-AM_SRCS := riscv/ysyxsoc/bootloader.S \
+AM_SRCS := riscv/ysyxsoc/fsbl.S \
+           riscv/ysyxsoc/ssbl.S \
            riscv/ysyxsoc/start.S \
            riscv/ysyxsoc/trm.c \
            riscv/ysyxsoc/ioe.c \
@@ -12,7 +13,7 @@ AM_SRCS := riscv/ysyxsoc/bootloader.S \
 
 CFLAGS    += -fdata-sections -ffunction-sections
 LDFLAGS   += -T $(AM_HOME)/scripts/ysyxsoc.ld 
-LDFLAGS   += --gc-sections -e _loader
+LDFLAGS   += --gc-sections -e _fsbl
 CFLAGS += -DMAINARGS=\"$(mainargs)\"
 .PHONY: $(AM_HOME)/am/src/riscv/ysyxSoC/trm.c
 
