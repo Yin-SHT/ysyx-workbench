@@ -19,21 +19,21 @@ SECTIONS {
     _text_vma = .;
     *(entry)
     *(.text*)
-  } > sram AT> flash 
+  } > psram AT> flash 
 
   .rodata : ALIGN(8) {
     . = ALIGN(8);
     _rodata_vma = .;
     *(.rodata*)
     *(.srodata*)
-  } > sram AT> flash 
+  } > psram AT> flash 
 
   .data : ALIGN(8) {
     . = ALIGN(8);
     _data_vma = .;
     *(.data*)
     *(.sdata*)
-  } > sram AT> flash 
+  } > psram AT> flash 
 
   .bss : {
     . = ALIGN(8);
@@ -43,7 +43,7 @@ SECTIONS {
     *(.scommon)
     _bss_end = .;
     _heap_start = ALIGN(0x1000);
-  } > sram 
+  } > psram 
 
   _text_lma   = LOADADDR(.text);
   _text_end   = LOADADDR(.text) + SIZEOF(.text);
