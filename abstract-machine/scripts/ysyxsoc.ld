@@ -45,10 +45,7 @@ SECTIONS {
     _heap_start = ALIGN(0x1000);
   } > psram 
 
-  _text_lma   = LOADADDR(.text);
-  _text_end   = LOADADDR(.text) + SIZEOF(.text);
-  _rodata_lma = LOADADDR(.rodata);
-  _rodata_end = LOADADDR(.rodata) + SIZEOF(.rodata);
-  _data_lma   = LOADADDR(.data);
-  _data_end   = LOADADDR(.data) + SIZEOF(.data);
+  _code_start = LOADADDR(.text);
+  _code_end   = LOADADDR(.data) + SIZEOF(.data);
+
 }
