@@ -1,4 +1,4 @@
-ENTRY(_start)
+ENTRY(_loader)
 
 MEMORY {
   mrom  : ORIGIN = 0x20000000, LENGTH = 4K
@@ -10,34 +10,45 @@ MEMORY {
 SECTIONS {
   . = ORIGIN(flash);
 
-  .text : {
-    *(entry)
-    *(.text*)
+  .loader : {
+    *(bootloader)
   } > flash AT> flash 
 
-  .rodata : {
-  . = ALIGN(8);
+  .text : ALIGN(8) {
+    . = ALIGN(8);
+    _text_vma = .;
+    *(entry)
+    *(.text*)
+  } > sram AT> flash 
+
+  .rodata : ALIGN(8) {
+    . = ALIGN(8);
+    _rodata_vma = .;
     *(.rodata*)
     *(.srodata*)
-  } > flash AT> flash
+  } > sram AT> flash 
 
-  .data : {
-  . = ALIGN(8);
-    _data_start = .;
+  .data : ALIGN(8) {
+    . = ALIGN(8);
+    _data_vma = .;
     *(.data*)
     *(.sdata*)
-  } > psram AT> flash 
+  } > sram AT> flash 
 
   .bss : {
-  . = ALIGN(8);
-	_bss_start = .;
+    . = ALIGN(8);
+    _bss_start = .;
     *(.bss*)
     *(.sbss*)
     *(.scommon)
-	_bss_end = .;
-  _heap_start = ALIGN(0x1000);
-  } > psram 
+    _bss_end = .;
+    _heap_start = ALIGN(0x1000);
+  } > sram 
 
-  _data_load_start = LOADADDR(.data);
-  _data_load_end   = LOADADDR(.data) + SIZEOF(.data);
+  _text_lma   = LOADADDR(.text);
+  _text_end   = LOADADDR(.text) + SIZEOF(.text);
+  _rodata_lma = LOADADDR(.rodata);
+  _rodata_end = LOADADDR(.rodata) + SIZEOF(.rodata);
+  _data_lma   = LOADADDR(.data);
+  _data_end   = LOADADDR(.data) + SIZEOF(.data);
 }

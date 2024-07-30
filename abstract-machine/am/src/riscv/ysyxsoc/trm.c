@@ -35,21 +35,7 @@ void halt(int code) {
   while (1);
 }
 
-extern char _data_load_start, _data_load_end, _data_start;
-extern char _bss_start, _bss_end;
-
 void _trm_init() {
-  char *src = &_data_load_start;
-  char *dst = &_data_start;
-
-  while (src < &_data_load_end) {
-    *dst++ = *src++;
-  }
-
-  for (dst = &_bss_start; dst < &_bss_end; dst++) {
-    *dst = 0;
-  }
-
   uint8_t lcr = inb(SERIAL_PORT + 3);
   outb(SERIAL_PORT + 3, lcr | 0x80);
   outb(SERIAL_PORT + 1, 0x00);
