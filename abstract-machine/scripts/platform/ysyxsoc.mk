@@ -3,6 +3,7 @@ AM_SRCS := riscv/ysyxsoc/fsbl.S \
            riscv/ysyxsoc/start.S \
            riscv/ysyxsoc/trm.c \
            riscv/ysyxsoc/ioe.c \
+           riscv/ysyxsoc/uart.c \
            riscv/ysyxsoc/timer.c \
            riscv/ysyxsoc/input.c \
            riscv/ysyxsoc/cte.c \
@@ -17,6 +18,7 @@ CFLAGS    += -fdata-sections -ffunction-sections
 LDFLAGS   += -T $(AM_HOME)/scripts/ysyxsoc.ld 
 LDFLAGS   += --gc-sections -e _fsbl
 CFLAGS += -DMAINARGS=\"$(mainargs)\" -DDATE=0x$(DATE)
+CFLAGS += -I$(AM_HOME)/am/src/riscv/ysyxsoc/include
 .PHONY: $(AM_HOME)/am/src/riscv/ysyxSoC/trm.c
 
 image: $(IMAGE).elf

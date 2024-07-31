@@ -1,6 +1,5 @@
 #include <am.h>
-#include "./include/ysyxSoC.h"
-#include "../riscv.h"
+#include <ysyxsoc.h>
 
 #define PS2KBD_ADDR   0x10011000
 

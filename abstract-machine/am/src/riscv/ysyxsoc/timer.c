@@ -1,5 +1,5 @@
 #include <am.h>
-#include <riscv/riscv.h>
+#include <ysyxsoc.h>
 
 // Temp Device Addr, these will be changed in the future !!!
 #define CLINT_ADDR 0x02000000

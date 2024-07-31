@@ -1,6 +1,5 @@
 #include <am.h>
-#include "./include/ysyxSoC.h"
-#include "../riscv.h"
+#include <ysyxsoc.h>
 
 #define VAG_BASE 0x21000000
 
