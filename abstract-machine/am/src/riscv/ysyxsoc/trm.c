@@ -9,12 +9,14 @@
 #define SRAM_END    0x0f002000  // sram:      0x0f00_0000~0x0f00_1fff
 #define PSRAM_START 0x80000000  // 
 #define PSRAM_END   0x80400000  // psram:     0x8000_0000~0x8040_0000
+#define SDRAM_START 0xa0000000  // 
+#define SDRAM_END   0xa8000000  // sdram:     0xa000_0000~0xa800_0000
 
 int main(const char *args);
 
 extern char _heap_start;
 
-Area heap = {.start = (void *)&_heap_start, .end = (void *)PSRAM_END}; 
+Area heap = {.start = (void *)&_heap_start, .end = (void *)SDRAM_END}; 
 #ifndef MAINARGS
 #define MAINARGS ""
 #endif
