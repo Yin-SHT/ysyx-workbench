@@ -11,10 +11,12 @@ AM_SRCS := riscv/ysyxsoc/fsbl.S \
 		   riscv/ysyxsoc/vme.c \
            riscv/ysyxsoc/mpe.c
 
+DATE := $(shell date +%Y%m%d)
+
 CFLAGS    += -fdata-sections -ffunction-sections
 LDFLAGS   += -T $(AM_HOME)/scripts/ysyxsoc.ld 
 LDFLAGS   += --gc-sections -e _fsbl
-CFLAGS += -DMAINARGS=\"$(mainargs)\"
+CFLAGS += -DMAINARGS=\"$(mainargs)\" -DDATE=0x$(DATE)
 .PHONY: $(AM_HOME)/am/src/riscv/ysyxSoC/trm.c
 
 image: $(IMAGE).elf

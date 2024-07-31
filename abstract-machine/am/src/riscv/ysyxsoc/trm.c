@@ -11,6 +11,11 @@
 #define PSRAM_END   0x80400000  // psram:     0x8000_0000~0x8040_0000
 #define SDRAM_START 0xa0000000  // 
 #define SDRAM_END   0xa8000000  // sdram:     0xa000_0000~0xa800_0000
+#define GPIO_BASE   0x10002000
+#define GPIO_LED    GPIO_BASE
+#define GPIO_BUT    (GPIO_BASE + 4)
+#define GPIO_DIG    (GPIO_BASE + 8)
+
 
 int main(const char *args);
 
@@ -21,6 +26,22 @@ Area heap = {.start = (void *)&_heap_start, .end = (void *)SDRAM_END};
 #define MAINARGS ""
 #endif
 static const char mainargs[] = MAINARGS;
+
+static void init_uart() {
+  uint8_t lcr = inb(SERIAL_PORT + 3);
+  outb(SERIAL_PORT + 3, lcr | 0x80);
+  outb(SERIAL_PORT + 1, 0x00);
+  outb(SERIAL_PORT + 0, 0x01);
+  outb(SERIAL_PORT + 3, lcr & 0x7f);
+}
+
+#ifndef DATE
+#define DATE 0x19491001
+#endif
+static void init_nvboard() {
+  *(volatile uint32_t *)GPIO_DIG = DATE;
+  *(volatile uint32_t *)GPIO_LED = 0xaaaa;
+}
 
 void putch(char ch) {
   uint8_t lsr = inb(SERIAL_PORT + 5);
@@ -38,24 +59,8 @@ void halt(int code) {
 }
 
 void _trm_init() {
-  uint8_t lcr = inb(SERIAL_PORT + 3);
-  outb(SERIAL_PORT + 3, lcr | 0x80);
-  outb(SERIAL_PORT + 1, 0x00);
-  outb(SERIAL_PORT + 0, 0x01);
-  outb(SERIAL_PORT + 3, lcr & 0x7f);
-
-  // ID
-//  uint32_t mvendorid = 0;
-//  uint32_t marchid = 0;
-//  __asm__ __volatile__(
-//		"csrr %0, mvendorid;"
-//    "csrr %1, marchid;" 
-//		: "=r"(mvendorid), "=r"(marchid) ::               
-//  );
-//
-//  printf("mvendorid: 0x%x\n", mvendorid);
-//  printf("marchid: %d\n", marchid);
-
+  init_uart();
+  init_nvboard();
   int ret = main(mainargs);
   halt(ret);
 }

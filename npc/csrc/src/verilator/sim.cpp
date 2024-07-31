@@ -1,4 +1,5 @@
 #include <common.h>
+#include <nvboard.h>
 #include <utils.h>
 #include <isa.h>
 #include <cpu.h>
@@ -34,6 +35,9 @@ void examine_inst() {
         curr_pc = cpu.pc;
         ALIGN_CPU;
     }
+
+    // update nvboard state 
+    IFDEF(CONFIG_NVBOARD, nvboard_update());
 }
 
 void single_cycle() {
@@ -64,6 +68,13 @@ void init_verilator(int argc, char **argv) {
     idu_log = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.cpu0.decode0.decode_log0");
     userreg = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.cpu0.decode0.userreg0");
     assert(ifu_reg && idu_reg && idu_log && userreg);
+#endif
+
+    // Init nvboard
+#ifdef CONFIG_NVBOARD
+    void nvboard_bind_all_pins(VysyxSoCFull* ysyxSoCFull);
+    nvboard_bind_all_pins(top);
+    nvboard_init();
 #endif
 
     // Reset NPC Model

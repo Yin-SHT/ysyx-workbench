@@ -57,8 +57,8 @@ typedef uint16_t ioaddr_t;
 // Used for performance validation
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #define CONFIG_SOC 1
+#define CONFIG_NVBOARD 1
 //#define CONFIG_PEREVENT 1
-//#define CONFIG_NVBOARD 1
 
 /* Trace Defines */
 //#define CONFIG_WAVEFORM 1
