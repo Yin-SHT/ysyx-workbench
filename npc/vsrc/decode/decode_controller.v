@@ -54,4 +54,26 @@ module decode_controller (
         endcase
     end
 
+    //-----------------------------------------------------------------
+    // performance counter
+    //-----------------------------------------------------------------
+    export "DPI-C" function decode_cnt;
+    function decode_cnt;
+        output int receive;
+        receive = {31'h0, pre_we};
+    endfunction
+
+    reg pre_we;
+    reg cur_we;
+
+    always @(posedge clock) begin
+        if (reset) begin
+            pre_we <= 0;
+            cur_we <= 0;
+        end else  begin
+            pre_we <= cur_we;
+            cur_we <= valid_pre_i && ready_pre_o;
+        end
+    end
+
 endmodule 

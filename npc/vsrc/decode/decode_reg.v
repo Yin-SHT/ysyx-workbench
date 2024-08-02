@@ -13,12 +13,6 @@ module decode_reg (
     output [31:0]   inst_o 
 );
     
-    export "DPI-C" function idu_reg_event;
-    function idu_reg_event;
-        output int wena;
-        wena = {31'h0, we_i};
-    endfunction
-
     reg [31:0] pc;
     reg [31:0] inst; 
 

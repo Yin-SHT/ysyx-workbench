@@ -8,16 +8,17 @@
 CPU_state cpu = {};
 
 void trace_and_difftest(vaddr_t pc, vaddr_t dnpc) {
-    extern int last_ifu_wena;
-    if (last_ifu_wena) difftest_step(pc, dnpc);
+    extern int difftest;
+    if (difftest) difftest_step(pc, dnpc);
+    difftest = false;
 }
 
 void exec_once() {
-    extern int curr_pc;
+    extern int pc;
     void single_cycle();
 
     single_cycle();
-    IFDEF(CONFIG_DIFFTEST, trace_and_difftest(curr_pc, cpu.pc));
+    IFDEF(CONFIG_DIFFTEST, trace_and_difftest(pc, cpu.pc));
     IFDEF(CONFIG_HAS_DEVICE, device_update());
 }
 

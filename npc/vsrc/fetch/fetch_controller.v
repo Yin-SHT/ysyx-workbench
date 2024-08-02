@@ -185,4 +185,25 @@ module fetch_controller (
         end
     end
 
+    //-----------------------------------------------------------------
+    // performance counter
+    //-----------------------------------------------------------------
+    export "DPI-C" function fetch_cnt;
+    function fetch_cnt;
+        output int complete;
+        complete = {31'h0, pre_handshake};
+    endfunction
+
+    reg pre_handshake;
+    reg cur_handshake;
+
+    always @(posedge clock) begin
+        if (reset) begin
+            pre_handshake <= 0;
+            cur_handshake <= 0;
+        end else  begin
+            pre_handshake <= cur_handshake;
+            cur_handshake <= valid_pre_i && ready_pre_o;
+        end
+    end
 endmodule 

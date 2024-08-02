@@ -1,11 +1,6 @@
 #ifndef __SIM_H__
 #define __SIM_H__
 
-#include "VysyxSoCFull.h"
-#include "verilated_vcd_c.h"
-#include "VysyxSoCFull__Dpi.h"
-#include "VysyxSoCFull___024root.h"
-
 #define ADVANCE_CYCLE                                    \
     do {                                                 \
         top->eval();                                     \
