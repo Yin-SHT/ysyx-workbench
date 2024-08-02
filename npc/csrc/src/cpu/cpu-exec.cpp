@@ -18,7 +18,7 @@ void exec_once() {
 
     single_cycle();
     IFDEF(CONFIG_DIFFTEST, trace_and_difftest(curr_pc, cpu.pc));
-    IFDEF(CONFIG_DEVICE, device_update());
+    IFDEF(CONFIG_HAS_DEVICE, device_update());
 }
 
 static void execute(uint64_t n) {

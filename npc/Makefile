@@ -37,14 +37,15 @@ PERF_VSRCS = $(SOC_HOME)/build/ysyxSoCFull.v
 PERF_VSRCS += $(shell find $(SOC_HOME)/perip -name "*.v")
 PERF_VSRCS += $(shell find $(NPC_HOME)/vsrc -name "*.v")
 
-PERF_CSRCS = $(shell find $(NPC_HOME)/csrc -name "*.c" -or -name "*.cc" -or -name "*.cpp")
-PERF_CSRCS += $(SRC_AUTO_BIND)
+PERF_CSRCS = $(shell find $(NPC_HOME)/csrc/src -name "*.c" -or -name "*.cc" -or -name "*.cpp")
+PERF_CSRCS += $(SRC_AUTO_BIND) $(NPC_HOME)/csrc/npc_main.cpp
 
 # project source for FUNCTION SIMULATION
 FUNC_VSRCS = $(NPC_HOME)/top/ysyxSoCFull.v
 FUNC_VSRCS += $(shell find $(NPC_HOME)/vsrc -name "*.v")
 
-FUNC_CSRCS = $(shell find $(NPC_HOME)/csrc -name "*.c" -or -name "*.cc" -or -name "*.cpp")
+FUNC_CSRCS = $(shell find $(NPC_HOME)/csrc/src -name "*.c" -or -name "*.cc" -or -name "*.cpp")
+FUNC_CSRCS += $(NPC_HOME)/csrc/npc_main.cpp
 
 # rules for NVBoard
 include $(NVBOARD_HOME)/scripts/nvboard.mk
@@ -97,5 +98,8 @@ clean:
 	rm -rf $(BUILD_DIR)
 
 include ../Makefile
+
+# Include rules for menuconfig
+include $(NPC_HOME)/csrc/scripts/config.mk
 
 .PHONY: default all clean run pbin fbin

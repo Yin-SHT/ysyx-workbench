@@ -37,7 +37,7 @@ static long load_img() {
   Log("The image is %s, size = %ld", img_file, size);
 
   fseek(fp, 0, SEEK_SET);
-#ifdef CONFIG_FUNC
+#ifdef CONFIG_FAST_SIMULATION
   int ret = fread(guest_to_host(RESET_VECTOR), size, 1, fp);
 #else
 //  int ret = fread(mrom_to_host(MROM_VECTOR), size, 1, fp);

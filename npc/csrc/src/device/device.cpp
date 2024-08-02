@@ -50,7 +50,7 @@ void sdl_clear_event_queue() {
   while (SDL_PollEvent(&event));
 }
 
-#ifdef CONFIG_DEVICE
+#ifdef CONFIG_HAS_DEVICE
 void init_device() {
   init_map();
 

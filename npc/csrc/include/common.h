@@ -16,6 +16,7 @@
 #ifndef __COMMON_H__
 #define __COMMON_H__
 
+#include <generated/autoconf.h>
 #include <stdint.h>
 #include <inttypes.h>
 #include <stdbool.h>
@@ -43,34 +44,5 @@ typedef uint16_t ioaddr_t;
 #define __GUEST_ISA__ riscv32
 #define CONFIG_PC_RESET_OFFSET 0x0
 #define CONFIG_ISA "riscv32"
-
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// Remember to change RESET_VECTOR in verilog
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// Used for functional validation
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-//#define CONFIG_FUNC 1
-
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// Used for performance validation
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#define CONFIG_SOC 1
-#define CONFIG_NVBOARD 1
-//#define CONFIG_PEREVENT 1
-
-/* Trace Defines */
-//#define CONFIG_WAVEFORM 1
-//#define CONFIG_DIFFTEST 1
-
-/* THESE BELOW MICRO ALWAYS RELATED WITH FUNCTIONAL VALIDATION */
-/* Device Defines */
-//#define CONFIG_DEVICE 1
-//#define CONFIG_HAS_SERIAL 1
-//#define CONFIG_HAS_TIMER 1
-//#define CONFIG_HAS_VGA 1
-//#define CONFIG_HAS_KEYBOARD 1
-
 
 #endif

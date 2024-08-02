@@ -84,7 +84,7 @@ extern "C" void axi4_write(uint32_t awaddr, uint32_t wdata_high, uint32_t wdata_
     mmio_write(awaddr, len, data);
 }
 
-#ifdef CONFIG_FUNC
+#ifdef CONFIG_FAST_SIMULATION
 void init_mem() {
     uint32_t *p = (uint32_t *)pmem;
     int i;
@@ -93,7 +93,7 @@ void init_mem() {
     }
     Log("physical memory area [" FMT_PADDR ", " FMT_PADDR "]", PMEM_LEFT, PMEM_RIGHT);
 }
-#elif CONFIG_SOC
+#elif CONFIG_SOC_SIMULATION
 void init_mem() {
     Log("mrom  memory area [" FMT_PADDR ", " FMT_PADDR "]", MROM_LEFT, MROM_RIGHT);
     Log("sram  memory area [" FMT_PADDR ", " FMT_PADDR "]", SRAM_LEFT, SRAM_RIGHT);

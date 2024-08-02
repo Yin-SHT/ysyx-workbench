@@ -30,7 +30,7 @@ static void restart() {
 
 void init_isa() {
     /* Load built-in image. */
-#ifdef CONFIG_FUNC
+#ifdef CONFIG_FAST_SIMULATION
     memcpy(guest_to_host(RESET_VECTOR), img, sizeof(img));
 #else 
 //    memcpy(mrom_to_host(MROM_VECTOR), img, sizeof(img));
