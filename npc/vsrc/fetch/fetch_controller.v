@@ -185,9 +185,11 @@ module fetch_controller (
     export "DPI-C" function fetch_cnt;
     function fetch_cnt;
         output int complete;
-        output int _nr_fetch_;
+        output int _nr_fetch;
+        output int _fetch_tick;
         complete = {31'h0, pre_handshake};
-        _nr_fetch_ = nr_fetch;
+        _nr_fetch = nr_fetch;
+        _fetch_tick = fetch_tick;
     endfunction
 
     reg pre_handshake;
@@ -209,6 +211,16 @@ module fetch_controller (
             nr_fetch <= 0;
         end else if (rvalid_i && rready_o) begin
             nr_fetch <= nr_fetch + 1;
+        end
+    end
+
+    reg [31:0] fetch_tick;
+    
+    always @(posedge clock) begin
+        if (reset) begin
+            fetch_tick <= 0;
+        end else if (cur_state == wait_arready || cur_state == wait_rvalid) begin
+            fetch_tick <= fetch_tick + 1;
         end
     end
 

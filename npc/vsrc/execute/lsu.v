@@ -319,14 +319,18 @@ module lsu (
     //-----------------------------------------------------------------
     export "DPI-C" function lsu_cnt;
     function lsu_cnt;
-        output int _nr_load_;
-        output int _nr_store_;
-        _nr_load_ = nr_load;
-        _nr_store_ = nr_store;
+        output int _nr_load;
+        output int _nr_store;
+        output int _load_tick;
+        output int _store_tick;
+        _nr_load = nr_load;
+        _nr_store = nr_store;
+        _load_tick = load_tick;
+        _store_tick = store_tick;
     endfunction
 
-    reg [31:0] nr_load;
-    reg [31:0] nr_store;
+    reg [31:0] nr_load, load_tick;
+    reg [31:0] nr_store, store_tick;
     
     always @(posedge clock) begin
         if (reset) begin
@@ -336,6 +340,17 @@ module lsu (
             nr_load <= nr_load + 1;
         end else if (bvalid_i && bready_o) begin
             nr_store <= nr_store + 1;
+        end
+    end
+
+    always @(posedge clock) begin
+        if (reset) begin
+            load_tick <= 0;
+            store_tick <= 0;
+        end else if (cur_state == wait_arready || cur_state == wait_rvalid) begin
+            load_tick <= load_tick + 1;
+        end else if (cur_state == wait_awready || cur_state == wait_bvalid) begin
+            store_tick <= store_tick + 1;
         end
     end
 
