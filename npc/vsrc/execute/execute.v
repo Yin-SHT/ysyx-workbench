@@ -70,150 +70,120 @@ module execute (
     input  [3:0]      rid_i
 );
   
-    wire                    we;
-    wire [`INST_TYPE_BUS]   inst_type;
-    wire [`ALU_OP_BUS]      alu_op;
-    wire [`LSU_OP_BUS]      lsu_op;
-    wire [`CSR_OP_BUS]      csr_op;
-    wire                    wsel;
-    wire                    wena;
-    wire [`REG_ADDR_BUS]    waddr;
-    wire                    csr_wena;
-    wire [31:0]             csr_waddr;
-    wire [`NPC_ADDR_BUS]    pc;
-    wire [`REG_DATA_BUS]    imm;
-    wire [`REG_DATA_BUS]    rdata1;
-    wire [`REG_DATA_BUS]    rdata2;
-    wire [`CSR_DATA_BUS]    csr_rdata;
-    wire                    access_begin;
-    wire                    access_done;
+    reg        wsel;
+    reg        wena;
+    reg [4:0]  waddr;
+    reg [7:0]  csr_op;
+    reg        csr_wena;
+    reg [31:0] csr_waddr;
 
     assign wsel_o      = wsel;
     assign wena_o      = wena;
-    assign waddr_o     = waddr;
+    assign waddr_o     = waddr;     
     assign csr_op_o    = csr_op;
-    assign csr_wena_o  = csr_wena;
-    assign csr_waddr_o = csr_waddr;
+    assign csr_wena_o  = csr_wena;     
+    assign csr_waddr_o = csr_waddr;     
 
-    execute_controller controller (
-        .clock          (clock),
-        .reset          (reset),
+    always @(posedge clock) begin
+        if (reset) begin
+            wsel      <= 0;
+            wena      <= 0;
+            waddr     <= 0;
+            csr_op    <= 0;
+            csr_wena  <= 0;
+            csr_waddr <= 0;
+        end else if (valid_pre_i && ready_pre_o) begin
+            wsel      <= wsel_i;
+            wena      <= wena_i;
+            waddr     <= waddr_i;
+            csr_op    <= csr_op_i;
+            csr_wena  <= csr_wena_i;
+            csr_waddr <= csr_waddr_i;
+        end
+    end
 
-        .valid_pre_i    (valid_pre_i),
-        .ready_pre_o    (ready_pre_o),
+    wire fu_ready_pre_o, lsu_ready_pre_o;
+    wire fu_valid_post_o, lsu_valid_post_o;
 
-        .valid_post_o   (valid_post_o),
-        .ready_post_i   (ready_post_i),
+    assign ready_pre_o  = fu_ready_pre_o  && lsu_ready_pre_o;
+    assign valid_post_o = fu_valid_post_o || lsu_valid_post_o;
 
-        .inst_type_i    (inst_type_i),
-
-        .access_begin_o (access_begin),
-        .access_done_i  (access_done),
-
-        .we_o           (we)
-    );
-    
-    execute_reg reg0 (
-        .clock          (clock),
-        .reset          (reset),
-
-        .we_i           (we),
-
-        .inst_type_i    (inst_type_i),
-        .alu_op_i       (alu_op_i),
-        .lsu_op_i       (lsu_op_i),
-        .csr_op_i       (csr_op_i),
-        .wsel_i         (wsel_i),
-        .wena_i         (wena_i),
-        .waddr_i        (waddr_i),
-        .csr_wena_i     (csr_wena_i),
-        .csr_waddr_i    (csr_waddr_i),
-        .pc_i           (pc_i),
-        .imm_i          (imm_i),
-        .rdata1_i       (rdata1_i),
-        .rdata2_i       (rdata2_i),
-        .csr_rdata_i    (csr_rdata_i),
-
-        .inst_type_o    (inst_type),
-        .alu_op_o       (alu_op),
-        .lsu_op_o       (lsu_op),
-        .csr_op_o       (csr_op),
-        .wsel_o         (wsel),
-        .wena_o         (wena),
-        .waddr_o        (waddr),
-        .csr_wena_o     (csr_wena),
-        .csr_waddr_o    (csr_waddr),
-        .pc_o           (pc),
-        .imm_o          (imm),
-        .rdata1_o       (rdata1),
-        .rdata2_o       (rdata2),
-        .csr_rdata_o    (csr_rdata)
-    );
-    
     fu fu0 (
-        .reset          (reset),
-                        
-        .inst_type_i    (inst_type),
-        .alu_op_i       (alu_op),
-        .csr_op_i       (csr_op),
-        .pc_i           (pc),
-        .imm_i          (imm),
-        .rdata1_i       (rdata1),
-        .rdata2_i       (rdata2),
-        .csr_rdata_i    (csr_rdata),
-                        
-        .alu_result_o   (alu_result_o),
-        .csr_wdata_o    (csr_wdata_o)
+        .clock             (clock),
+        .reset             (reset),
+                         
+        .valid_pre_i       (valid_pre_i),
+        .fu_ready_pre_o    (fu_ready_pre_o),
+        .lsu_ready_pre_o   (lsu_ready_pre_o),
+                         
+        .ready_post_i      (ready_post_i),
+        .fu_valid_post_o   (fu_valid_post_o),
+                         
+        .inst_type_i       (inst_type_i),
+        .alu_op_i          (alu_op_i),
+        .csr_op_i          (csr_op_i),
+        .pc_i              (pc_i),
+        .imm_i             (imm_i),
+        .rdata1_i          (rdata1_i),
+        .rdata2_i          (rdata2_i),
+        .csr_rdata_i       (csr_rdata_i),
+                         
+        .alu_result_o      (alu_result_o),
+        .csr_wdata_o       (csr_wdata_o)
     );
     
     lsu lsu0 (
-        .clock          (clock),
-        .reset          (reset),
+        .clock             (clock),
+        .reset             (reset),
        
-        .inst_type_i    (inst_type),
-        .lsu_op_i       (lsu_op),
-        .imm_i          (imm),
-        .rdata1_i       (rdata1),
-        .rdata2_i       (rdata2),
+        .valid_pre_i       (valid_pre_i),
+        .lsu_ready_pre_o   (lsu_ready_pre_o),
+        .fu_ready_pre_o    (fu_ready_pre_o),
+                         
+        .ready_post_i      (ready_post_i),
+        .lsu_valid_post_o  (lsu_valid_post_o),
+
+        .inst_type_i       (inst_type_i),
+        .lsu_op_i          (lsu_op_i),
+        .imm_i             (imm_i),
+        .rdata1_i          (rdata1_i),
+        .rdata2_i          (rdata2_i),
         
-        .access_begin_i (access_begin),
-        .access_done_o  (access_done),
+        .mem_result_o      (mem_result_o),
 
-        .mem_result_o   (mem_result_o),
+        .awready_i         (awready_i),                                 
+        .awvalid_o         (awvalid_o),                            
+        .awaddr_o          (awaddr_o),                           
+        .awid_o            (awid_o),                         
+        .awlen_o           (awlen_o),                          
+        .awsize_o          (awsize_o),                           
+        .awburst_o         (awburst_o),                            
 
-        .awready_i      (awready_i),                                 
-        .awvalid_o      (awvalid_o),                            
-        .awaddr_o       (awaddr_o),                           
-        .awid_o         (awid_o),                         
-        .awlen_o        (awlen_o),                          
-        .awsize_o       (awsize_o),                           
-        .awburst_o      (awburst_o),                            
+        .wready_i          (wready_i),                                 
+        .wvalid_o          (wvalid_o),                           
+        .wdata_o           (wdata_o),                          
+        .wstrb_o           (wstrb_o),                          
+        .wlast_o           (wlast_o),                          
 
-        .wready_i       (wready_i),                                 
-        .wvalid_o       (wvalid_o),                           
-        .wdata_o        (wdata_o),                          
-        .wstrb_o        (wstrb_o),                          
-        .wlast_o        (wlast_o),                          
+        .bready_o          (bready_o),                           
+        .bvalid_i          (bvalid_i),                                 
+        .bresp_i           (bresp_i),                                 
+        .bid_i             (bid_i),                                 
 
-        .bready_o       (bready_o),                           
-        .bvalid_i       (bvalid_i),                                 
-        .bresp_i        (bresp_i),                                 
-        .bid_i          (bid_i),                                 
+        .arready_i         (arready_i),                            
+        .arvalid_o         (arvalid_o),                            
+        .araddr_o          (araddr_o),                           
+        .arid_o            (arid_o),                         
+        .arlen_o           (arlen_o),                          
+        .arsize_o          (arsize_o),                           
+        .arburst_o         (arburst_o),                            
 
-        .arready_i      (arready_i),                            
-        .arvalid_o      (arvalid_o),                            
-        .araddr_o       (araddr_o),                           
-        .arid_o         (arid_o),                         
-        .arlen_o        (arlen_o),                          
-        .arsize_o       (arsize_o),                           
-        .arburst_o      (arburst_o),                            
-
-        .rready_o       (rready_o),                           
-        .rvalid_i       (rvalid_i),                           
-        .rresp_i        (rresp_i),                          
-        .rdata_i        (rdata_i),                          
-        .rlast_i        (rlast_i),                          
-        .rid_i          (rid_i)
+        .rready_o          (rready_o),                           
+        .rvalid_i          (rvalid_i),                           
+        .rresp_i           (rresp_i),                          
+        .rdata_i           (rdata_i),                          
+        .rlast_i           (rlast_i),                          
+        .rid_i             (rid_i)
     );
 
 endmodule
