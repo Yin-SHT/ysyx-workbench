@@ -35,7 +35,9 @@ void init_verilator(int argc, char **argv) {
     decode_ctrl = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.cpu0.decode0.controller");
     decode_logic = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.cpu0.decode0.decode_log0");
     userreg = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.cpu0.decode0.userreg0");
-    assert(fetch_ctrl && decode_ctrl && decode_logic && userreg);
+    fu = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.cpu0.execute0.fu0");
+    lsu = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.cpu0.execute0.lsu0");
+    assert(fetch_ctrl && decode_ctrl && decode_logic && userreg && fu && lsu);
 #endif
 
     // Init nvboard

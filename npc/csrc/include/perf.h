@@ -16,5 +16,7 @@ extern svScope fetch_ctrl;
 extern svScope decode_ctrl;
 extern svScope decode_logic;
 extern svScope userreg;
+extern svScope fu;
+extern svScope lsu;
 
 #endif

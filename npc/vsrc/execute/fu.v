@@ -185,4 +185,23 @@ module fu (
                             (csr_op == `CSR_OP_CSRRS) ? rdata1 | csr_rdata :
                             (csr_op == `CSR_OP_ECALL) ? pc : 0;
 
+    //-----------------------------------------------------------------
+    // performance counter
+    //-----------------------------------------------------------------
+    export "DPI-C" function fu_cnt;
+    function fu_cnt;
+        output int _nr_compute_;
+        _nr_compute_ = nr_compute;
+    endfunction
+
+    reg [31:0] nr_compute;
+    
+    always @(posedge clock) begin
+        if (reset) begin
+            nr_compute <= 0;
+        end else if (fu_valid_post_o && ready_post_i) begin
+            nr_compute <= nr_compute + 1;
+        end
+    end
+
 endmodule

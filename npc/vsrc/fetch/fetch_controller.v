@@ -51,12 +51,6 @@ module fetch_controller (
     input  [3:0]    rid_i
 );
 
-    export "DPI-C" function ifu_reg_event;
-    function ifu_reg_event;
-        output int inst_done;
-        inst_done = {31'h0, valid_pre_i && ready_pre_o};
-    endfunction
-
     //-----------------------------------------------------------------
     // PC
     //-----------------------------------------------------------------
@@ -191,19 +185,31 @@ module fetch_controller (
     export "DPI-C" function fetch_cnt;
     function fetch_cnt;
         output int complete;
+        output int _nr_fetch_;
         complete = {31'h0, pre_handshake};
+        _nr_fetch_ = nr_fetch;
     endfunction
 
     reg pre_handshake;
     reg cur_handshake;
-
+    reg [31:0] nr_fetch;
+ 
     always @(posedge clock) begin
         if (reset) begin
             pre_handshake <= 0;
             cur_handshake <= 0;
-        end else  begin
+        end else begin
             pre_handshake <= cur_handshake;
             cur_handshake <= valid_pre_i && ready_pre_o;
         end
     end
+
+    always @(posedge clock) begin
+        if (reset) begin
+            nr_fetch <= 0;
+        end else if (rvalid_i && rready_o) begin
+            nr_fetch <= nr_fetch + 1;
+        end
+    end
+
 endmodule 

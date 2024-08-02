@@ -3,6 +3,8 @@
 // -------------------------------------------------
 `define RESET_VECTOR       32'h3000_0000
 
+`define PERFORMANCE
+
 `define RESET_ENABLE       1'b1
 `define RESET_DISABLE      1'b0
 

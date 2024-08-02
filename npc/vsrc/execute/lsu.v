@@ -314,4 +314,29 @@ module lsu (
         end
     end
 
+    //-----------------------------------------------------------------
+    // performance counter
+    //-----------------------------------------------------------------
+    export "DPI-C" function lsu_cnt;
+    function lsu_cnt;
+        output int _nr_load_;
+        output int _nr_store_;
+        _nr_load_ = nr_load;
+        _nr_store_ = nr_store;
+    endfunction
+
+    reg [31:0] nr_load;
+    reg [31:0] nr_store;
+    
+    always @(posedge clock) begin
+        if (reset) begin
+            nr_load  <= 0;
+            nr_store <= 0;
+        end else if (rvalid_i && rready_o) begin
+            nr_load <= nr_load + 1;
+        end else if (bvalid_i && bready_o) begin
+            nr_store <= nr_store + 1;
+        end
+    end
+
 endmodule
