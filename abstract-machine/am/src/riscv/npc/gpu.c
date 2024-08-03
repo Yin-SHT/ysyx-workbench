@@ -1,17 +1,15 @@
 #include <am.h>
-#include "./include/npc.h"
-#include "../riscv.h"
+#include <npc.h>
+#include <riscv/riscv.h>
 
 #define SYNC_ADDR (VGACTL_ADDR + 4)
 
 void  *memcpy    (void *dst, const void *src, size_t n);
 
-static int W, H;
+static int W = 400;
+static int H = 300;
 
 void __am_gpu_init() {
-  uint32_t size = inl(VGACTL_ADDR);
-  W = size >> 16;
-  H = size & 0x0000ffff;
 }
 
 void __am_gpu_config(AM_GPU_CONFIG_T *cfg) {

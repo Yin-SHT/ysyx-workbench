@@ -17,7 +17,8 @@ DATE := $(shell date +%Y%m%d)
 CFLAGS    += -fdata-sections -ffunction-sections
 LDFLAGS   += -T $(AM_HOME)/scripts/ysyxsoc.ld 
 LDFLAGS   += --gc-sections -e _fsbl
-CFLAGS += -DMAINARGS=\"$(mainargs)\" -DDATE=0x$(DATE)
+CFLAGS += -DMAINARGS=\"$(mainargs)\" 
+CFLAGS += -DDATE=0x$(DATE)
 CFLAGS += -I$(AM_HOME)/am/src/riscv/ysyxsoc/include
 .PHONY: $(AM_HOME)/am/src/riscv/ysyxSoC/trm.c
 
