@@ -117,15 +117,6 @@ module fu (
     //-----------------------------------------------------------------
     wire [31:0] operand1;
     wire [31:0] operand2;
-    wire [63:0] mopd1;
-    wire [63:0] mopd2;
-    wire [63:0] smres;
-    wire [63:0] umres;
-
-    assign mopd1 = {32'h0, operand1};
-    assign mopd2 = {32'h0, operand2};
-    assign smres = $signed(mopd1) * $signed(mopd2);
-    assign umres = $unsigned(mopd1) * $unsigned(mopd2);
 
     assign operand1     = ( 
                             ( reset     == `RESET_ENABLE ) || 
@@ -168,14 +159,7 @@ module fu (
                             ( alu_op == `ALU_OP_LUI   )  ?  operand1  +  operand2 :
                             ( alu_op == `ALU_OP_AUIPC )  ?  operand1  +  operand2 :
                             ( alu_op == `ALU_OP_JUMP  )  ?  operand1  +  32'h4    : 
-                            ( alu_op == `ALU_OP_CSRR  )  ?  operand1              :
-                            ( alu_op == `ALU_OP_MUL   )  ?  operand1  * operand2  : 
-                            ( alu_op == `ALU_OP_MULH  )  ?  smres[63:32]          :
-                            ( alu_op == `ALU_OP_MULHU )  ?  umres[63:32]          : 
-                            ( alu_op == `ALU_OP_DIV   )  ?  $signed(operand1) / $signed(operand2) :
-                            ( alu_op == `ALU_OP_DIVU  )  ?  $unsigned(operand1) / $unsigned(operand2) :
-                            ( alu_op == `ALU_OP_REM   )  ?  $signed(operand1) % $signed(operand2) :                         
-                            ( alu_op == `ALU_OP_REMU  )  ?  $unsigned(operand1) % $unsigned(operand2) : 32'h0000_0000;
+                            ( alu_op == `ALU_OP_CSRR  )  ?  operand1              : 0;
 
 
     //-----------------------------------------------------------------

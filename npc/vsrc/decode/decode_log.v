@@ -100,14 +100,6 @@ module decode_log (
     wire inst_csrrs = ( opcode == `OPCODE_CSRRS ) & ( funct3 == `FUNCT3_CSRRS );
     wire inst_mret  = ( opcode == `OPCODE_MRET  ) & ( funct3 == `FUNCT3_MRET  ) & ( funct12 == `FUNCT12_MRET   );
 
-    wire inst_mul   = ( opcode == `OPCODE_MUL   ) & ( funct3 == `FUNCT3_MUL  ) & ( funct7 == `FUNCT7_MUL   );
-    wire inst_mulh  = ( opcode == `OPCODE_MULH  ) & ( funct3 == `FUNCT3_MULH ) & ( funct7 == `FUNCT7_MULH  );
-    wire inst_mulhu = ( opcode == `OPCODE_MULHU ) & ( funct3 == `FUNCT3_MULHU) & ( funct7 == `FUNCT7_MULHU );
-    wire inst_div   = ( opcode == `OPCODE_DIV   ) & ( funct3 == `FUNCT3_DIV  ) & ( funct7 == `FUNCT7_DIV   );
-    wire inst_divu  = ( opcode == `OPCODE_DIVU  ) & ( funct3 == `FUNCT3_DIVU ) & ( funct7 == `FUNCT7_DIVU  );
-    wire inst_rem   = ( opcode == `OPCODE_REM   ) & ( funct3 == `FUNCT3_REM  ) & ( funct7 == `FUNCT7_REM   );
-    wire inst_remu  = ( opcode == `OPCODE_REMU  ) & ( funct3 == `FUNCT3_REMU ) & ( funct7 == `FUNCT7_REMU  );
-
     wire unknown    = !(
                         inst_add   | inst_sub   | inst_xor   | inst_or    | inst_and   | 
                         inst_sll   | inst_srl   | inst_sra   | inst_slt   | inst_sltu  |
@@ -119,8 +111,7 @@ module decode_log (
                         inst_jal   | inst_jalr  |
                         inst_lui   | inst_auipc |
                         ebreak     | ecall      | 
-                        inst_csrrw | inst_csrrs | inst_mret  |
-                        inst_mul   | inst_mulh  | inst_mulhu | inst_div   | inst_divu  | inst_rem  | inst_remu 
+                        inst_csrrw | inst_csrrs | inst_mret  
                         );
 
     
@@ -160,14 +151,7 @@ module decode_log (
                             (inst_jal   | inst_jalr ) ? `ALU_OP_JUMP  : 
                             (inst_lui               ) ? `ALU_OP_LUI   :
                             (inst_auipc             ) ? `ALU_OP_AUIPC : 
-                            (inst_csrrs | inst_csrrw) ? `ALU_OP_CSRR  : 
-                            (inst_mul               ) ? `ALU_OP_MUL   : 
-                            (inst_mulh              ) ? `ALU_OP_MULH  :
-                            (inst_mulhu             ) ? `ALU_OP_MULHU : 
-                            (inst_div               ) ? `ALU_OP_DIV   :
-                            (inst_divu              ) ? `ALU_OP_DIVU  :
-                            (inst_rem               ) ? `ALU_OP_REM   : 
-                            (inst_remu              ) ? `ALU_OP_REMU  : `ALU_OP_NOP;
+                            (inst_csrrs | inst_csrrw) ? `ALU_OP_CSRR  : `ALU_OP_NOP;
 
     assign  lsu_op_o    =   inst_lb  ? `LSU_OP_LB    :
                             inst_lh  ? `LSU_OP_LH    :
@@ -203,8 +187,7 @@ module decode_log (
                             inst_lb   | inst_lh    | inst_lw    | inst_lbu   | inst_lhu   |
                             inst_jal  | inst_jalr  |
                             inst_lui  | inst_auipc |
-                            inst_csrrw| inst_csrrs |
-                            inst_mul  | inst_mulh  | inst_mulhu | inst_div   | inst_divu | inst_rem  | inst_remu;
+                            inst_csrrw| inst_csrrs;
     assign  waddr_o     = rd;
 
     assign  csr_wena_o  = inst_csrrw | inst_csrrs | ecall;
@@ -218,14 +201,12 @@ module decode_log (
                             inst_sb    | inst_sh   | inst_sw    |
                             inst_beq   | inst_bne  | inst_blt   | inst_bge  | inst_bltu  | inst_bgeu |
                             inst_jalr  |                
-                            inst_csrrw | inst_csrrs|
-                            inst_mul   | inst_mulh | inst_mulhu | inst_div  | inst_divu  | inst_rem  | inst_remu;
+                            inst_csrrw | inst_csrrs;
 
     assign  rena2_o     =   inst_add  | inst_sub  | inst_xor   | inst_or   | inst_and   |
                             inst_sll  | inst_srl  | inst_sra   | inst_slt  | inst_sltu  |
                             inst_sb   | inst_sh   | inst_sw    | 
-                            inst_beq  | inst_bne  | inst_blt   | inst_bge  | inst_bltu  | inst_bgeu |
-                            inst_mul  | inst_mulh | inst_mulhu | inst_div  | inst_divu  | inst_rem  | inst_remu;
+                            inst_beq  | inst_bne  | inst_blt   | inst_bge  | inst_bltu  | inst_bgeu;
 
     assign  raddr1_o    = rs1; 
     assign  raddr2_o    = rs2;
