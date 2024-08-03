@@ -19,7 +19,7 @@
         top->reset = 0;                                  \
     } while(0)
 
-#ifdef CONFIG_FUNC
+#ifdef CONFIG_FAST_SIMULATION
 
 #define ALIGN_CPU                                                                                                               \
     do {                                                                                                                        \
@@ -30,7 +30,7 @@
         cpu.mcause  = top->rootp->ysyxSoCFull__DOT__cpu0__DOT__decode0__DOT__sysreg0__DOT__mcause;                              \
         cpu.mtvec   = top->rootp->ysyxSoCFull__DOT__cpu0__DOT__decode0__DOT__sysreg0__DOT__mtvec;                               \
         cpu.mepc    = top->rootp->ysyxSoCFull__DOT__cpu0__DOT__decode0__DOT__sysreg0__DOT__mepc;                                \
-        cpu.pc      = top->rootp->ysyxSoCFull__DOT__cpu0__DOT__fetch0__DOT__controller__DOT__pc;                                
+        cpu.pc      = top->rootp->ysyxSoCFull__DOT__cpu0__DOT__fetch0__DOT__controller__DOT__pc;                                \
     } while (0);
 
 #else

@@ -1,5 +1,6 @@
-#include <utils.h>
+#include <common.h>
 #include <nvboard.h>
+#include <utils.h>
 #include <cpu.h>
 #include <perf.h>
 #include <isa.h>
@@ -37,6 +38,26 @@ static void perf_display() {
     printf("nr_compute: %d\n", nr_compute);
 }
 
+void getScope() {
+#ifdef CONFIG_FAST_SIMULATION
+    fetch_ctrl   = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.fetch0.controller");
+    decode_ctrl  = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.controller");
+    decode_logic = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.decode_log0");
+    userreg      = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.userreg0");
+    fu           = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.execute0.fu0");
+    lsu          = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.execute0.lsu0");
+    assert(fetch_ctrl && decode_ctrl && decode_logic && userreg && fu && lsu);
+#else 
+    fetch_ctrl   = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.cpu0.fetch0.controller");
+    decode_ctrl  = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.cpu0.decode0.controller");
+    decode_logic = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.cpu0.decode0.decode_log0");
+    userreg      = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.cpu0.decode0.userreg0");
+    fu           = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.cpu0.execute0.fu0");
+    lsu          = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.cpu0.execute0.lsu0");
+    assert(fetch_ctrl && decode_ctrl && decode_logic && userreg && fu && lsu);
+#endif
+}
+
 void examine_inst() {
     int pc, halt_ret, ebreak, unknown;                     
     int receive;
@@ -65,13 +86,15 @@ void examine_inst() {
         if (ebreak) {                                          
             set_npc_state(NPC_END, pc, halt_ret);          
 
+#ifdef CONFIG_SOC_SIMULATION
             svSetScope(fu);
             fu_cnt(&nr_compute);
 
             svSetScope(lsu);
             lsu_cnt(&nr_load, &nr_store, &load_tick, &store_tick);
 
-            perf_display();
+             perf_display();
+#endif
         }
     }
 }

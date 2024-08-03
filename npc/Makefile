@@ -60,7 +60,7 @@ LDFLAGS = -lreadline -lSDL2 $(shell llvm-config --libs) -lSDL2 -lSDL2_image -lSD
 $(PERF_BIN): $(PERF_VSRCS) $(PERF_CSRCS) $(NVBOARD_ARCHIVE)
 	@rm -rf $(OBJ_DIR)
 	$(VERILATOR) $(VERILATOR_FLAGS) \
-		--top-module $(TOPNAME) $^ \
+		-DRESET_VECTOR=32\'h3000_0000 --top-module $(TOPNAME) $^ \
 		$(addprefix -CFLAGS , $(CFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
 		--Mdir $(OBJ_DIR) --exe -o $(abspath $(PERF_BIN))
 
@@ -68,7 +68,7 @@ $(PERF_BIN): $(PERF_VSRCS) $(PERF_CSRCS) $(NVBOARD_ARCHIVE)
 $(FUNC_BIN): $(FUNC_VSRCS) $(FUNC_CSRCS) 
 	@rm -rf $(OBJ_DIR)
 	$(VERILATOR) $(VERILATOR_FLAGS) \
-		--top-module $(TOPNAME) $^ \
+		-DRESET_VECTOR=32\'h8000_0000 --top-module $(TOPNAME) $^ \
 		$(addprefix -CFLAGS , $(CFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
 		--Mdir $(OBJ_DIR) --exe -o $(abspath $(FUNC_BIN))
 

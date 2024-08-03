@@ -7,16 +7,10 @@
 #include "VysyxSoCFull___024root.h"
 
 void examine_inst();
+void getScope();
 
 extern VysyxSoCFull *top;
 extern VerilatedVcdC* tfp;
 extern VerilatedContext* ctxp;
-
-extern svScope fetch_ctrl; 
-extern svScope decode_ctrl;
-extern svScope decode_logic;
-extern svScope userreg;
-extern svScope fu;
-extern svScope lsu;
 
 #endif

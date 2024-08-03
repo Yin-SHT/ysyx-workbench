@@ -4,7 +4,7 @@
 // this is not consistent with uint8_t
 // but it is ok since we do not access the array directly
 static const uint32_t img [] = {
-#ifdef CONFIG_FUNC
+#ifdef CONFIG_FAST_SIMULATION
     0x00000297,  // auipc t0,0
     0x00028823,  // sb  zero,16(t0)
     0x0102c503,  // lbu a0,16(t0)
@@ -22,7 +22,11 @@ static const uint32_t img [] = {
 
 static void restart() {
     /* Set the initial program counter. */
+#ifdef CONFIG_FAST_SIMULATION
+    cpu.pc = RESET_VECTOR;
+#else 
     cpu.pc = FLASH_VECTOR;
+#endif
 
     /* The zero register is always 0. */
     cpu.gpr[0] = 0;
