@@ -55,19 +55,19 @@ module icache (
     *
     * Block    : 16 Byte
     * Way      : 8
-    * Group    : 16
-    * Capacity : 2048 Byte
+    * Group    : 8 
+    * Capacity : 1024 Byte
     */
 
-    reg         val[15:0][7:0];
-    reg [23:0]  tag[15:0][7:0];
-    reg [127:0] dat[15:0][7:0];
+    reg         val[7:0][7:0];
+    reg [24:0]  tag[7:0][7:0];
+    reg [127:0] dat[7:0][7:0];
     reg [127:0] buffer;
     reg [7:0]   rec_cnt;     // receive count
 
     wire [3:0]  tar_offset = pc[3:0];
-    wire [3:0]  tar_index  = pc[7:4];
-    wire [23:0] tar_tag    = pc[31:8];
+    wire [2:0]  tar_index  = pc[6:4];
+    wire [24:0] tar_tag    = pc[31:7];
 
     //-----------------------------------------------------------------
     // Caching Request Araddr 
@@ -170,7 +170,7 @@ module icache (
             end
         end
         end else if (cur_state == miss) begin
-            rand_idx <= {$random()}[2:0];
+            rand_idx <= rand_num;
         end else if (response_ready_i && response_valid_o) begin
             val[tar_index][rand_idx] <= 1;
             tag[tar_index][rand_idx] <= tar_tag;
@@ -254,5 +254,27 @@ module icache (
             endcase
         end
     end
+
+    //-----------------------------------------------------------------
+    // Miscellaneous
+    //-----------------------------------------------------------------
+    reg [2:0] lfsr;
+    reg [2:0] rand_num;
+
+    always @(*) begin
+        rand_num = lfsr;
+    end
+
+    always @(posedge clock or posedge reset) begin
+        if (reset) begin
+            lfsr <= 3'b001; // 初始种子值，可以设置为其他非零值
+        end else begin
+            // 3-bit Galois LFSR with polynomial x^3 + x + 1
+            lfsr[2] <= lfsr[1];
+            lfsr[1] <= lfsr[0];
+            lfsr[0] <= lfsr[2] ^ lfsr[0]; // XOR feedback
+        end
+    end
+
 
 endmodule
