@@ -50,10 +50,11 @@ module pmem (
     parameter wait_write   = 3'b100;
     parameter wait_bready  = 3'b101;
     
-    reg [2:0] cur_state;
-    reg [2:0] next_state;
+    reg [2:0]  cur_state;
+    reg [2:0]  next_state;
 
     reg [31:0] araddr;
+    reg [7:0]  arlen;
     reg [2:0]  arsize;
     reg [31:0] rdata;
 
@@ -77,8 +78,8 @@ module pmem (
 
     assign rvalid_o  = cur_state == wait_rready;
     assign rresp_o   = 0;
-    assign rdata_o   = cur_state == wait_rready ? rdata : 0;
-    assign rlast_o   = cur_state == wait_rready ? 1     : 0;
+    assign rdata_o   = cur_state == wait_rready ? rdata      : 0;
+    assign rlast_o   = cur_state == wait_rready ? arlen == 0 : 0;
     assign rid_o     = 0;
     
     //-----------------------------------------------------------------
@@ -110,7 +111,8 @@ module pmem (
                 end      
                 wait_read:   next_state = wait_rready;
                 wait_write:  next_state = wait_bready;
-                wait_rready: if (rready_i) next_state = idle;
+                wait_rready: if (rready_i && arlen != 0) next_state = wait_read;
+                             else if (rready_i && arlen == 0) next_state = idle;
                 wait_bready: if (bready_i) next_state = idle;
                 default: next_state = cur_state;
             endcase
@@ -137,11 +139,18 @@ module pmem (
     always @(posedge clock) begin
         if (reset) begin
             araddr <= 0;
+            arlen  <= 0;
             arsize <= 0;
         end else if (cur_state == idle && arvalid_i) begin
             araddr <= araddr_i;
+            arlen  <= arlen_i;
             arsize <= arsize_i;
-        end 
+        end else if (cur_state == wait_rready && rready_i) begin
+            if (arlen > 0) 
+                arlen <= arlen - 1; 
+        end else if (cur_state == wait_read) begin
+            araddr <= araddr + 4;
+        end
     end
 
     always @(posedge clock) begin

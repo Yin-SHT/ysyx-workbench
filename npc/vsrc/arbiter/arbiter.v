@@ -239,8 +239,8 @@ module arbiter (
               else if (exu_arvalid_i &&  in_clint ) next_state = clint_read;
               else if (exu_awvalid_i ) next_state = exu_write;
               else if (ifu_arvalid_i ) next_state = ifu_read;
-        ifu_read: if (ifu_rready_i && rvalid_i) next_state = idle;
-        exu_read: if (exu_rready_i && rvalid_i) next_state = idle;
+        ifu_read: if (ifu_rready_i && rvalid_i && rlast_i) next_state = idle;
+        exu_read: if (exu_rready_i && rvalid_i && rlast_i) next_state = idle;
         exu_write: if (exu_bready_i && bvalid_i ) next_state = idle;
         clint_read: if (exu_rready_i && clint_rvalid_i && clint_rlast_i) next_state = idle;
         default: next_state = cur_state;

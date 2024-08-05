@@ -51,6 +51,14 @@ module fetch (
     input  [3:0]      rid_i
 );
 
+    wire request_valid;
+    wire request_ready;
+
+    wire response_ready;
+    wire response_valid;
+
+    wire [31:0] pc;
+
     fetch_controller controller (
         .clock        (clock),
         .reset        (reset),
@@ -61,8 +69,29 @@ module fetch (
         .valid_post_o (valid_post_o),
         .ready_post_i (ready_post_i),
 
+        .request_valid_o  (request_valid),      
+        .request_ready_i  (request_ready),      
+                           
+        .response_ready_o (response_ready),
+        .response_valid_i (response_valid),       
+
         .branch_en_i  (branch_en_i),
         .dnpc_i       (dnpc_i),
+
+        .pc_o         (pc)
+    );
+
+    icache icache0 (
+        .clock        (clock),
+        .reset        (reset),
+
+        .request_valid_i  (request_valid),      
+        .request_ready_o  (request_ready),      
+                           
+        .response_ready_i (response_ready),
+        .response_valid_o (response_valid),       
+
+        .pc_i         (pc),
 
         .pc_o         (pc_o),
         .inst_o       (inst_o),

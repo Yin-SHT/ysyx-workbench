@@ -37,7 +37,6 @@ void init_isa() {
 #ifdef CONFIG_FAST_SIMULATION
     memcpy(guest_to_host(RESET_VECTOR), img, sizeof(img));
 #else 
-//    memcpy(mrom_to_host(MROM_VECTOR), img, sizeof(img));
     memcpy(flash_to_host(FLASH_VECTOR), img, sizeof(img));
 #endif
 
