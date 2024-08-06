@@ -1,9 +1,7 @@
 // -------------------------------------------------
 // GLOBAL
 // -------------------------------------------------
-//`define RESET_VECTOR       32'h3000_0000
-
-`define PERFORMANCE
+`define RESET_VECTOR       32'h8000_0000
 
 `define RESET_ENABLE       1'b1
 `define RESET_DISABLE      1'b0
@@ -50,7 +48,6 @@
 `define MCAUSE       32'h0000_0342
 `define MVENDORID    32'hffff_ff11
 `define MARCHID      32'hffff_ff12
-`define MCAUSE       32'h0000_0342
 `define ECALL_FROM_M 32'h0000_000b
 
 // -------------------------------------------------
@@ -71,8 +68,8 @@
 `define AXI4_AWLEN_BUS   7:0
 `define AXI4_AWSIZE_BUS  2:0
 `define AXI4_AWBURST_BUS 1:0
-`define AXI4_WDATA_BUS   63:0
-`define AXI4_WSTRB_BUS   7:0
+`define AXI4_WDATA_BUS   31:0
+`define AXI4_WSTRB_BUS   3:0
 `define AXI4_BRESP_BUS   1:0
 `define AXI4_BID_BUS     3:0
 `define AXI4_ARADDR_BUS  31:0
@@ -81,7 +78,7 @@
 `define AXI4_ARSIZE_BUS  2:0
 `define AXI4_ARBURST_BUS 1:0
 `define AXI4_RRESP_BUS   1:0
-`define AXI4_RDATA_BUS   63:0
+`define AXI4_RDATA_BUS   31:0
 `define AXI4_RID_BUS     3:0
 
 
@@ -291,23 +288,16 @@
 `define ALU_OP_SUB      8'b0000_0010
 `define ALU_OP_XOR      8'b0000_0011
 `define ALU_OP_OR       8'b0000_0100
-`define ALU_OP_AND      8'b0000_0101
-`define ALU_OP_SLL      8'b0000_0110
-`define ALU_OP_SRL      8'b0000_0111
-`define ALU_OP_SRA      8'b0000_1000
-`define ALU_OP_SLT      8'b0000_1001
+`define ALU_OP_AND      8'b0001_0101
+`define ALU_OP_SLL      8'b0001_0110
+`define ALU_OP_SRL      8'b0001_0111
+`define ALU_OP_SRA      8'b0001_1000
+`define ALU_OP_SLT      8'b0001_1001
 `define ALU_OP_SLTU     8'b0000_1010
 `define ALU_OP_LUI      8'b0000_1011
 `define ALU_OP_AUIPC    8'b0000_1100
 `define ALU_OP_JUMP     8'b0000_1101
 `define ALU_OP_CSRR     8'b0000_1110
-`define ALU_OP_MUL      8'b0000_1111
-`define ALU_OP_MULH     8'b0001_0000
-`define ALU_OP_MULHU    8'b0001_0001
-`define ALU_OP_DIV      8'b0001_0010
-`define ALU_OP_DIVU     8'b0001_0011
-`define ALU_OP_REM      8'b0001_0100
-`define ALU_OP_REMU     8'b0001_0101
 
 // -------------------------------------------------
 // LSU_OP

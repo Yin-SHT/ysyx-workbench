@@ -40,13 +40,13 @@ static void perf_display() {
 
 void getScope() {
 #ifdef CONFIG_FAST_SIMULATION
-    fetch_ctrl   = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.fetch0.controller");
+//    fetch_ctrl   = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.fetch0.controller");
     decode_ctrl  = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.controller");
     decode_logic = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.decode_log0");
     userreg      = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.decode0.userreg0");
-    fu           = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.execute0.fu0");
-    lsu          = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.execute0.lsu0");
-    assert(fetch_ctrl && decode_ctrl && decode_logic && userreg && fu && lsu);
+//    fu           = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.execute0.fu0");
+//    lsu          = svGetScopeFromName("TOP.ysyxSoCFull.cpu0.execute0.lsu0");
+    assert(fetch_ctrl && decode_ctrl && decode_logic && userreg);
 #else 
     fetch_ctrl   = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.cpu0.fetch0.controller");
     decode_ctrl  = svGetScopeFromName("TOP.ysyxSoCFull.asic.cpu.cpu0.decode0.controller");
@@ -65,14 +65,14 @@ void examine_inst() {
 
     tick ++;
 
-    svSetScope(fetch_ctrl); 
-    fetch_cnt(&complete);
-    if (complete) {
-        difftest = true;
-
-        pc = cpu.pc;
-        ALIGN_CPU;
-    }
+//    svSetScope(fetch_ctrl); 
+//    fetch_cnt(&complete);
+//    if (complete) {
+//        difftest = true;
+//
+//        pc = cpu.pc;
+//        ALIGN_CPU;
+//    }
 
     svSetScope(decode_ctrl); 
     decode_cnt(&receive);        

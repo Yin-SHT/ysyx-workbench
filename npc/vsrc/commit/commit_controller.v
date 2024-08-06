@@ -1,54 +1,63 @@
 `include "defines.v"
 
 module commit_controller (
-    input    clock,
-    input    reset,
+  input    clock,
+  input    reset,
 
-    input    valid_pre_i,
-    output   valid_post_o,
+  input    valid_pre_i,
+  output   ready_pre_o,
 
-    input    ready_post_i,
-    output   ready_pre_o,
+  input    is_csr_i,
 
-    output   we_o
+  output   commit_valid_o,
+  output   commit_csr_o,
+
+  output   we_o
 );
 
-    parameter idle       = 2'b00;
-    parameter wait_ready = 2'b01;
+  /* Performance Event */
+  export "DPI-C" function commit_event;
+  function commit_event;
+      output int check;
+      check = {31'h0, commit_valid_o};
+  endfunction
 
-    reg [1:0] cur_state;
-    reg [1:0] next_state;
+  parameter idle  = 2'b00;
+  parameter await = 2'b01;
 
-    //-----------------------------------------------------------------
-    // Outputs 
-    //-----------------------------------------------------------------
-    assign we_o         = valid_pre_i && ready_pre_o;
-    assign ready_pre_o  = cur_state   == idle;
-    assign valid_post_o = cur_state   == wait_ready;
+  reg [1:0] cur_state;
+  reg [1:0] next_state;
 
+  //-----------------------------------------------------------------
+  // Outputs 
+  //-----------------------------------------------------------------
+  assign we_o = valid_pre_i && ready_pre_o;
+  assign ready_pre_o = cur_state == idle;
+  assign commit_valid_o = cur_state == await;
+  assign commit_csr_o   = cur_state == await && is_csr_i;
 
-    //-----------------------------------------------------------------
-    // Synchronous State - Transition always@ ( posedge Clock ) block
-    //-----------------------------------------------------------------
-    always @(posedge clock) begin
-        if (reset) begin
-            cur_state <= idle;
-        end else begin
-            cur_state <= next_state;
-        end
+  //-----------------------------------------------------------------
+  // Synchronous State - Transition always@ ( posedge Clock ) block
+  //-----------------------------------------------------------------
+  always @(posedge clock) begin
+    if (reset) begin
+      cur_state <= idle;
+    end else begin
+      cur_state <= next_state;
     end
+  end
 
 
-    //-----------------------------------------------------------------
-    // Conditional State - Transition always@ ( * ) block
-    //-----------------------------------------------------------------
-    always @(*) begin
-        next_state = cur_state;
-        case (cur_state)
-            idle:       if (valid_pre_i)  next_state = wait_ready;
-            wait_ready: if (ready_post_i) next_state = idle;
-            default: next_state = cur_state;
-        endcase
-    end
+  //-----------------------------------------------------------------
+  // Conditional State - Transition always@ ( * ) block
+  //-----------------------------------------------------------------
+  always @(*) begin
+    next_state = cur_state;
+    case (cur_state)
+      idle:  if (valid_pre_i)  next_state = await;
+      await: next_state = idle;
+      default: next_state = cur_state;
+    endcase
+  end
 
 endmodule 
