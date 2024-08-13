@@ -24,9 +24,9 @@ module result_drive (
   input [127:0] buffer_i,
 
   output        wen_o,
-  output [3:0]  windex_o,
+  output [2:0]  windex_o,
   output [2:0]  wway_o,
-  output [23:0] wtag_o,
+  output [24:0] wtag_o,
   output [127:0]wdata_o,
 
   output        pvalid_o,
@@ -80,8 +80,8 @@ module result_drive (
   reg [7:0]   rec_cnt;     // receive count
   reg [2:0]   rand_way;    // random selected way number
 
-  wire [23:0] tar_tag    = araddr[31:8];
-  wire [3:0]  tar_index  = araddr[7:4];
+  wire [24:0] tar_tag    = araddr[31:7];
+  wire [2:0]  tar_index  = araddr[6:4];
   wire [3:0]  tar_offset = araddr[3:0];
 
   always @(posedge clock) begin

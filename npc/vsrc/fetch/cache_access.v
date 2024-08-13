@@ -14,9 +14,9 @@ module cache_access (
   input          csr_flush_i,
 
   input          wen_i,
-  input  [3:0]   windex_i,
+  input  [2:0]   windex_i,
   input  [2:0]   wway_i,
-  input  [23:0]  wtag_i,
+  input  [24:0]  wtag_i,
   input  [127:0] wdata_i,
 
   input          pvalid_i,
@@ -50,12 +50,12 @@ module cache_access (
    * Capacity : 2048 Byte
   */
 
-  reg         val[15:0][7:0];
-  reg [23:0]  tag[15:0][7:0];
-  reg [127:0] dat[15:0][7:0];
+  reg         val[7:0][7:0];
+  reg [24:0]  tag[7:0][7:0];
+  reg [127:0] dat[7:0][7:0];
 
-  wire [3:0]  tar_index  = araddr[7:4];
-  wire [23:0] tar_tag    = araddr[31:8];
+  wire [2:0]  tar_index  = araddr[6:4];
+  wire [24:0] tar_tag    = araddr[31:7];
 
   //-----------------------------------------------------------------
   // Caching Info

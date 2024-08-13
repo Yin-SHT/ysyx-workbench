@@ -15,13 +15,13 @@ module btb (
   input  [31:0] wtarget_i      // true predict target
 );
 
-  reg       valid[255:0];
-  reg[31:0] pc[255:0];
-  reg[1:0]  cnt[255:0];        // 00 -> 01 -> 10 -> 11
-  reg[31:0] target[255:0];
+  reg       valid[63:0];
+  reg[31:0] pc[63:0];
+  reg[1:0]  cnt[63:0];        // 00 -> 01 -> 10 -> 11
+  reg[31:0] target[63:0];
 
-  wire[7:0] ridx = pc_i[7:0];   // read index
-  wire[7:0] widx = wpc_i[7:0];  // write index
+  wire[5:0] ridx = pc_i[5:0];   // read index
+  wire[5:0] widx = wpc_i[5:0];  // write index
 
   //-----------------------------------------------------------------
   // Predict

@@ -86,9 +86,9 @@ module fetch (
 
   wire [31:0]  pc;
   wire         wen;
-  wire [3:0]   windex;
+  wire [2:0]   windex;
   wire [2:0]   wway;
-  wire [23:0]  wtag;
+  wire [24:0]  wtag;
   wire [127:0] wdata;
 
   wire         tar_hit;
