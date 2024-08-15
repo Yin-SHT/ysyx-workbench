@@ -89,9 +89,9 @@ void examine_inst() {
             if (commit_inst == 0x00100073) { 
                 set_npc_state(NPC_END, commit_pc, a0);  
 
-                printf("IPC: %f\n", (double)inst / ticks);       
-                printf("icache hit: %f\n", (double)icache_hit / icache_check);       
-                printf("btb succ: %f\n", (double)btb_succ / btb_check);       
+//                printf("IPC: %f\n", (double)inst / ticks);       
+//                printf("icache hit: %f\n", (double)icache_hit / icache_check);       
+//                printf("btb succ: %f\n", (double)btb_succ / btb_check);       
 
                 return; 
             }  
@@ -104,35 +104,35 @@ void examine_inst() {
             } 
         } 
 
-        if (!start) {
-            if (pc >= 0xa0000000) {
-                start = true;
-            }
-        } else {
-            ticks ++;
-            inst ++;
-
-            svSetScope(sp_icache);
-            int check, hit, branch, succ;
-            icache_event(&check, &hit);
-
-            if (check) {
-                icache_check ++;
-                if (hit) {
-                    icache_hit ++;
-                }
-            }
-
-            svSetScope(sp_drive);
-            drive_event(&check, &branch, &succ);
-
-            if (check && branch) {
-                btb_check ++;
-                if (succ) {
-                    btb_succ ++;
-                }
-            }
-        }
+//        if (!start) {
+//            if (pc >= 0xa0000000) {
+//                start = true;
+//            }
+//        } else {
+//            ticks ++;
+//            inst ++;
+//
+//            svSetScope(sp_icache);
+//            int check, hit, branch, succ;
+//            icache_event(&check, &hit);
+//
+//            if (check) {
+//                icache_check ++;
+//                if (hit) {
+//                    icache_hit ++;
+//                }
+//            }
+//
+//            svSetScope(sp_drive);
+//            drive_event(&check, &branch, &succ);
+//
+//            if (check && branch) {
+//                btb_check ++;
+//                if (succ) {
+//                    btb_succ ++;
+//                }
+//            }
+//        }
 
     } while (0);
 
