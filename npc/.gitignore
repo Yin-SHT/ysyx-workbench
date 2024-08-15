@@ -12,3 +12,5 @@
 build/
 /obj_dir
 !*scala
+config/
+generated/
